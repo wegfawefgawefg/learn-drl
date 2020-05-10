@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Basic Page Needs
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta charset="utf-8" />
+    <title>Wegfawefgawefg's Tutorials</title>
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+
+    <!-- Mobile Specific Metas
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- FONT
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link
+      href="//fonts.googleapis.com/css?family=Raleway:400,300,600"
+      rel="stylesheet"
+      type="text/css"
+    />
+
+    <!-- CSS
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="stylesheet" href="../../../css/normalize.css" />
+    <link rel="stylesheet" href="../../../css/barebones.css" />
+
+    <!-- Favicon
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="icon" type="image/png" href="images/favicon-16.png" />
+
+    <!-- 
+    text, video, thoughts/commentary/ideas, related projects or something
+ -->
+  </head>
+  <body>
+    <div class="grid-container full">
+      <h1>Wegfawefgawefg's Tutorials</h1>
+      <h2>Actor Critic Tutorial</h2>
+      <p>
+        The Actor-Critic method is a reinforcement learning algorithm. <br />
+        It has two primary components, an <strong>action picker</strong> and a
+        <strong>state value estimator</strong>.
+      </p>
+    </div>
+    <div class="grid-container halves u-align-left">
+      <div class="left">
+        <h5>Action Picker (Actor)</h5>
+        <p>
+          The <strong>action picker</strong> takes in a frame of information,
+          camera input, game state, or even past action, and outputs a number
+          for each action the agent is allowed to take. The numbers it outputs
+          are used to pick the agents actions.
+        </p>
+        <strong>Ex:</strong> The actor is given a picture of a poisoned burger.
+        <div class="grid-container halves">
+          <div class="u-align-left">
+            <p>
+              It outputs 3 values. <br />
+              <br />
+              <strong>Eat:</strong> 0.8 <br />
+              <strong>Dont Eat:</strong> 0.3 <br />
+              <strong>Be Suspicious:</strong> 0.001
+            </p>
+          </div>
+          <div class="u-align-left">
+            <p>
+              <br />
+              <br />
+              The Agent picks the highest one. :()
+            </p>
+          </div>
+        </div>
+        This is why we need the <strong>critic</strong>...
+      </div>
+      <div class="right">
+        <h5>State Value Estimator (Critic)</h5>
+        <p>
+          The <strong>state value estimator</strong> is very similar to the
+          action picker. It takes in the same exact frame of information as the
+          <strong>action picker</strong>, but outputs a single number
+          representing the value of the input state. <br /><br />
+          <strong>Ex:</strong> The critic gets a picture of you eating a
+          poisoned burger. <br />
+          <strong>Value:</strong> -10.0 :( <br /><br />
+          <strong>Ex:</strong> The critic gets a picture of a man handing you an
+          antidote. <br />
+          <strong>Value:</strong> 10.0 :) <br /><br />
+          <strong>Ex:</strong> The critic gets a picture of divorce papers.
+          <br />
+          <strong>Value:</strong> :^)
+        </p>
+      </div>
+    </div>
+    <div class="grid-container full u-align-left">
+      <p>
+        The predictive function behind the <strong>action picker</strong> or the
+        <strong>state value estimator</strong> can be whatever you want (ex:
+        linear regression, nearest neighbor, genetic algorithm, random forest).
+        However i will be using a <a>neural network</a> for both of them.
+      </p>
+      <pre><code>class ActorCriticNetwork(torch.nn.Module): <a>here is my handle</a>
+def __init__(self, alpha, inputDims, fc1Dims, fc2Dims, numActions):
+    super().__init__()
+    #   backbone network
+    self.fc1 = nn.Linear(*inputDims, fc1Dims)
+    self.fc2 = nn.Linear(fc1Dims, fc2Dims)
+
+    #   tail networks <a>here is my spout</a>
+    <strong>self.actor = nn.Linear(fc2Dims, numActions)     #   here is the actor</strong>
+    <strong>self.critic = nn.Linear(fc2Dims, 1)             #   here is the critic</strong>
+    
+    #   pytorch stuff
+    self.optimizer = optim.Adam(self.parameters(), lr=alpha)
+    self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    self.to(self.device)
+
+def forward(self, observation): <a>tip me over and pour me out</a>
+    state = torch.tensor(observation).to(self.device)
+    x = F.relu(self.fc1(state))
+    x = F.relu(self.fc2(x))
+    <strong>policy = self.actor(x)  #   actor outputs one number for each action, a vector</strong>
+    <strong>value = self.critic(x)  #   critic just puts out the value, one number</strong>
+    return policy, value</code></pre>
+    </div>
+    <div class="grid-container thirds u-align-left">
+      <div>
+        <h5>Network Class Inputs</h5>
+        <p>
+          The network class takes in the learning rate (alpha), game frame shape
+          (the inputs for the actor-critic network), the sizes of the 2 layers
+          (fc1, fc2), and the number of actions (which happens to be the output
+          of the actor network).
+        </p>
+      </div>
+      <div>
+        <h5>Tail Networks</h5>
+        <p>
+          A convenient way to do an actor-critic network is by making them share
+          a backbone network. And it makes sense, the same features that are
+          useful for determining state value are probably also useful for
+          determining which action to pick next.
+        </p>
+      </div>
+      <div>
+        <h5>Policy</h5>
+        <p>
+          The values used to pick actions are known as the
+          <strong>policy.</strong>
+          Why that word? Math history or something. Not a terrible word for it
+          thought.
+          <br />
+          "It is my policy to do THIS under THESE specific circumstances." The
+          standard symbol for a policy is 𝜋. (pi, like 3.14pi) <br />
+          In reinforcement learning papers anytime you see 𝜋 it means
+          <strong>policy</strong>.
+        </p>
+      </div>
+    </div>
+    <div class="grid-container full u-align-left">
+      <h4>Picking an Action</h4>
+      <p>
+        For vanilla Deep Q learning it's as easy as picking the highest actor
+        action output. :)
+      </p>
+      <pre><code>def chooseAction(state):
+    policy, _ = actorCriticNetwork(state)
+    <strong>action = torch.argmax(policy).item()    #   pick here</strong>
+    return action</code></pre>
+      <p>
+        But this isnt Vanilla Deep Q Learning. This is Actor-Critic Method. >:()<br />
+        The <strong>actor</strong> outputs probabilities of actions instead of
+        actual action values.<br />
+        So the <strong>Eat:</strong> 0.8 from earlier, yeah thats like an 80%
+        chance of eating the burger.<br />
+        If this was DQ Learning a value of 0.8 being the highest would mean 100%
+        chance of eating the poison burger. :(
+      </p>
+      <p>Lets choose an action the Actor Critic way.</p>
+      <pre><code>def chooseAction(observation):
+    policy, _ = actorCritic.forward(observation)
+    policy = F.softmax(policy, dim=0)
+    actionProbs = torch.distributions.Categorical(policy)
+    action = actionProbs.sample()
+    self.logProbs = actionProbs.log_prob(action)    #    saving this value for later
+    return action.item()</code></pre>
+    </div>
+    <div class="grid-container halves u-align-left">
+      <div class="left">
+        <h5>Softmax</h5>
+        <p>
+          We have to softmax the output action probabilities from the networks
+          output <strong>policy</strong>.<br />
+          Why are the outputs not good enough as is? Well, its just because the
+          policy is supposed to be probabilities of each action being taken.
+          <br />
+          Probabilities need to add up to 1.<br /><br />
+          Consider the following policy:<br />
+          <strong>Eat:</strong> 0.8 <br />
+          <strong>Dont Eat:</strong> 0.3 <br />
+          <strong>Be Suspicious:</strong> 0.001 <br /><br />
+          Thats 80% + 30% + 0.001%. <br />
+          110.001% with the actions combined. <br />
+          Doesn't make any sense right? <br />
+          Softmax takes in a list of numbers and makes them add up to 1. Which
+          is exactly what we want.<br />
+        </p>
+        <pre><code>#    softmax example
+a = torch.tensor([0.8, 0.3, 0.001])
+b = F.softmax(a, dim=0)
+b is now tensor([0.4863, 0.2950, 0.2187])</code></pre>
+        <p>
+          You may have noticed now <strong>Eat</strong> has changed size
+          relative to <strong>Dont Eat</strong>. 0.8 / 0.3 is not the same as
+          0.4863 / 0.2950<br />
+          Softmax mangles the relative probability scales just a little bit.
+          But, the network figures it out after a while. More importantly,
+          thanks to softmax no matter what weird shit the actor network outputs
+          we have sane action probability ranges.
+        </p>
+      </div>
+      <div class="right">
+        <div>
+          <h5>Categorical Distribution</h5>
+          <p>
+            You put 80 red marbles, 30 blue marbles, and a glass shard from a
+            green marble in a bag. We have 3 distinct
+            <strong>categories</strong> of marbles. One might even say its a
+            categorical distribution of marbles.<br />
+            You pick one marble from the bag. One might even say you
+            <strong>sample</strong> the bag.<br />
+            In this case sample() returns an index because its from a
+            categorical distribution. But from other distributions it might
+            return a floating point value. Another common distribution used for
+            picking actions in reinforcement learning is a normal distribution.
+          </p>
+        </div>
+        <div>
+          <h5>Log Probability</h5>
+          <p>
+            This is the probability of a specific action, but pushed through the
+            log function.<br />
+            Why do this? Well like everything in life there are more than one
+            explanation, and some of them are more complicated than others.
+            Basically, you'll understand when you're older.<br />
+            You'll also understand it right now:
+          </p>
+          <ul>
+            <li>
+              One explanation involves some math nonsense i think someone made
+              up to sound cool.
+              <a
+                href="https://www.quora.com/What-is-log-probability-in-policy-gradient-reinforcement-learning"
+                >here</a
+              >
+            </li>
+            <li>
+              One explanation involves the log probability having more stable
+              scaling than the raw probability.
+              <a
+                href="https://stats.stackexchange.com/questions/174481/why-to-optimize-max-log-probability-instead-of-probability"
+                >here</a
+              >
+            </li>
+          </ul>
+          <p>
+            The important thing to take from this though is that you are gonna
+            need the probability of the chosen action for teaching the network.
+            And smoothing and shrinking the distribution out gives the network
+            an easier time.<br />
+            Specifically, youre gonna multiply the probabilities of chosen
+            actions by the critic state values. Your natural intuition for why
+            this works is probably pretty reasonable. We'll get to the
+            explanation in a sec.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="grid-container full u-align-left">
+      <h4>Improving Our Choices In Life</h4>
+      <p>
+        The actor network and the critic network both have unique errors.<br />
+        Each network is punished by their own respective error, and their
+        estimation of their respective responsibility improves. We get better
+        actions from the <strong>actor</strong>, and better value estimates from
+        the <strong>critic</strong>.
+      </p>
+      <pre><code>def learn(state, reward, nextState, done): <a>following the meta</a>
+    actorCritic.optimizer.zero_grad()  #   pytorch stuff: resets all the tensor derivatives
+
+    #   fetch values from the critic network
+    _, criticValue = actorCritic.forward(state)            #   the value of now
+    _, nextCriticValue = actorCritic.forward(nextState)    #   the value of the future
+
+    #   the temporal difference zone
+    #   #   the true value of now = now + future
+    temporalDifference = reward + <strong>gamma</strong> * nextCriticValue * (1 - int(done))    
+    delta = temporalDifference - criticValue    <a>oh how wrong we were</a>
+
+    #   compute the error for our actor and critic networks
+    actorLoss = -self.logProbs * delta  #   the probability of our chosen action * how wrong we were
+    criticLoss = delta**2   #   we dont care about which direction (the sign), 
+                            #   just wanna minimize how wrong we were in total
+
+    (actorLoss + criticLoss).backward()
+    actorCritic.optimizer.step()</code></pre>
+    </div>
+    <div class="grid-container halves u-align-left">
+      <div class="left">
+        <div>
+          <h5>Learn Function Inputs</h5>
+          <ul>
+            <li>
+              <strong>State</strong> is our game screenshot, or robot arm
+              position, or self driving car position/velocity. It's the same
+              thing that goes into the actor and critic.
+            </li>
+            <li>
+              <strong>Reward</strong> is the ground truth
+              <strong>value</strong> that our critic is supposed to learn. It is
+              generally returned by an environment. In AI Gym it is explicity
+              the reward, but for your own environment it could be how much
+              money your trading algorithm made, or how well balanced your robot
+              is, or how many non poisonous burgers you ate. The
+              <strong>reward</strong> is a hedonistic measure of success.
+              Success right now. <br />
+              It's magnitude is kind of arbitrary. Could be 1.0, could be 100.0.
+              <br />
+              It doesn't matter what scale it is, just that it is consistent.
+            </li>
+            <li>
+              The <strong>nextState</strong> is just like
+              <strong>state</strong>, except its the next one.<br />
+              It is the future, one time step forward. That means in order to
+              run this we already need to know the
+              <strong>nextState</strong>.<br />
+              <strong
+                >You don't learn from the present. You learn from comparing the
+                present to the past.</strong
+              >
+            </li>
+            <li>
+              <strong>Done</strong> is just whether the
+              <strong>nextState</strong> was the last one. (true or false, 1 or
+              0)<br />
+              If the game was game over on <strong>state</strong> then
+              <strong>nextState</strong> isn't valid.<br />
+              You don't care how much money you made the day after you died.
+              Because you are dead. <a>see (1 - int(done))</a><br />
+              The vast majority of our <strong>nextState</strong>s will not be
+              the end of the game/episode/trial, so most of the time it doesn't
+              even get used. It will just be false/0.
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h5>Temporal Difference</h5>
+          <p>
+            This is really important for reinforcement learning. You will see
+            variations of it all over the place.<br />
+            <strong>Temporal Difference</strong> is a way of valuing the
+            present.<br />
+            The true value of now includes the potential value of all future
+            states.<br />
+            We can compute that in a literal way. Just add the value of now to
+            the value of the future.<br />
+            We discount the future a little bit by multiplying it by
+            <strong>gamma</strong> which is normally 0.99 ish.
+          </p>
+        </div>
+      </div>
+      <div class="right">
+        <div>
+          <h5>Gamma</h5>
+          <p>
+            <strong>Gamma</strong> is known as the discount factor. In
+            reinforcement learning math you will see it as γ.<br />
+            We have to discount the future a little bit. Future rewards are not
+            as valuable as rewards now.<br />
+            I will explain why soon.
+          </p>
+        </div>
+        <div>
+          <h5>Loss</h5>
+          <p>
+            The <strong>actor</strong> and <strong>critic</strong> both have
+            different losses. And they function fairly differently as well.
+          </p>
+          <ul>
+            <li>
+              For the <strong>actor</strong> punishment, we take the probability
+              of our chosen action, and multiply it into how wrong our state
+              value estimation was.<br />
+              Why? Remember our <strong>action probabilities</strong> are
+              between 0 and 1.<br />
+              Remember we pass those probabilities into log() when we compute
+              the <strong>log-probabilities</strong>?<br />
+              The graph of log(x) is 0 at x = 1. (go look at the graph now).<br />
+              If our action choice was perfect, the probability of that action
+              should be 100% or 1.0. When you put the output from the actor of
+              1.0 into log(x) you get 0. So the <strong>actor</strong>'s goal is
+              to pick an action such that log(actorOutput) == 0.<br />
+              That means the error should be designed such that if we did a
+              perfect action, error should be zero.<br />
+              How do you know if the action was perfect? Well the action was
+              perfect if the <strong>critic</strong> output the correct value
+              for the state. The action is as wrong as the
+              <strong>critic</strong> times the confidence of the
+              <strong>actor</strong> choice.<br />
+              <strong
+                >Our actions can only be as good as our value
+                estimation.</strong
+              >
+            </li>
+            <li>
+              For the <strong>critic</strong> the loss is just the difference
+              between what it thought the reward was now, and what the reward
+              actually was. It doesn't matter what direction the error is, + or
+              -. Just want to minimize it. Hence squaring it.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="grid-container full u-align-left">
+      <h4>Agent</h4>
+      <p>
+        An reinforcement learning <strong>agent</strong> is what learns about
+        the environment and chooses the actions.<br />
+        There are many different types of <strong>agent</strong>s, but this one
+        contains an <strong>actor</strong> and a <strong>critic</strong>.<br />
+        An <strong>agent</strong> class doesn't need to explicitly exist but
+        doing it this way is fairly neat. To make the agent we just put the
+        learn and choose action functions togethor with the actor critic network
+        from earlier.<br />
+        There really isn't anything new here.
+      </p>
+      <pre><code>class ActorCriticDiscreteDQAgent():
+    def __init__(self, alpha, inputDims, gamma=0.99, layer1Size=256, layer2Size=256, numActions=2):
+        self.gamma = gamma
+        self.actorCritic = ActorCriticNetwork(alpha, inputDims, layer1Size, layer2Size, numActions)
+        self.logProbs = None
+
+    def chooseAction(self, observation):
+        policy, _ = self.actorCritic.forward(observation)
+        policy = F.softmax(policy, dim=0)
+        actionProbs = torch.distributions.Categorical(policy)
+        action = actionProbs.sample()
+        self.logProbs = actionProbs.log_prob(action)
+        return action.item()
+
+    def learn(self, state, reward, nextState, done):
+        self.actorCritic.optimizer.zero_grad()
+
+        _, criticValue = self.actorCritic.forward(state)
+        _, nextCriticValue = self.actorCritic.forward(nextState)
+
+        reward = torch.tensor(reward, dtype=torch.float).to(self.actorCritic.device)
+        delta = reward + self.gamma * nextCriticValue * (1 - int(done)) - criticValue
+
+        actorLoss = -self.logProbs * delta
+        criticLoss = delta**2
+
+        (actorLoss + criticLoss).backward()
+        self.actorCritic.optimizer.step()</code></pre>
+    </div>
+    <div class="grid-container full u-align-left">
+      <h4>The Main Loop</h4>
+      <p>
+        All the hard parts are done now. The only thing left is to make our
+        <strong>agent</strong>, put it into an environment, and trap it in an
+        infinite loop so it can self improve until it becomes skynet. You can
+        create your own environment or use input from the real world, but for
+        demonstration let's use AI Gym. A place where AI can watch their macros
+        and get sick gains. (or fail horribly. Some of the provided AI Gym
+        environments are fairly difficult, and require much more complicated
+        algorithms than this one to solve.)<br />
+        AI Gym environments are nice little simulated worlds, that happen to
+        return rewards and states just like our <strong>actor</strong> and
+        <strong>critic</strong> needs.<br />
+        What a coencidence. :^) Anyways, put our <strong>agent</strong> into an
+        AI Gym environment and let it run for 20 minutes to 10 years.<br />
+      </p>
+      <pre><code>agent = ActorCriticDiscreteDQAgent(    <a>we wrote this earlier</a>
+            alpha=0.00001, inputDims=(8,), gamma=0.99, numActions=4, layer1Size=2048, layer2Size=512)
+env = gym.make("LunarLander-v2")
+
+highScore = -math.inf
+recordTimeSteps = math.inf
+while True:                     <strong>#   keep starting new episodes forever</strong>
+    observation = env.reset()   <strong>#   observation is just a commonly used term for the environment state</strong>
+    score, frame, done = 0, 1, False
+    while not done:             <strong>#   keep going until the episode is done</strong>
+        env.render()            <strong>#   draw it on your screen so you can watch</strong>
+        action = agent.chooseAction(observation)    <a>we wrote this too</a>
+        nextObservation, reward, done, info = env.step(action)  <strong>#   make the environment go one time step</strong>
+        agent.learn(observation, reward, nextObservation, done) <a>and this</a>
+        observation = nextObservation
+        score += reward
+        frame += 1
+
+    recordTimeSteps = min(recordTimeSteps, frame)
+    highScore = max(highScore, score)
+    print(( "ep {}: high-score {:12.3f}, shortest-time {:d}, "
+            "score {:12.3f}, last-epidode-time {:4d}").format(
+        episode, highScore, recordTimeSteps, score, frame))</code></pre>
+    </div>
+    <div class="grid-container full">
+        <h3>Full Code</h3>
+        <div class="grid-container full u-align-left">
+            <pre><code>import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+    import torch.optim as optim
+
+    import numpy as np
+
+    class ActorCriticNetwork(torch.nn.Module):
+        def __init__(self, alpha, inputDims, fc1Dims, fc2Dims, numActions):
+            super().__init__()
+            self.inputDims = inputDims
+            self.numActions = numActions
+            self.fc1Dims = fc1Dims
+            self.fc2Dims = fc2Dims
+
+            #   primary network
+            self.fc1 = nn.Linear(*inputDims, fc1Dims)
+            self.fc2 = nn.Linear(fc1Dims, fc2Dims)
+
+            #   tail networks
+            self.policy = nn.Linear(self.fc2Dims, numActions)
+            self.critic = nn.Linear(self.fc2Dims, 1)
+
+            self.optimizer = optim.Adam(self.parameters(), lr=alpha)
+            self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+            self.to(self.device)
+
+        def forward(self, observation):
+            state = torch.tensor(observation).to(self.device)
+            x = F.relu(self.fc1(state))
+            x = F.relu(self.fc2(x))
+            policy = self.policy(x)
+            value = self.critic(x)
+            return policy, value
+
+    class ActorCriticDiscreteDQAgent():
+        def __init__(self, alpha, inputDims, gamma=0.99, layer1Size=256, layer2Size=256, numActions=2):
+            self.gamma = gamma
+            self.actorCritic = ActorCriticNetwork(alpha, inputDims, layer1Size, layer2Size, numActions)
+            self.logProbs = None
+
+        def chooseAction(self, observation):
+            policy, _ = self.actorCritic.forward(observation)
+            policy = F.softmax(policy, dim=0)
+            actionProbs = torch.distributions.Categorical(policy)
+            action = actionProbs.sample()
+            self.logProbs = actionProbs.log_prob(action)
+            return action.item()
+
+        def learn(self, state, reward, nextState, done):
+            self.actorCritic.optimizer.zero_grad()
+
+            _, criticValue = self.actorCritic.forward(state)
+            _, nextCriticValue = self.actorCritic.forward(nextState)
+
+            reward = torch.tensor(reward, dtype=torch.float).to(self.actorCritic.device)
+            delta = reward + self.gamma * nextCriticValue * (1 - int(done)) - criticValue
+
+            actorLoss = -self.logProbs * delta
+            criticLoss = delta**2
+
+            (actorLoss + criticLoss).backward()
+            self.actorCritic.optimizer.step()
+
+    if __name__ == '__main__':
+        import gym
+        import math
+        from matplotlib import pyplot as plt
+        
+        agent = ActorCriticDiscreteDQAgent(
+            alpha=0.00001, inputDims=(8,), gamma=0.99, numActions=4, layer1Size=2048, layer2Size=512)
+        agent = ActorCriticDiscreteDQAgent(
+            alpha=0.00001, inputDims=(8,), gamma=0.99, numActions=4, layer1Size=128, layer2Size=64)
+        env = gym.make("LunarLander-v2")
+
+        scoreHistory = []
+        numEpisodes = 2000
+        numTrainingEpisodes = 50
+        highScore = -math.inf
+        recordTimeSteps = math.inf
+        for episode in range(numEpisodes):
+            done = False
+            observation = env.reset()
+            score, frame = 0, 1
+            while not done:
+                if episode > numTrainingEpisodes:
+                    env.render()
+                action = agent.chooseAction(observation)
+                nextObservation, reward, done, info = env.step(action)
+                agent.learn(observation, reward, nextObservation, done)
+                observation = nextObservation
+                score += reward
+                frame += 1
+            scoreHistory.append(score)
+
+            recordTimeSteps = min(recordTimeSteps, frame)
+            highScore = max(highScore, score)
+            print(( "ep {}: high-score {:12.3f}, shortest-time {:d}, "
+                    "score {:12.3f}, last-epidode-time {:4d}").format(
+                episode, 
+                highScore, 
+                recordTimeSteps, 
+                score,
+                frame,
+                ))
+
+        fig = plt.figure()
+        meanWindow = 10
+        meanedScoreHistory = np.convolve(scoreHistory, np.ones(meanWindow), 'valid') / meanWindow
+        plt.plot(np.arange(0, numEpisodes-1, 1.0), meanedScoreHistory)    plt.ylabel("score")
+        plt.xlabel("episode")
+        plt.title("Training Scores")
+        plt.show()</code></pre>
+        </div>
+    </div>
+    <div class="grid-container full u-align-left">
+        <h3>Wisdom</h3>
+      <p>
+        You probably have some questions and complaints about taking abstract
+        life wisdom and implementing it in such a literal way in math.
+        And also questions about why we do so in this specific way. 
+        I will answer by not exactly answering.<br><br>
+        </p>
+        <h4>History</h4>
+        <p>Firstly you must know there is a long math history behind reinforcement learning. Though many of the "RL" algorithms
+            are recently created ( or discovered :^) ), the simplest versions of these algorithms have been around since the 1950s 
+            and maybe even earlier in other forms. There is a lot of historical baggage and convention. If you have lots of
+            questions about this you might choose to peruse some of the other resources, but be warned there are many math symbols out there.
+            Even if you aren't math fluent (I am also not math fluent :() ), you can still learn stuff from understanding 5-10% of the symbols. Thought it might take you 
+            a month or so.<br>
+
+            Some noteable books resources include:
+            <ul>
+                <li>Artificial Intelligence: by Stuart Russell and Peter Norvig</li>
+                <li>Grokking Deep Reinforcement Learning (just skip/skim chapters 4 through 7 though)</li>
+                <li>PDF's of actual research papers. (surprisingly simple enough to follow, and fairly short by research paper standards)</li>
+                <li>Not surprisingly you can learn a bunch of the math from youtube</li>
+            </ul>
+        </p>
+        <h4>More Temporal Difference</h4>
+        <p>How does this shit even work anyways?
+            You know the experiment involving
+            children and withholding gratification now to get more marshmallows in
+            the future?
+            <a href="https://en.wikipedia.org/wiki/Stanford_marshmallow_experiment"
+            >if you dont, here.</a
+            ><br />
+        </p>
+        <p>The value of going to McBurger is equal the the total value of all the
+            burgers you will eat when you are there. 
+            In this particular algorithms case, we are only considering one state into the future. <br>
+            Is that okay? Well firstly it just works. Hopefully you are watching it learn to land the lander now so that is proof.<br>
+            But why does it work? How does it work? How can we understand the total reward of the future if 
+            we are only considering one step into the future at a time. In short: "iterated distillation".<br>
+            As an animal you can't consider the value of all your future decisions.
+        </p>
+        <p>
+            This is for a few reasons:
+            <ol>
+                <li>you can't predict all future actions</li>
+                <li>you can't predict all future states</li>
+                <li>
+                your current thoughts about what is valuable in your life probably
+                dont reflect what your values will be in 20 years
+                </li>
+            </ol>
+            (#3 is really REALLY important for understanding the instability of value based reinforcement learning algorithms)<br>
+        If you couldn't estimate future value at all then you would be yolo'ing every
+        moment of your life. So we know we have to be considering the future. But how far into the future isnt so obvious.
+        We can't really consider all future states, because we don't know what
+        they are yet. So you just pick a number of future states to consider. For real animals it probably depends on a few things, 
+        such as how long we have to think about it, or how important the decision is.<br />
+        Algorithms dont usually have an adaptive number of steps to consider, you just use a fixed number of future steps.<br>
+        Each next step you add is multiplied by <strong>gamma</strong> again. but more and more discounted.<br>
+        One step into the future is discounted by <strong>gamma</strong>^1. The reward 2 steps forward is discounted by <strong>gamma</strong>^2. 
+        and so on and so on... This is called N-Step Temporal Difference.<br />
+        In this specific case, n=1. <br>
+        Is that okay?<br />
+        Yeah turns out it's okay. It's hard to choose n, but you can get pretty
+        far with just n=1. And as it turns out, as we continue to learn 1 step in advance we slowly distill further and further future 
+        reward into our estimation of now reward. That is iterated distillation. With enough training, n=1 is just as good as n=1000.<br />
+        Besides its more complicated to do higher n anyways. For many aspects of
+        your life you're only thinking a few minutes in advance.
+        </p>
+      <h4>Gamma < 1.0</h4>
+      <p>Why do we discount future rewards at all?
+          The value of the same reward received at different times matters.
+          Receiving 1 dollar now is better than receiving 1 dollar tommorow. You might object and say 2 dollars tommorow is better.
+          But that's not the point of <strong>gamma</strong>. The point is if you are going to get the same exact reward, it's better 
+          to have it now than later. If you don't have this concept, then your agent could be tricked by the enticing infinite rewards 
+          the future may hold.
+      </p>
+      
+      explain why it gets worse if you train
+      it for too long. or why it might never get that good. and early stopping
+      explain why it wont learn, debugging 
+
+
+    </div>
+    <div class="grid-container full u-align-left">
+      <h3>Thoughts / Commentary / Ideas</h3>
+      <ul>
+        <li>
+          The input frame for the action picker doesnt even need to be just one
+          frame. These things are flexible. It could be a stack of frames if you
+          wanted.
+        </li>
+      </ul>
+    </div>
+  </body>
+</html>
