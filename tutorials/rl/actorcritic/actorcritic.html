@@ -30,9 +30,14 @@
     <link rel="icon" type="image/png" href="images/favicon-16.png" />
     <!-- Code Highlighting
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-  <link rel="stylesheet" href="/highlightjs/styles/atom-one-dark-reasonable.css">
-  <script src="/highlightjs/highlight.pack.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script>
+    <link
+      rel="stylesheet"
+      href="/highlightjs/styles/atom-one-dark-reasonable.css"
+    />
+    <script src="/highlightjs/highlight.pack.js"></script>
+    <script>
+      hljs.initHighlightingOnLoad();
+    </script>
   </head>
   <body>
     <div class="grid-container full">
@@ -170,7 +175,8 @@
     <strong>action = torch.argmax(policy).item()    #   pick here</strong>
     return action</code></pre>
       <p>
-        But this isnt Vanilla Deep Q Learning. This is Actor-Critic Method. >:()<br />
+        But this isnt Vanilla Deep Q Learning. This is Actor-Critic Method.
+        >:()<br />
         The <strong>actor</strong> outputs probabilities of actions instead of
         actual action values.<br />
         So the <strong>Eat:</strong> 0.8 from earlier, yeah thats like an 80%
@@ -280,13 +286,14 @@ b is now tensor([0.4863, 0.2950, 0.2187])</code></pre>
     </div>
     <div class="grid-container full u-align-left">
       <h4>Improving Our Choices In Life</h4>
-      <p>The actor network and the critic network both have unique errors.<br />
+      <p>
+        The actor network and the critic network both have unique errors.<br />
         Each network is punished by their own respective error, and their
         estimation of their respective responsibility improves. We get better
         actions from the <strong>actor</strong>, and better value estimates from
         the <strong>critic</strong>.
-    </p>
-    <pre><code class="language-python">def learn(state, reward, nextState, done): <a>following the meta</a>
+      </p>
+      <pre><code class="language-python">def learn(state, reward, nextState, done): <a>following the meta</a>
     actorCritic.optimizer.zero_grad()  #   pytorch stuff: resets all the tensor derivatives
 
     #   fetch values from the critic network
@@ -354,12 +361,11 @@ b is now tensor([0.4863, 0.2950, 0.2187])</code></pre>
             </li>
           </ul>
         </div>
-
       </div>
       <div class="right">
         <div>
-        <h5>Temporal Difference</h5>
-        <p>
+          <h5>Temporal Difference</h5>
+          <p>
             This is really important for reinforcement learning. You will see
             variations of it all over the place.<br />
             <strong>Temporal Difference</strong> is a way of valuing the
@@ -369,14 +375,17 @@ b is now tensor([0.4863, 0.2950, 0.2187])</code></pre>
             We can compute that in a literal way. Just add the value of now to
             the value of the future.<br />
             We discount the future a little bit by multiplying it by
-            <strong>gamma</strong> which is normally 0.99 ish.</p>
-        <pre><code class="language-python">actualValueOfNow = reward + gamma * valueOfTheFuture
+            <strong>gamma</strong> which is normally 0.99 ish.
+          </p>
+          <pre><code class="language-python">actualValueOfNow = reward + gamma * valueOfTheFuture
 temporalDifference = actualValueOfNow - criticsGuess</code></pre>
-            <p>A key difference though, notice how in our learn function we dont pass in the next rewards.
-                That's because instead of using the ground truth future value we just let the critic guess.
-            </p><pre><code class="language-python">_, nextCriticValue = actorCritic.forward(nextState)
+          <p>
+            A key difference though, notice how in our learn function we dont
+            pass in the next rewards. That's because instead of using the ground
+            truth future value we just let the critic guess.
+          </p>
+          <pre><code class="language-python">_, nextCriticValue = actorCritic.forward(nextState)
 valueOfNow = reward + gamma * nextCriticValue</code></pre>
-            
         </div>
         <div>
           <h5>Gamma</h5>
@@ -384,155 +393,193 @@ valueOfNow = reward + gamma * nextCriticValue</code></pre>
             <strong>Gamma</strong> is known as the discount factor. In
             reinforcement learning math you will see it as γ.<br />
             We have to discount the future a little bit. Future rewards are not
-            as valuable as rewards now.<br />
-            I will explain more after you get the main idea.</p>
+            as valuable as rewards now. I will explain more after you have some
+            more context for these types of algorithms.
+          </p>
         </div>
       </div>
     </div>
     <div class="grid-container full u-align-left">
-        <h4>Formal Representation</h4>
-        <p>If you want to see the way mathemagicians formalize temporal difference, 
-            <a href="https://en.wikipedia.org/wiki/Temporal_difference_learning#Mathematical_formulation">here you go</a>.
-            I urge you to give the equations a look. I bet you can kinda get them. You're gonna need to wet 
-            your whistle on these a little bit if you want to go implement algorithms from professional reinforcement learning papers.
-        </p>
-        <h5>A Guide For The Overly Formal Notation:</h5>
-        <div class="grid-container thirds u-align-left">
-            <div>
-                <h5>Policy and Value</h5>
-                <ul><li>𝜋 means policy</li>
-                    <li>s means state</li>
-                    <li>V means value</li></ul>
-                <p>So, V<sup>𝜋</sup>(s) means the value of a state according to our policy.</p>
-            </div>
-            <div>
-                <h5>Time</h5>
-                <ul><li>s<sub>1</sub> just means the state after s<sub>0</sub>.</li>
-                    <li> s<sub>t</sub> just means the state at any time.</li></ul>
-                <p>So, logically s<sub>t+1</sub> is the state after s<sub>t</sub>. <br>
-                    Little t is used for time.</p>
-            </div>
-            <div>
-                <h5>Big Sigma</h5>
-                <p>Σ is just a for loop where you add the result to a total.</p>
-                <p>So Σ<sup>10</sup><sub>t=0</sub> t is this:</p>
-                <pre><code class="language-python">total = 0
+      <h4>Formal Representation</h4>
+      <p>
+        If you want to see the way mathemagicians formalize temporal difference,
+        <a
+          href="https://en.wikipedia.org/wiki/Temporal_difference_learning#Mathematical_formulation"
+          >here you go</a
+        >. I urge you to give the equations a look. I bet you can kinda get
+        them. You're gonna need to wet your whistle on these a little bit if you
+        want to go implement algorithms from professional reinforcement learning
+        papers.
+      </p>
+      <h5>A Guide For The Overly Formal Notation:</h5>
+      <div class="grid-container thirds u-align-left">
+        <div>
+          <h5>Policy and Value</h5>
+          <ul>
+            <li>𝜋 means policy</li>
+            <li>s means state</li>
+            <li>V means value</li>
+          </ul>
+          <p>
+            So, V<sup>𝜋</sup>(s) means the value of a state according to our
+            policy.
+          </p>
+        </div>
+        <div>
+          <h5>Time</h5>
+          <ul>
+            <li>s<sub>1</sub> just means the state after s<sub>0</sub>.</li>
+            <li>s<sub>t</sub> just means the state at any time.</li>
+          </ul>
+          <p>
+            So, logically s<sub>t+1</sub> is the state after s<sub>t</sub>.
+            <br />
+            Little t is used for time.
+          </p>
+        </div>
+        <div>
+          <h5>Big Sigma</h5>
+          <p>Σ is just a for loop where you add the result to a total.</p>
+          <p>So Σ<sup>10</sup><sub>t=0</sub> t is this:</p>
+          <pre><code class="language-python">total = 0
 for i in range(0, 10 + 1):
     total += i</code></pre>
-                <p>The <strong>sum</strong> of the inside stuff where t goes from 0 to 10.</p>
-            </div>
+          <p>
+            The <strong>sum</strong> of the inside stuff where t goes from 0 to
+            10.
+          </p>
         </div>
-        <p>For the most part reinforcement learning math boils down to formalizing these questions:<br>
-        What's the value of now? What's the value of the future? What's the value of an action? 
-        What's the total value of all the actions i took so far? What's the total value of all the 
-        best possible actions?</p>
+      </div>
+      <p>
+        For the most part reinforcement learning math boils down to formalizing
+        these questions:<br />
+        What's the value of now? What's the value of the future? What's the
+        value of an action? What's the total value of all the actions i took so
+        far? What's the total value of all the best possible actions?
+      </p>
     </div>
     <div class="grid-container full u-align-left">
-        <h4>Loss</h4>
-        <p>So just like most neural network stuff we want the loss to go to zero. 
-            But, in reinforcement learning its a little more subtle than that. 
-            The <strong>actor</strong> and <strong>critic</strong> both have
-            different losses. And they function fairly differently as well.<br>
-            This is where we focus on these lines specifically:</p>
-            <pre><code class="language-python">actorLoss = -self.logProbs * temporalDifference
+      <h4>Loss</h4>
+      <p>
+        So just like most neural network stuff we want the loss to go to zero.
+        But, in reinforcement learning its a little more subtle than that. The
+        <strong>actor</strong> and <strong>critic</strong> both have different
+        losses. And they function fairly differently as well.<br />
+        This is where we focus on these lines specifically:
+      </p>
+      <pre><code class="language-python">actorLoss = -self.logProbs * temporalDifference
 criticLoss = delta**2</code></pre>
-        <div class="grid-container halves u-align-left">
-            <div class="left">
-                <h5>Critic Loss</h5>
-                <p>
-                    For the <strong>critic</strong> the loss is just the difference
-                    between what it thought the reward was now, and what the reward
-                    actually was. It doesn't matter what direction the error is, + or
-                    -. Just want to minimize it. Hence squaring it to remove the sign.
-                </p>
-            </div>
-            <div class="right">
-                <h5>Actor Loss</h5>
-                <p>
-                    For the <strong>actor</strong> punishment, we take the probability
-                of our chosen action, and multiply it into how wrong our state
-                value estimation was.<br />
-                Why? There are two reasons.
-                </p>
-            </div>
+      <div class="grid-container halves u-align-left">
+        <div class="left">
+          <h5>Critic Loss</h5>
+          <p>
+            For the <strong>critic</strong> the loss is just the difference
+            between what it thought the reward was now, and what the reward
+            actually was. It doesn't matter what direction the error is, + or -.
+            Just want to minimize it. Hence squaring it to remove the sign.
+          </p>
         </div>
+        <div class="right">
+          <h5>Actor Loss</h5>
+          <p>
+            For the <strong>actor</strong> punishment, we take the probability
+            of our chosen action, and multiply it into how wrong our state value
+            estimation was.<br />
+            Why? There are two reasons.
+          </p>
+        </div>
+      </div>
     </div>
     <div class="grid-container full">
-        <h5>Actor Loss Subtleties</h5>
-        <div class="grid-container halves u-align-left">
-            <div class="left">
-                <h5>Make It Zero</h5>
-                <p>
-                    Remember our <strong>action probabilities</strong> are
-                    between 0 and 1.<br />
-                    Remember we pass those probabilities into log() when we compute
-                    the <strong>log-probabilities</strong>?<br />
-                    The graph of log(x) is 0 at x = 1. (go look at the graph now).<br />
-                    If our action choice was perfect, the probability of that action
-                    should be 100% or 1.0 (That way we pick that action every time).<br>
-                    When you put the output from the actor of
-                    1.0 into log(x) you get 0. So the <strong>actor</strong>'s goal is
-                    to pick an action such that log(actorOutput) == 0, a perfect action.<br />
-                    That means the error should be designed such that if we did a
-                    perfect action, error should be zero.<br />
-                    How do you know if the action was perfect? Well the action was
-                    perfect if the <strong>critic</strong> output the correct value
-                    for the state. The action is as wrong as the
-                    <strong>critic</strong> times the confidence of the
-                    <strong>actor</strong> choice.<br />
-                    <strong>This means our actions can only be as good as our value estimation.</strong>
-                    This can't be understated. It has important implications for the instability of 
-                    <strong>value</strong> based learning. I will discuss it more another time.
-                </p>
-            </div>
-            <div class="right">
-                <h5>The Four Cases</h5>
-                <p>Why the multiplication, and why the negative on the actor loss?
-                    Consider the following 4 cases:
-                </p>
-                <ul>
-                    <li>
-                        The critic slightly overestimated the reward.<br>
-                        <pre><code class="language-python">(reward + nextReward) < criticValue  #   so...
-smallPositiveValue = (reward + nextReward) - criticValue</code></pre>
-                        If the critic overestimates that means the action wasn't as good as we thought 
-                        it was. So we should shrink the probability. We have a small positive temporal difference value, 
-                        so to shrink the probability we make that negative, and then multiply the small number by our probability.
-                    </li>
-                    <li>The critic slightly underestimates the reward.<br>
-                        Our action wasn't confident enough. Our TD was negative. <br>
-                        <pre><code class="language-python">(reward + nextReward) > criticValue  #   so...
-smallNegativeValue = (reward + nextReward) - criticValue</code></pre>
-                        We need to increase that action probability. Multiply it by a small positive value.
-                    </li>
-                </ul>
-                <p>The remaining two cases are the same, just with different magnitudes of adjustment.</p>
-                <ul>
-                    <li>The critic largely overestimated the reward.</li>
-                    <li>The critic largely overestimated the reward.</li>
-                </ul>
-                <p>The point is that the action probability should be adjusted proportionally to 
-                    how wrong or right the <strong>critic</strong> was, and in the correct direction.
-                    Negative for shrinking, and positive for growing.
-                </p>
-
-            </div>
+      <h5>Actor Loss Subtleties</h5>
+      <div class="grid-container halves u-align-left">
+        <div class="left">
+          <h5>Make It Zero</h5>
+          <p>
+            Remember our <strong>action probabilities</strong> are between 0 and
+            1.<br />
+            Remember we pass those probabilities into log() when we compute the
+            <strong>log-probabilities</strong>?<br />
+            The graph of log(x) is 0 at x = 1. (go look at the graph now).<br />
+            If our action choice was perfect, the probability of that action
+            should be 100% or 1.0 (That way we pick that action every time).<br />
+            When you put the output from the actor of 1.0 into log(x) you get 0.
+            So the <strong>actor</strong>'s goal is to pick an action such that
+            log(actorOutput) == 0, a perfect action.<br />
+            That means the error should be designed such that if we did a
+            perfect action, error should be zero.<br />
+            How do you know if the action was perfect? Well the action was
+            perfect if the <strong>critic</strong> output the correct value for
+            the state. The action is as wrong as the
+            <strong>critic</strong> times the confidence of the
+            <strong>actor</strong> choice.<br />
+            <strong
+              >This means our actions can only be as good as our value
+              estimation.</strong
+            >
+            This can't be understated. It has important implications for the
+            instability of
+            <strong>value</strong> based learning. I will discuss it more
+            another time.
+          </p>
         </div>
+        <div class="right">
+          <h5>The Four Cases</h5>
+          <p>
+            Why the multiplication, and why the negative on the actor loss?
+            Consider the following 4 cases:
+          </p>
+          <ul>
+            <li>
+              The critic slightly overestimated the reward.<br />
+              <pre><code class="language-python">(reward + nextReward) < criticValue  #   so...
+smallPositiveValue = (reward + nextReward) - criticValue</code></pre>
+              If the critic overestimates that means the action wasn't as good
+              as we thought it was. So we should shrink the probability. We have
+              a small positive temporal difference value, so to shrink the
+              probability we make that negative, and then multiply the small
+              number by our probability.
+            </li>
+            <li>
+              The critic slightly underestimates the reward.<br />
+              Our action wasn't confident enough. Our TD was negative. <br />
+              <pre><code class="language-python">(reward + nextReward) > criticValue  #   so...
+smallNegativeValue = (reward + nextReward) - criticValue</code></pre>
+              We need to increase that action probability. Multiply it by a
+              small positive value.
+            </li>
+          </ul>
+          <p>
+            The remaining two cases are the same, just with different magnitudes
+            of adjustment.
+          </p>
+          <ul>
+            <li>The critic largely overestimated the reward.</li>
+            <li>The critic largely overestimated the reward.</li>
+          </ul>
+          <p>
+            The point is that the action probability should be adjusted
+            proportionally to how wrong or right the
+            <strong>critic</strong> was, and in the correct direction. Negative
+            for shrinking, and positive for growing.
+          </p>
+        </div>
+      </div>
     </div>
     <div class="grid-container full u-align-left">
       <h4>Agent</h4>
       <p>
-        A reinforcement learning <strong>agent</strong> is what learns about
-        the environment and chooses the actions.<br />
+        A reinforcement learning <strong>agent</strong> is what learns about the
+        environment and chooses the actions.<br />
         There are many different types of <strong>agent</strong>s, but this one
         contains an <strong>actor</strong> and a <strong>critic</strong>.<br />
         An <strong>agent</strong> class doesn't need to explicitly exist but
-        doing it this way is fairly neat, and makes it easy to swap in different agents in our main loop
-        when we want to try out different ones.<br>
-        To make the agent we just put the
-        learn and choose action functions togethor with the actor critic network
-        from earlier.<br />
-        There really isn't anything new here. Just notice it's where we save our <strong>logProb</strong> when we choose an action.
+        doing it this way is fairly neat, and makes it easy to swap in different
+        agents in our main loop when we want to try out different ones.<br />
+        To make the agent we just put the learn and choose action functions
+        togethor with the actor critic network from earlier.<br />
+        There really isn't anything new here. Just notice it's where we save our
+        <strong>logProb</strong> when we choose an action.
       </p>
       <pre><code class="language-python">class ActorCriticDiscreteDQAgent():
     def __init__(self, alpha, inputDims, gamma=0.99, layer1Size=256, layer2Size=256, numActions=2):
@@ -605,9 +652,9 @@ while True:                     <strong>#   keep starting new episodes forever</
         episode, highScore, recordTimeSteps, score, frame))</code></pre>
     </div>
     <div class="grid-container full">
-        <h3>Full Code</h3>
-        <div class="grid-container full u-align-left">
-            <pre><code class="language-python">import torch
+      <h3>Full Code</h3>
+      <div class="grid-container full u-align-left">
+        <pre><code class="language-python">import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -720,61 +767,92 @@ if __name__ == '__main__':
     plt.xlabel("episode")
     plt.title("Training Scores")
     plt.show()</code></pre>
-        </div>
+      </div>
     </div>
     <div class="grid-container full u-align-left">
-        <h3>Wisdom</h3>
+      <h3>Wisdom</h3>
       <p>
         You probably have some questions and complaints about taking abstract
-        life wisdom and implementing it in such a literal way in math.
-        And also questions about why we do so in this specific way.<br>
-    </p>
-    <h5>Cognition Algorithms</h5>
-        <p>
-        Your brain is a computer. It is constantly evaluating the value of its particular actions, 
-        and picking what it thinks to be the best ones. Maybe it is doing so in a much more complicated way, 
-        and maybe there are many seperate zones of neurons competing over decisions. The math just simplifies this for practicality. 
-        It keeps the decision making essence just enough to be metaphorically sound.
-        Most of reinforcement learning progress seems to fall into two categories:
-        </p>
-        <ul>
-            <li>Improving an existing algirothm by engineering a new feature into it to increase learning rate or stability.</li>
-            <li>Creating small simplified code versions of some specific part of your human cognition. </li>
-        </ul>
-        <p>The distinction between these two categories is blurred. Often the inspiration for what seems to be 
-            an engineering feature is a metaphor for some aspect of your cognition, and then you bounce back and forth between the two.<br>
-            <strong>Ex:</strong> "Experience Replay" is like memory. It's a list of previous states and rewards.<br>
-            <strong>Ex:</strong> Some of my memories are more important than others. If i remembered all my memories 
-            as being equally impactful to my life I would value thinking about yesterdays breakfast as much as the time 
-            my wife left me and took the kids. Most of my memories are just noise, and can be thrown out.  
-            So make a "Prioritized Experience Replay" where you estimate memory value and discard low value ones.<br>
-            <strong>Ex:</strong> My Agent keeps getting stuck in local minima, I want it to <strong>explore</strong>. 
-            So bias it to value discovering new states or trying new actions that it hasnt seen before. <br>
-            It goes back and forth. Cognitive metaphor, engineering, cognitive metaphor, engineering.<br>
-            How about <strong>creativity</strong>? The notion of friend or foe? Ownership, fairness, or maybe  mate value estimation? :^)<br>
-            There is no end to the possibilities. If you have enough computing power, you can make your agent that thinks it.<br>
-            And of course if it's brain gets big enough, and self observant enough, then it can have <strong>consciousness</strong>.
-            It may even learn to infer things about its own internal workings by focusing on generalizing 
-            across its strategies within varying circumstances. Maybe it can even be given the value of making more and more agents. :^)
-        </p>
-        <h5>History and Moving Forward</h5>
-        <p>Before we make horny von neumman probes there is a lot of work to do and much to learn.
-            It might surprise you to discover reinforcement learning has a long history behind it. Though many of the "RL" algorithms
-            are recently created ( or discovered :^) ), the simplest versions of these algorithms have been around since the 1950s 
-            and maybe even earlier in other forms. There is a lot of historical baggage and convention. If you have lots of
-            questions about this you might choose to peruse some of the other resources, but be warned there are many math symbols out there.
-            Even if you aren't math fluent (I am also not math fluent :() ), you can still learn stuff from understanding 5-10% of the symbols. 
-            Thought it might take you a month or so off and on.<br>
+        life wisdom and implementing it in such a literal way in math. And also
+        questions about why we do so in this specific way.<br />
+      </p>
+      <h5>Cognition Algorithms</h5>
+      <p>
+        Your brain is a computer. It is constantly evaluating the value of its
+        particular actions, and picking what it thinks to be the best ones.
+        Maybe it is doing so in a much more complicated way, and maybe there are
+        many seperate zones of neurons competing over decisions. The math just
+        simplifies this for practicality. It keeps the decision making essence
+        just enough to be metaphorically sound. Most of reinforcement learning
+        progress seems to fall into two categories:
+      </p>
+      <ul>
+        <li>
+          Improving an existing algirothm by engineering a new feature into it
+          to increase learning rate or stability.
+        </li>
+        <li>
+          Creating small simplified code versions of some specific part of your
+          human cognition.
+        </li>
+      </ul>
+      <p>
+        The distinction between these two categories is blurred. Often the
+        inspiration for what seems to be an engineering feature is a metaphor
+        for some aspect of your cognition, and then you bounce back and forth
+        between the two.<br />
+        <strong>Ex:</strong> "Experience Replay" is like memory. It's a list of
+        previous states and rewards.<br />
+        <strong>Ex:</strong> Some of my memories are more important than others.
+        If i remembered all my memories as being equally impactful to my life I
+        would value thinking about yesterdays breakfast as much as the time my
+        wife left me and took the kids. Most of my memories are just noise, and
+        can be thrown out. So make a "Prioritized Experience Replay" where you
+        estimate memory value and discard low value ones.<br />
+        <strong>Ex:</strong> My Agent keeps getting stuck in local minima, I
+        want it to <strong>explore</strong>. So bias it to value discovering new
+        states or trying new actions that it hasnt seen before. <br />
+        It goes back and forth. Cognitive metaphor, engineering, cognitive
+        metaphor, engineering.<br />
+        How about <strong>creativity</strong>? The notion of friend or foe?
+        Ownership, fairness, or maybe mate value estimation? :^)<br />
+        There is no end to the possibilities. If you have enough computing
+        power, you can make your agent that thinks it.<br />
+        And of course if it's brain gets big enough, and self observant enough,
+        then it can have <strong>consciousness</strong>. It may even learn to
+        infer things about its own internal workings by focusing on generalizing
+        across its strategies within varying circumstances. Maybe it can even be
+        given the value of making more and more agents. :^)
+      </p>
+      <h5>History and Moving Forward</h5>
+      <p>
+        Before we make horny von neumman probes there is a lot of work to do and
+        much to learn. It might surprise you to discover reinforcement learning
+        has a long history behind it. Though many of the "RL" algorithms are
+        recently created ( or discovered :^) ), the simplest versions of these
+        algorithms have been around since the 1950s and maybe even earlier in
+        other forms. There is a lot of historical baggage and convention. If you
+        have lots of questions about this you might choose to peruse some of the
+        other resources, but be warned there are many math symbols out there.
+        Even if you aren't math fluent (I am also not math fluent :() ), you can
+        still learn stuff from understanding 5-10% of the symbols. Thought it
+        might take you a month or so off and on.<br />
 
-            Some noteable books and resources include:
-            <ul>
-                <li>Artificial Intelligence: by Stuart Russell and Peter Norvig</li>
-                <li>Grokking Deep Reinforcement Learning (just skip/skim chapters 4 through 7 though)</li>
-                <li>PDF's of actual research papers. (surprisingly simple enough to follow, and fairly short by research paper standards)</li>
-                <li>Not surprisingly you can learn a bunch from youtube</li>
-                <li>The rest of the tutorials that I will be making.</li>
-            </ul>
-        </p>
+        Some noteable books and resources include:
+      </p>
+      <ul>
+        <li>Artificial Intelligence: by Stuart Russell and Peter Norvig</li>
+        <li>
+          Grokking Deep Reinforcement Learning (just skip/skim chapters 4
+          through 7 though)
+        </li>
+        <li>
+          PDF's of actual research papers. (surprisingly simple enough to
+          follow, and fairly short by research paper standards)
+        </li>
+        <li>Not surprisingly you can learn a bunch from youtube</li>
+        <li>The rest of the tutorials that I will be making.</li>
+      </ul>
     </div>
   </body>
 </html>
