@@ -1,0 +1,75 @@
+<div class="grid-container full u-align-left">
+    <h4>More Temporal Difference</h4>
+    <p>How does this shit even work anyways?
+        You know the experiment involving
+        children and withholding gratification now to get more marshmallows in
+        the future?
+        <a href="https://en.wikipedia.org/wiki/Stanford_marshmallow_experiment"
+        >if you dont, here.</a
+        ><br />
+    </p>
+    <p>The value of going to McBurger is equal the the total value of all the
+        burgers you will eat when you are there. 
+        In this particular algorithms case, we are only considering one state into the future. <br>
+        Is that okay? Well firstly it just works. Hopefully you are watching it learn to land the lander now so that is proof.<br>
+        But why does it work? How does it work? How can we understand the total reward of the future if 
+        we are only considering one step into the future at a time. In short: "iterated distillation".<br>
+        As an animal you can't consider the value of all your future decisions.
+    </p>
+    <p>
+        This is for a few reasons:
+        <ol>
+            <li>you can't predict all future actions</li>
+            <li>you can't predict all future states</li>
+            <li>
+            your current thoughts about what is valuable in your life probably
+            dont reflect what your values will be in 20 years
+            </li>
+        </ol>
+        (what the critic thinks is the value now isnt the same as it does later)
+            therefore what seems like a perfect action now, will be wrong later too.
+            This inconsistency makes the algorithm powerful, but also unstable.
+            Our actions can only be as good as our value estimation.
+        (#3 is really REALLY important for understanding the instability of value based reinforcement learning algorithms)<br>
+    If you couldn't estimate future value at all then you would be yolo'ing every
+    moment of your life. So we know we have to be considering the future. But how far into the future isnt so obvious.
+    We can't really consider all future states, because we don't know what
+    they are yet. So you just pick a number of future states to consider. For real animals it probably depends on a few things, 
+    such as how long we have to think about it, or how important the decision is.<br />
+    Algorithms dont usually have an adaptive number of steps to consider, you just use a fixed number of future steps.<br>
+    Each next step you add is multiplied by <strong>gamma</strong> again. but more and more discounted.<br>
+    One step into the future is discounted by <strong>gamma</strong>^1. The reward 2 steps forward is discounted by <strong>gamma</strong>^2. 
+    and so on and so on... This is called N-Step Temporal Difference.<br />
+    In this specific case, n=1. <br>
+    Is that okay?<br />
+    Yeah turns out it's okay. It's hard to choose n, but you can get pretty
+    far with just n=1. And as it turns out, as we continue to learn 1 step in advance we slowly distill further and further future 
+    reward into our estimation of now reward. That is iterated distillation. With enough training, n=1 is just as good as n=1000.<br />
+    Besides its more complicated to do higher n anyways. For many aspects of
+    your life you're only thinking a few minutes in advance.
+    </p>
+  <h4>Gamma < 1.0</h4>
+  <p>Why do we discount future rewards at all?
+      The value of the same reward received at different times matters.
+      Receiving 1 dollar now is better than receiving 1 dollar tommorow. You might object and say 2 dollars tommorow is better.
+      But that's not the point of <strong>gamma</strong>. The point is if you are going to get the same exact reward, it's better 
+      to have it now than later. If you don't have this concept, then your agent could be tricked by the enticing infinite rewards 
+      the future may hold.
+  </p>
+  
+  explain why it gets worse if you train
+  it for too long. or why it might never get that good. and early stopping
+  explain why it wont learn, debugging 
+
+
+</div>
+<div class="grid-container full u-align-left">
+  <h3>Thoughts / Commentary / Ideas</h3>
+  <ul>
+    <li>
+      The input frame for the action picker doesnt even need to be just one
+      frame. These things are flexible. It could be a stack of frames if you
+      wanted.
+    </li>
+  </ul>
+</div>
