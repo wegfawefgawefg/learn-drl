@@ -244,6 +244,7 @@
           <strong>Be Suspicious:</strong> 0.001 <br /><br />
           Thats 80% + 30% + 0.001%. <br />
           110.001% with the actions combined. <br />
+          "110% chance of rain today."
           Doesn't make any sense right? <br />
           Softmax takes in a list of numbers and makes them add up to 1. Which
           is exactly what we want.<br />
@@ -318,6 +319,23 @@ b is now tensor([0.4863, 0.2950, 0.2187])</code></pre>
           </p>
         </div>
       </div>
+    </div>
+    <div class="grid-container full u-align-left">
+        <h5>Determinism</h5>
+        <p>Why is our actor putting out chances of actions? Seems kind of stupid doesn't it? 
+            Imagine that every millisecond you are holding a knife you have a 10% chance of dropping it. 
+            That's dumb right? Why not just pick the highest action instead of sampling a distribution? 
+            Well most of the time the next millisecond you will decide to hold the knife tightly again.
+            So statistically it works out. You will never completely drop the knife. 
+            The Actor-Critic algorithm is <strong>non deterministic</strong>.<br>
+            In the real world with fuzzy inputs like muscle flexing and rotation angles, picking the wrong 
+            action for small fraction of a millisecond is not that big of an issue. 
+            For a game where a single wrong button makes you lose, it kind of sucks.<br>
+            Some reinforcement learning algorithms ARE deterministic. But that has its own downsides. 
+            Non-deterministic algorithms naturally explore different actions by accident. They try new things sometimes. 
+            Deterministic algorithms can get stuck, repeating the same action every time, until it gets punished into oblivion. 
+            Deterministic algorithms often need some noise injected into the decision making process to help them be less stubborn.
+        </p>
     </div>
     <div class="grid-container full u-align-left">
       <h4>Improving Our Choices In Life</h4>
@@ -709,7 +727,22 @@ while True:                     <strong>#   keep starting new episodes forever</
             "score {:12.3f}, last-epidode-time {:4d}").format(
         episode, highScore, recordTimeSteps, score, frame))</code></pre>
     </div>
-    <div class="grid-container thirds">
+    <div class="grid-container full">
+        <h5>Agent Settings</h5>
+        <div class="grid-container thirds">
+            <div>
+                <h5>Input Dims</h5>
+                <pre><code>inputDims=(8,)</code></pre>
+                <h5>Num Actions</h5>
+            </div>
+            <div>
+                <h5>Layer Sizes</h5>
+            </div>
+            <div>
+                <h5>Tiny Alpha</h5>
+            </div>
+
+        </div>
     </div>
     <div class="grid-container full">
       <h3>Full Code</h3>
