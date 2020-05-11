@@ -43,12 +43,44 @@
     <div class="grid-container full">
       <h1>Wegfawefgawefg's Tutorials</h1>
       <h2>Actor Critic Tutorial</h2>
-      <h5>Teaching An Agent How To Make An Agent</h5>
-      <p>
-        The Actor-Critic method is a reinforcement learning algorithm. <br />
-        It has two primary components, an <strong>action picker</strong> and a
-        <strong>state value estimator</strong>.
+      <h3>Teaching An Agent How To Make An Agent</h5>
+      <h4>Prerequisites</h4>
+      <p class="u-align-left">This tutorial is intended to be your very first tutorial in reinforcement learning. 
+          In it you will make a program that learns to play lunar lander from AI Gym. 
+          AI Gym is a game world for ai. If you don't know it I've got a quickie tutorial for you <a href="">here</a>.
+          It's easy to install with pip, and the main website has some getting started code examples that are only a few lines. 
+          Don't feel trapped in AI Gym though. You can use your agent to do other things too, like driving cars or balancing robots 
+          in the real world.<br>
+        If you don't know anything about neural networks or python you will find this tutorial fascinating, but probably a bit abstract. 
+        If you know python but don't know about neural networks, you might 
+        want to come back after going through <a href="">this</a>. I highly recommend the book <a>Grokking Deep Learning</a>. 
+        That book will take you from zero to hero with neural networks, and can be easily finished in a month if you find it fun. It also 
+        doesn't assume you're a math god beforehand, as opposed to 90% of machine learning resources that will. (I hate it. It's just 
+        DRM for education.)<br>
+        Anyways, we will be using pytorch for the neural networks stuff. I have a quick tutorial on pytorch <a href="/tutorials/pytorch.html">here</a>. 
+        If you already know keras or tensorflow it should be fairly straightforward to follow this tutorial.<br> 
+        For you experts out there, yes, technically, we don't need neural networks to do this. 
+        There are endless options for generative or discriminative clustering algorithms, and many of them work <a href="https://gym.openai.com/evaluations/eval_lEi8I8v2QLqEgzBxcvRIaA/#writeup">just fine</a>. Maybe 
+        we can try some in different tutorials.<br> 
       </p>
+    </div>
+
+    <div class="grid-container full">
+        <h4>Getting Started</h4>
+        <p class="u-align-left">
+          The Actor-Critic method is a reinforcement learning algorithm. <br />
+          It will power our <strong>agent</strong>. The agent is what lives in our <strong>environment</strong> and 
+          makes decisions. It sends it's action to the environment, 
+          and the environment sends back the <strong>state</strong> of the environment, and a 
+          <strong>reward</strong> representing the goodness of that <strong>state</strong>. The reward is an abstract number 
+          that depends on the environment. It could be how many coins the agent got in mario, how far right mario ran, 
+          or how many people it ran over if it's a self driving car. In that case the reward might be negative. :^)<br>
+          An <strong>agent</strong> can have any logic inside to make decisions, but hopefully it makes better and better 
+          decisions so that it can maximize the reward it gets.<br>
+          This time we are making an "Actor-Critic <strong>Agent</strong>".<br>
+          It has two primary components, an <strong>action picker</strong> and a
+          <strong>state value estimator</strong>.
+        </p>
     </div>
     <div class="grid-container halves u-align-left">
       <div class="left">
@@ -104,7 +136,7 @@
         The predictive function behind the <strong>action picker</strong> or the
         <strong>state value estimator</strong> can be whatever you want (ex:
         linear regression, nearest neighbor, genetic algorithm, random forest).
-        However i will be using a <a>neural network</a> for both of them.
+        However i will be using a single neural network for both of them.
       </p>
       <pre><code class="language-python">class ActorCriticNetwork(torch.nn.Module): #   ~here is my handle~
     def __init__(self, alpha, inputDims, fc1Dims, fc2Dims, numActions):
@@ -184,7 +216,10 @@
         If this was DQ Learning a value of 0.8 being the highest would mean 100%
         chance of eating the poison burger. :(
       </p>
-      <p>Lets choose an action the Actor Critic way.</p>
+      <p>Lets choose an action the Actor Critic way.<br>
+        We start by passing in the state from the environment into the critic. 
+        I don't know why this convention, but people often call the state: "observation". 
+        Maybe because it's what the agent "observes"?</p>
       <pre><code class="language-python">def chooseAction(observation):
     policy, _ = actorCritic.forward(observation)
     policy = F.softmax(policy, dim=0)
@@ -313,6 +348,12 @@ b is now tensor([0.4863, 0.2950, 0.2187])</code></pre>
     (actorLoss + criticLoss).backward()
     actorCritic.optimizer.step()</code></pre>
     </div>
+
+
+
+
+
+
     <div class="grid-container halves u-align-left">
       <div class="left">
         <div>
@@ -398,6 +439,16 @@ valueOfNow = reward + gamma * nextCriticValue</code></pre>
           </p>
         </div>
       </div>
+    </div>
+    <div class="grid-container full u-align-left">
+        <h5>One Quick Trick</h5>
+        <pre><code class="language-python">(actorLoss + criticLoss).backward()</code></pre>
+        <p>This might seem weird if you know pytorch. Why not just call backward on actorLoss, then on criticLoss? 
+            Well, because they share a backbone network, you can't do that. Pytorch will complain about "unreachable gradient" stuff when you call step(). 
+            And, actually, I think it computes the wrong gradient. Order will matter for the shared backbone network. Luckily for us the derivative of addition is 1. 
+            So adding the losses togethor just multiplies the gradient by 1. Multiplying things by 1 doesn't change them. :^)<br>
+            If you want to split your network in all sorts of crazy ways this works for adding as many as you want togethor.
+        </p>
     </div>
     <div class="grid-container full u-align-left">
       <h4>Formal Representation</h4>
@@ -533,20 +584,21 @@ criticLoss = delta**2</code></pre>
             <li>
               The critic slightly overestimated the reward.<br />
               <pre><code class="language-python">(reward + nextReward) < criticValue  #   so...
-smallPositiveValue = (reward + nextReward) - criticValue</code></pre>
+smallNegativeValue = (reward + nextReward) - criticValue</code></pre>
               If the critic overestimates that means the action wasn't as good
               as we thought it was. So we should shrink the probability. We have
-              a small positive temporal difference value, so to shrink the
-              probability we make that negative, and then multiply the small
+              a small negative temporal difference value, so to shrink the
+              probability we make that positive, and then multiply the small
               number by our probability.
             </li>
             <li>
               The critic slightly underestimates the reward.<br />
-              Our action wasn't confident enough. Our TD was negative. <br />
+              Our action wasn't confident enough. Our TD was positive. <br />
               <pre><code class="language-python">(reward + nextReward) > criticValue  #   so...
-smallNegativeValue = (reward + nextReward) - criticValue</code></pre>
-              We need to increase that action probability. Multiply it by a
-              small positive value.
+smallPositiveValue = (reward + nextReward) - criticValue</code></pre>
+              We need to increase that action's probability. It should move in the opposite 
+              direction of the last example. That's why the sign is reversed. And the 
+              number is small because it should be a small increase.
             </li>
           </ul>
           <p>
@@ -554,14 +606,20 @@ smallNegativeValue = (reward + nextReward) - criticValue</code></pre>
             of adjustment.
           </p>
           <ul>
-            <li>The critic largely overestimated the reward.</li>
-            <li>The critic largely overestimated the reward.</li>
+            <li>The critic largely overestimates the reward.</li>
+            <li>The critic largely understimates the reward.</li>
           </ul>
           <p>
             The point is that the action probability should be adjusted
             proportionally to how wrong or right the
             <strong>critic</strong> was, and in the correct direction. Negative
-            for shrinking, and positive for growing.
+            for shrinking, and positive for growing.<br> 
+            I want to give more specific examples, but in order to make the example simple enough 
+            to make sense it becomes a pretty impractical. Maybe someone has a good one somewhere.
+            In this particular case if you flip the sign your lander will get worse at landing over time 
+            instead of better. Also if you multiply in a huge or tiny constant into the TD to change the magnitude, you can see 
+            the lander overcompensate and undercompensate when it tries to balance. It will eventually figure that out though. The network 
+            weights just adjust to be smaller or bigger. 
           </p>
         </div>
       </div>
@@ -650,6 +708,8 @@ while True:                     <strong>#   keep starting new episodes forever</
     print(( "ep {}: high-score {:12.3f}, shortest-time {:d}, "
             "score {:12.3f}, last-epidode-time {:4d}").format(
         episode, highScore, recordTimeSteps, score, frame))</code></pre>
+    </div>
+    <div class="grid-container thirds">
     </div>
     <div class="grid-container full">
       <h3>Full Code</h3>
