@@ -323,7 +323,7 @@ b is now tensor([0.4863, 0.2950, 0.2187])</code></pre>
     <div class="grid-container full u-align-left">
         <h5>Determinism</h5>
         <p>Why is our actor putting out chances of actions? Seems kind of stupid doesn't it? 
-            Imagine that every millisecond you are holding a knife you have a 10% chance of dropping it. 
+            Imagine that every millisecond you are holding a knife you have a 10% chance of letting go of it. 
             That's dumb right? Why not just pick the highest action instead of sampling a distribution? 
             Well most of the time the next millisecond you will decide to hold the knife tightly again.
             So statistically it works out. You will never completely drop the knife. 
@@ -333,8 +333,12 @@ b is now tensor([0.4863, 0.2950, 0.2187])</code></pre>
             For a game where a single wrong button makes you lose, it kind of sucks.<br>
             Some reinforcement learning algorithms ARE deterministic. But that has its own downsides. 
             Non-deterministic algorithms naturally explore different actions by accident. They try new things sometimes. 
-            Deterministic algorithms can get stuck, repeating the same action every time, until it gets punished into oblivion. 
-            Deterministic algorithms often need some noise injected into the decision making process to help them be less stubborn.
+            Deterministic algorithms can get stuck, repeating the same action every time, until it gets punished into oblivion.
+            Sometimes deterministic algorithms are so stubborn they will pick the same action until it has been punished so much 
+            <strong>that it will never choose that action ever again. ever.</strong> You will likely even see this happen if you keep 
+            playing with AI Gym and Deep Q Learning.
+            Deterministic algorithms often need some noise injected into the decision making process to help them be less stubborn. 
+            Luckily for us, Actor-Critic doesn't need that because it is <strong>non-deterministic</strong>.
         </p>
     </div>
     <div class="grid-container full u-align-left">
