@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Basic Page Needs
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta charset="utf-8" />
+    <title>Wegfawefgawefg's Tutorials</title>
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+
+    <!-- Mobile Specific Metas
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- FONT
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link
+      href="//fonts.googleapis.com/css?family=Raleway:400,300,600"
+      rel="stylesheet"
+      type="text/css"
+    />
+
+    <!-- CSS
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="stylesheet" href="/css/normalize.css" />
+    <link rel="stylesheet" href="/css/barebones.css" />
+
+    <!-- Favicon
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="icon" type="image/png" href="images/favicon-16.png" />
+    <!-- Code Highlighting
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link
+      rel="stylesheet"
+      href="/highlightjs/styles/atom-one-dark-reasonable.css"
+    />
+    <script src="/highlightjs/highlight.pack.js"></script>
+    <script>
+      hljs.initHighlightingOnLoad();
+    </script>
+  </head>
+  <body>
+    <div class="grid-container full">
+      <h1>Wegfawefgawefg's Quickie's</h1>
+      <h2>Pytorch</h2>
+      <h3>Get Going Within ... 30 Minutes To A Few Hours</h3>
+      <h4>Prerequisites</h4>
+      <p class="u-align-left">
+        Hope you know python. Also I'm assuming you know some numpy and how
+        neural networks work already. If you dont, go read
+        <a>Grokking Deep Learning</a> now, and come back in a few weeks. It's my
+        favorite ML book. No they aren't paying me.<br />
+        If you already know tensorflow or keras this should feel familiar to
+        you.
+      </p>
+    </div>
+    <div class="grid-container full u-align-left">
+      <h4>Installation</h4>
+      <p>
+        Whether you are on linux or windows or mac the easy way to install
+        pytorch is with pip.<br />
+        Go <a href="https://pytorch.org/get-started/locally/">here</a> and
+        generate a pip command. If you have an nvidia gpu newer than 2015 or so
+        you can use the cuda version. Otherwise just select None in the CUDA
+        section of the pip command generator.<br />
+        You might get some pip errors and whatnot, but with some googling and
+        some other pip installs, you should be able to
+        <code>import torch</code> in your python shell.
+      </p>
+    </div>
+    <div class="grid-container full">
+      <h4>Hand Holding</h4>
+      <div class="grid-container thirds u-align-left">
+        <div>
+          <h5>Tensors</h5>
+          <pre><code>a = torch.tensor([1,2,3])</code></pre>
+          <p>
+            These are just like numpy arrays. Most of the functions numpy arrays
+            have, the tensors have too. That includes all the fancy numpy
+            indexing tricks. Some of the functions have different names though.
+            <strong>Ex:</strong> reshape()/view().<br />
+            One key difference is that tensors keep track of what operation was
+            used to create them. That means they always know their own parent
+            tensors and respective derivatives. That feature is what makes
+            pytorch powerful. It is called <strong>autograd</strong>, and it is
+            enabled by default, but you can turn it off and on for each tensor
+            individually.
+          </p>
+        </div>
+        <div>
+          <h5>Backprop</h5>
+          <pre><code>a = torch.tensor([1.0,2.0,3.0])
+b = torch.tensor([3.0])
+c = a * b
+#   c is tensor([3, 6, 9])
+err = (c - 5.0) ** 2
+err.backward()</code></pre>
+          <p>
+            This runs back through err to its parent c, and computes the
+            derivatives of the operations. It follows through until it computes
+            the effects both a and b had on c, and therefore on err. If a and b
+            had parents it would follow through and do those. And so on, and so
+            on. I'm hoping you know how to do that manually (<a
+              >Grokking Deep Learning</a
+            >), but anyways <strong>autograd</strong> is nice.
+          </p>
+        </div>
+        <div>
+          <h5>Brain Overload</h5>
+          <p>
+            There are functions and classes for creating and sampling
+            distributions, shrinking your neural network, data loading and
+            transformation, ... honestly it's a lot. I thought i had used a
+            reasonable portion of it, but I think I haven't used the majority of
+            what's available. At the least, don't expect to know all of it right
+            away.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="grid-container full">
+      <h4>Training A Network</h4>
+      <p>
+        Usually people don't manually update individual tensors like that. They
+        make a network class instead.
+      </p>
+      <pre class="u-align-left"><code>import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+
+import numpy as np
+
+class ExampleNetwork(torch.nn.Module):
+    def __init__(self, inputsize, hiddenSize, outputSize):
+        super().__init__()
+        self.layer1 = nn.Linear(inputsize, hiddenSize)
+        self.layer2 = nn.Linear(hiddenSize, outputSize)
+        #   when you make layers with nn.Linear() or nn.Conv2d() they automagically 
+        #   get added to the ExampleNetwork's .parameters member variable
+        #   #   the parameters hold the weights and such
+
+    def forward(self, x): # this function is called when you put data into the network
+        x = F.relu(self.layer1(x))  #   torch.nn.functional (F) has lots of activation functions
+        x = self.layer2(x)          #   dont use activation functions on the output layer
+        return x
+
+#   make a network
+net = ExampleNetwork(inputSize=2, hiddenSize=16, outputSize=1)
+
+#   send the network to your device
+# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")  #   use this one if you dont have cuda
+net.to(device)
+
+#   make some data
+inputs = torch.tensor([1.0, 2.0])   #   x
+target = torch.tensor(5.0)          #   y
+
+#   put the data on the device .__. cumbersome yes
+inputs.to(device)   #   data must be on same device as neural network
+target.to(device)
+
+#   pick a network stepping function and error function
+#   #   Adam slowly reduces the learning rate each time step is called
+optimizer = optim.Adam(net.parameters(), lr=0.001)  
+#   #   a loss function... it's common, but technically you dont even need this. 
+#   #   #   you could just subtract the output from the target data
+lossFunction = torch.nn.MSELoss()   
+
+#   train your network
+numTrainingRounds = 1000
+for i in range(numTrainingRounds):
+    #   zero the derivatives !!! ALWAYS DO THIS BEFORE CALLING backward() !!!
+    #   #   or else you will be using last training round's derivatives... its wrong!
+    net.zero_grad() 
+
+    output = net(inputs)    #   run data through neural network, to get its output
+    loss = lossFunction(output, target) #   compute the error
+    print(loss) #   the error number should decrease as it learns
+                #   IF IT DOESNT... SOMETHING IS WRONG. AAAAA!!!
+
+    loss.backward() #   compute derivatives throughout network (backpropogation)
+    optimizer.step()    #   tweak network weights based on derivatives computed during backward()</code></pre>
+    </div>
+    <div class="grid-container full">
+      <h4>And Now No Comments</h4>
+
+      <pre class="u-align-left"><code>import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+
+import numpy as np
+
+class ExampleNetwork(torch.nn.Module):
+    def __init__(self, inputsize, hiddenSize, outputSize):
+    super().__init__()
+    self.layer1 = nn.Linear(inputsize, hiddenSize)
+    self.layer2 = nn.Linear(hiddenSize, outputSize)
+
+    def forward(self, x): 
+    x = F.relu(self.layer1(x))
+    x = self.layer2(x)    
+    return x
+
+net = ExampleNetwork(inputSize=2, hiddenSize=16, outputSize=1)
+# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
+net.to(device)
+optimizer = optim.Adam(net.parameters(), lr=0.001)  
+lossFunction = torch.nn.MSELoss()   
+
+inputs = torch.tensor([1.0, 2.0]).to(device)
+target = torch.tensor(5.0).to(device)
+
+for i in range(1000):
+    net.zero_grad() 
+
+    output = net(inputs)
+    loss = lossFunction(output, target)
+    print(loss)
+    
+    loss.backward()
+    optimizer.step()</code></pre>
+    </div>
+    <div class="grid-container full u-align-left">
+      <h3>Bootstrapped</h3>
+      <p>
+        The tutorial in the pytorch docs isn't so bad. It is a bit thorough
+        though. There's a lot more rigorous explanations
+        <a
+          href="https://pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html"
+          >there</a
+        >.
+      </p>
+      <h5>Im Sorry</h5>
+      <p>
+        And if you went through this page, played with the code, and tried the
+        pytorch docs tutorial, and a lot of this stuff still doesn't make sense,
+        you probably ignored the prerequisites and kept going.<br />
+        That's good spirit I'm proud of you. It means you are the perfect person
+        to go read the book <a>Grokking Deep Learning</a>. I promise it's worth
+        a few weeks of your time. It changed my life.
+      </p>
+    </div>
+  </body>
+</html>
