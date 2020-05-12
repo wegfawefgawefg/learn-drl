@@ -327,9 +327,10 @@ b is now tensor([0.4863, 0.2950, 0.2187])</code></pre>
             That's dumb right? Why not just pick the highest action instead of sampling a distribution? 
             Well most of the time the next millisecond you will decide to hold the knife tightly again.
             So statistically it works out. You will never completely drop the knife. 
-            The Actor-Critic algorithm is <strong>non deterministic</strong>.<br>
+            The Actor-Critic algorithm statistically makes good decisions, but it might make a different 
+            decision given the same exact scenario a second time. It is <strong>non deterministic</strong>.<br>
             In the real world with fuzzy inputs like muscle flexing and rotation angles, picking the wrong 
-            action for small fraction of a millisecond is not that big of an issue. 
+            action for small fraction of a second is not that big of an issue. 
             For a game where a single wrong button makes you lose, it kind of sucks.<br>
             Some reinforcement learning algorithms ARE deterministic. But that has its own downsides. 
             Non-deterministic algorithms naturally explore different actions by accident. They try new things sometimes. 
@@ -339,7 +340,7 @@ b is now tensor([0.4863, 0.2950, 0.2187])</code></pre>
             playing with AI Gym and Deep Q Learning.
             Deterministic algorithms often need some noise injected into the decision making process to help them be less stubborn. 
             Luckily for us, Actor-Critic doesn't need that because it is <strong>non-deterministic</strong>.
-        </p>
+        </p> 
     </div>
     <div class="grid-container full u-align-left">
       <h4>Improving Our Choices In Life</h4>
@@ -661,7 +662,7 @@ smallPositiveValue = (reward + nextReward) - criticValue</code></pre>
         There really isn't anything new here. Just notice it's where we save our
         <strong>logProb</strong> when we choose an action.
       </p>
-      <pre><code class="language-python">class ActorCriticDiscreteDQAgent():
+      <pre><code class="language-python">class ActorCriticAgent():
     def __init__(self, alpha, inputDims, gamma=0.99, layer1Size=256, layer2Size=256, numActions=2):
         self.gamma = gamma
         self.actorCritic = ActorCriticNetwork(alpha, inputDims, layer1Size, layer2Size, numActions)
@@ -707,7 +708,7 @@ smallPositiveValue = (reward + nextReward) - criticValue</code></pre>
         What a coencidence. :^) Anyways, put our <strong>agent</strong> into an
         AI Gym environment and let it run for 20 minutes to 10 years.<br />
       </p>
-      <pre><code class="language-python">agent = ActorCriticDiscreteDQAgent(    <a>we wrote this earlier</a>
+      <pre><code class="language-python">agent = ActorCriticAgent(    <a>we wrote this earlier</a>
             alpha=0.00001, inputDims=(8,), gamma=0.99, numActions=4, layer1Size=2048, layer2Size=512)
 env = gym.make("LunarLander-v2")
 
@@ -733,24 +734,53 @@ while True:                     <strong>#   keep starting new episodes forever</
     </div>
     <div class="grid-container full">
         <h5>Agent Settings</h5>
-        <div class="grid-container thirds">
+        <div class="grid-container thirds u-align-left">
             <div>
                 <h5>Input Dims</h5>
                 <pre><code>inputDims=(8,)</code></pre>
+                <p>This is 8 for the lunar lander environment because the state is 8 floats representing angle, and 
+                    distance to the target and whatnot. As long as your network is taking them all in it doesn't really matter what they are. 
+                    Although, normalizing them between -1.0 and 1.0 can help a lot of the time. It's a tuple, not a number, 
+                    so that if the input was pixels it could be a tuple of width and height of the incoming game pixels.
+                </p>
                 <h5>Num Actions</h5>
+                <pre><code>numActions=4, </code></pre>
+                <p>This is the number of actions the lunar lander environment accepts. We only need one probability for each 
+                    action the agent can take. Make sure if you switch to other environments to change your number of network outputs. 
+                    You can get creative with this though. Wanna try normal distributions instead? You'll need 2 outputs per action.
+                </p>
             </div>
             <div>
                 <h5>Layer Sizes</h5>
+                <pre><code>layer1Size=2048, layer2Size=512</code></pre>
+                <p>I found someone using these layer sizes online somewhere. I tried smaller ones but the agent never got good performance. 
+                    You could write a program to test varying neural network shapes and sizes and graph them out to find optimal 
+                    agent settings for this. A lot of machine learning papers do just that. I might make a tutorial for it at some point.
+                </p>
             </div>
             <div>
                 <h5>Tiny Alpha</h5>
+                <pre><code>alpha=0.00001, </code></pre>
+                <p>You might notice the learning rate is rather small if you are familiar with other machine learning stuff. 
+                    Normally I don't see reinforcement learning algorithms using the classic ML 10e-3 and 10e-4. Instead I see really really tiny alphas. 
+                    It turns out <strong>value</strong> based algorithms (that are concerned with assigning <strong>value</strong> to states), such as our critic, are rather unstable. You can try making it higher. I tried.<br>
+                    The cool thing is that it learns differently with different learning rates. With a high alpha it will learn how to balance the lander 
+                    almost instantly, because that reward is so prominent and obvious. The uncool part is that it will stop at that and never learn how to land.<br>
+                    With a tiny learning rate it takes a pathetically long time to correctly balance the lander, 
+                    overcompensating and undercompensating the thrusters. When it finally can balance it slowly inches it's hover closer and closer to the target over tens of episodes. 
+                    But it will eventually successfully land, and consistently. It just never gets that with the high learning rate. Play with it.
+                </p>
             </div>
-
         </div>
     </div>
     <div class="grid-container full">
       <h3>Full Code</h3>
       <div class="grid-container full u-align-left">
+        <p>You did it, it's done. Heres the full code with all the imports added and sassy comments removed. 
+            Copy it into an editor and print the outputs of functions you dont understand.<br>
+            If you don't have cuda go uncomment out the <code>torch.device("cpu")</code> line in the ActorCriticNetwork class to enable cpu mode. 
+            It will run much more slowly though so you might want to make the layer sizes smaller. Ex: layer1Size 128, layer2Size 128
+        </p>
         <pre><code class="language-python">import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -776,6 +806,7 @@ class ActorCriticNetwork(torch.nn.Module):
 
         self.optimizer = optim.Adam(self.parameters(), lr=alpha)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        #   self.device = torch.device("cpu")
         self.to(self.device)
 
     def forward(self, observation):
@@ -786,7 +817,7 @@ class ActorCriticNetwork(torch.nn.Module):
         value = self.critic(x)
         return policy, value
 
-class ActorCriticDiscreteDQAgent():
+class ActorCriticAgent():
     def __init__(self, alpha, inputDims, gamma=0.99, layer1Size=256, layer2Size=256, numActions=2):
         self.gamma = gamma
         self.actorCritic = ActorCriticNetwork(alpha, inputDims, layer1Size, layer2Size, numActions)
@@ -820,10 +851,8 @@ if __name__ == '__main__':
     import math
     from matplotlib import pyplot as plt
     
-    agent = ActorCriticDiscreteDQAgent(
+    agent = ActorCriticAgent(
         alpha=0.00001, inputDims=(8,), gamma=0.99, numActions=4, layer1Size=2048, layer2Size=512)
-    agent = ActorCriticDiscreteDQAgent(
-        alpha=0.00001, inputDims=(8,), gamma=0.99, numActions=4, layer1Size=128, layer2Size=64)
     env = gym.make("LunarLander-v2")
 
     scoreHistory = []
@@ -867,9 +896,31 @@ if __name__ == '__main__':
       </div>
     </div>
     <div class="grid-container full u-align-left">
+        <h3>I'm Impatient</h3>
+        <p>So you are watching it go now. How long is it gonna take to land? Well luckily for you it might never land. :^) 
+            Reinforcement learning is like this. Sometimes you roll bad dice and your child comes out with 
+            three hands and no fingers. The initial neuron weights could be bad, your agent gets stuck in a local minima, theres no end 
+            to the number of things that can go wrong in these environments. 
+            It can be very difficult to find bugs in RL code for this reason. Even if the code is correct, you still might get bad results.<br>
+            The code above usually makes a successful smooth landing somewhere between 75 and 300 episodes of learning. Probably it will take 30 minutes.  
+            Actor-Critic is simple and not terribly good at this environment. Sorry. It kind of sucks.
+        </p>
+        <h3>So You Made Me Read All That Shit For Nothing?</h3>
+        <p>Actually you've learned a lot here. You have a lot of intuition for how the thing 'learns' now. 
+            With just a few tweaks to your code you can make substantially better agents. As it turns out I'm 
+            working on tutorials for those agents <a href="/index.html">here</a>. :^)
+        </p>
+    </div>
+    <div class="grid-container full u-align-left">
       <h3>Wisdom</h3>
       <p>
-        You probably have some questions and complaints about taking abstract
+        An hour or few has passed. Maybe a few days. You've already sent videos to all your family and friends, and your mom, of your little fake moon landing, 
+        and now the excitement of making your first AI is wearing off. You're probably feeling a bit let down. 
+        You know how this stuff works and the magic has ended. You might even feel a bit betrayed. <br>
+        <strong>"This THING isn't alive. It doesnt LEARN anything. It can never gain consciousness. 
+            It's just probabilities and math.<br> 
+            AI IS A BIG LIE. A SCAM. I WANT A DIVORCE"</strong> <br>
+            You probably have some questions and complaints about taking abstract
         life wisdom and implementing it in such a literal way in math. And also
         questions about why we do so in this specific way.<br />
       </p>
@@ -877,15 +928,17 @@ if __name__ == '__main__':
       <p>
         Your brain is a computer. It is constantly evaluating the value of its
         particular actions, and picking what it thinks to be the best ones.
-        Maybe it is doing so in a much more complicated way, and maybe there are
-        many seperate zones of neurons competing over decisions. The math just
-        simplifies this for practicality. It keeps the decision making essence
+        Maybe it is doing so in a much more complicated way. Maybe there are thousands of "actors" and "critics", 
+        seperate zones of neurons competing over decisions. Maybe your brain has an 
+        internal model of the world for trying out different actions in.<br>
+        Reinforcement learning is a blatant oversimplification. Inspired by the way you think. 
+        It shrinks down the problem for practicality reasons. It keeps the decision making essence
         just enough to be metaphorically sound. Most of reinforcement learning
         progress seems to fall into two categories:
       </p>
       <ul>
         <li>
-          Improving an existing algirothm by engineering a new feature into it
+          Improving an existing algorithm by engineering a new feature into it
           to increase learning rate or stability.
         </li>
         <li>
@@ -932,7 +985,7 @@ if __name__ == '__main__':
         have lots of questions about this you might choose to peruse some of the
         other resources, but be warned there are many math symbols out there.
         Even if you aren't math fluent (I am also not math fluent :() ), you can
-        still learn stuff from understanding 5-10% of the symbols. Thought it
+        still learn stuff from understanding 5-10% of the symbols. Though it
         might take you a month or so off and on.<br />
 
         Some noteable books and resources include:
@@ -940,15 +993,15 @@ if __name__ == '__main__':
       <ul>
         <li>Artificial Intelligence: by Stuart Russell and Peter Norvig</li>
         <li>
-          Grokking Deep Reinforcement Learning (just skip/skim chapters 4
-          through 7 though)
+          Grokking Deep Reinforcement Learning (ch1-3, but skip/skim chapters 4
+          through 7 though (bad), but you can read the rest)
         </li>
         <li>
           PDF's of actual research papers. (surprisingly simple enough to
           follow, and fairly short by research paper standards)
         </li>
         <li>Not surprisingly you can learn a bunch from youtube</li>
-        <li>The rest of the tutorials that I will be making.</li>
+        <li>The <a href="/index.html">rest of the tutorials</a> that I am making.</li>
       </ul>
     </div>
   </body>
