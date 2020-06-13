@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Basic Page Needs
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta charset="utf-8" />
+  <title>Wegfawefgawefg's Tutorials</title>
+  <meta name="description" content="" />
+  <meta name="author" content="" />
+
+  <!-- Mobile Specific Metas
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- FONT
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css" />
+
+  <!-- CSS
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="stylesheet" href="/css/normalize.css" />
+  <link rel="stylesheet" href="/css/barebones.css" />
+
+  <!-- Favicon
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="icon" type="image/png" href="images/favicon-16.png" />
+  <!-- Code Highlighting
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="stylesheet" href="/highlightjs/styles/atom-one-dark-reasonable.css" />
+  <script src="/highlightjs/highlight.pack.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad();
+  </script>
+</head>
+
+<body>
+  <div class="grid-container full">
+    <h1>Wegfawefgawefg's Tutorials</h1>
+    <h2>Deep Q Learning Tutorial</h2>
+    <h3>How To Make A Stubborn Greedy Bastard With Altzheimer's</h3>
+    <h4>❗❗❗Noob Warning❗❗❗</h4>
+    <p class="u-align-left">This should probably not be your very first deep reinforcement learning program.
+      I've got a tutorial for that, <a href="/tutorials/rl/actorcritic/actorcritic.html">here.</a> <br>
+      Come back after that. However, you don't need to fully understand that tutorial to get this one, and if you
+      just know some pytorch you should be fine here.
+      Every tutorial other than that one makes progressively more assumptions about your prior knowledge.
+    </p>
+    <h4>❗❗❗Expert Warning❗❗❗</h4>
+    <p class="u-align-left">I take an itteritive approach to building up knowledge. If the network defies your
+      expectations about how a DQN should be at first, just bare with me.
+    </p>
+    <h4>Prerequisites</h4>
+    <p class="u-align-left">Today we're gonna try a different algorithm for some deep reinforcement learning.
+      It's generally a lot better than the actor-critic one, but it has some real limitations.
+      <ul class="u-align-left">You're gonna need the following:
+        <li>pytorch installed</li>
+        <li>ai gym installed </li>
+        <li>a computer</li>
+        <li>hands (for now)</li>
+      </ul>
+    </p>
+  </div>
+  <div class="grid-container full">
+    <h4>Getting Started</h4>
+    <p class="u-align-left">
+      Deep Q Learning is a reinforcement learning algorithm. <br />
+      It's like Actor-Critic in a lot of ways.<br>
+      Just like in Actor-Critic we're gonna have an <strong>agent</strong>, a <strong>network</strong>, and an
+      <strong>environment</strong>. <br>
+      The network is responsible for correlating some environment inputs with actions,
+      It also has to predict the outcome of those actions.
+      In the case of Q learning, the outcome prediction and the action choice is sort of one and the same. <br>
+      There's other ways of doing it, but basics first.
+      Let's start by predicting outcomes...
+    </p>
+  </div>
+  <div class="grid-container full">
+    <h4>Waste Not Want Not</h4>
+    <p class="u-align-left">
+      Okay so you have some state that comes into your network from the environment,
+      and you have a finite set of actions you can take. The first thing we have to do is predict how good the next
+      state will be if we take a specific action.
+    </p>
+  </div>
+  <div class="grid-container halves u-align-left">
+    <div class="left">
+      <h5>Action Outcome Prediction</h5>
+      <p>Consider the following:</p>
+      <strong>Ex:</strong> The agent is given a picture of a burger.
+      <div class="grid-container full">
+        <div class="u-align-left">
+          <p>
+            It outputs 3 values. One per available action.<br />
+            <br />
+            <strong>Eat:</strong> Predict we will get 100.0 Points <br />
+            <strong>Dont Eat:</strong> -10.0 Points <br />
+            <strong>Eat, Throw Up, Then Eat Again:</strong> 200.0 Points<br />
+          </p>
+          <p>Each output is a prediction of how good the next state of the environment will be if it does that
+            action.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="right">
+      <h5>Picking An Action</h5>
+      <p>
+        Why are we predicting action outcomes? Well, the agent will pick the action with the highest estimation of how
+        many points it will result in. <br>
+        Yes, It is actually that simple.
+      </p>
+      <pre><code class="language-python">predicted_outcomes = network(now_state)
+predicted_outcomes is array([100., -10., 200.])
+
+chosen_action = predicted_outcomes.argmax()
+chosen_action is 2</code></pre>
+      <p>Mmmm. Yummy. :^)</p>
+    </div>
+  </div>
+  <div class="grid-container full u-align-left">
+    <p>
+      Let's set up our network that will predict action outcomes, also known as <strong>Q Values.</strong>
+
+    </p>
+    <pre><code class="language-python">class Network(torch.nn.Module):
+    def __init__(self, lr, inputShape, numActions):
+        super().__init__()
+        self.inputShape = inputShape
+        self.numActions = numActions
+        self.fc1Dims = 1024
+        self.fc2Dims = 512
+
+        #   layers
+        self.fc1 = nn.Linear(*self.inputShape, self.fc1Dims)
+        self.fc2 = nn.Linear(self.fc1Dims, self.fc2Dims)
+        self.fc3 = nn.Linear(self.fc2Dims, numActions)  # output 1 outcome estimate per action
+
+        #   pytorch stuff
+        self.optimizer = optim.Adam(self.parameters(), lr=lr)
+        self.loss = nn.MSELoss()
+        # self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cpu")
+        self.to(self.device)
+
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+
+        return x</code></pre>
+  </div>
+
+  <!-- called q values because of probability theory or something. but its not quite the same -->
+  <!-- issues:
+      catastrophic forgetting. (experience replay)
+      overestimation  (link to dueling) (link to twin)
+      discrete values (a few options, branching, )
+      policy stability (link to double) (link to advantage)
+      time series (frame stacking)
+      exploration (espilon greedy/ noise)
+
+      why does reward go up over time?
+      if you are in a good position in life, you have good options.
+      if you are in a bad position in life, you have bad options.
+
+      by succesively choosing the best option at any given moment, we improve the future options available too us.
+      So the result is better and better reward.
+
+
+      - add epsilon greedy in the next tutorial
+      -->
+
+  <div class="grid-container halves u-align-left">
+    <div>
+      <h5>Network Inputs</h5>
+      <p>
+        InputShape should be a tuple. In the case of cartpole it's
+        <pre><code>... inputShape=(4,), numActions=2 ...</code></pre>
+        The numActions is just how many discrete actions you can choose from for the environment.
+      </p>
+    </div>
+    <div>
+      <h5>Network Outputs</h5>
+      <p>
+        See in the forward function we just pass in the environment state and out comes an array of
+        numbers.
+      </p>
+      <pre><code>#  self.fc3 = nn.Linear(self.fc2Dims, numActions)
+def forward(self, x):
+    x = F.relu(self.fc1(x))
+    x = F.relu(self.fc2(x))
+    x = self.fc3(x)
+
+    return x</code></pre>
+      One outcome value prediction for each action.
+      </p>
+      <pre><code class="language-python">predicted_outcomes = network(now_state)
+predicted_outcomes is array([100., -10., 200.])</code></pre>
+    </div>
+  </div>
+  <div class="grid-container full">
+    <p>That's it for the network code.</p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4>Choose Wisely</h4>
+    <p>Let's make the <strong>agent</strong> now.<br>
+      As I said before, the agent will pick the action with the highest value estimation.
+      Why? Well, if you wanted to make an agent that got progressively worse at things, you could pick the lowest. :^)
+    </p>
+    <pre><code class="language-python">def chooseAction(self, observation):
+    # your env state probably comes in as a numpy array of floats. So we have to put it in a tensor
+    state = torch.tensor(observation).float()
+    state = state.to(self.dqn.device) # and put it on the gpu/cpu
+    state = state.unsqueeze(0)  # pytorch likes inputs in a specific shape (1, 8) instead of just (8)
+
+    qValues = self.dqn(state) # pass it through the network to get your estimations
+    action = torch.argmax(qValues) # pick the highest
+    return action.item()  # return an int instead of a tensor containing the index of the best action</code></pre>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4>Better Forecasting</h4>
+    <p>
+      Unlike in Actor-Critic, this network only has one error to minimize.
+    </p>
+    <pre><code class="language-python">def learn(self, state, reward): 
+    self.network.optimizer.zero_grad()  #   pytorch stuff: resets all the tensor derivatives
+
+    # put our states in tensors and such
+    state = torch.tensor(state).float().detach()  # detach it so we dont backprop through it
+    state = state.to(self.dqn.device) # and put it on the gpu/cpu
+    state = state.unsqueeze(0)
+
+    reward = torch.tensor(reward).float().detach()  # have to put the reward in tensor form too
+    reward = reward.to(self.network.device) # and on the proper device
+
+    qValues = self.network(state)
+    valueOfBestAction = qValues.max()
+
+    # did we accurately predict how much reward the best action would give us?
+    loss = self.network.loss(valueOfBestAction, reward) 
+
+    loss.backward()
+    self.network.optimizer.step()</code></pre>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h5>Why Is That The Loss?</h5>
+    <p>The network takes the difference between the actual <strong>reward</strong> and its predicted reward as its loss.
+      The agent picks an action, gives that action to the environment. The environment gives a reward.
+      Then you get to see how wrong it was.
+
+      The action QValue is the reward prediction right? You want it to be correct.<br><br>
+      If the difference between reward and prediction is zero, it means the network perfectly predicted the
+      reward it would get. That means it "understands reality". <br><br>
+      If the difference is high, it means the network really over/under valued its action. <br>
+      If the difference is low, it means the network only kinda under/over valued its action. <br><br>
+
+      The error being positive means it was an overvalued action.<br>
+      The error being negative means it was an undervalued action.<br>
+
+      Anyways, both of those are bad things.
+    </p>
+    <h5>What about that .detach() thing?</h5>
+    <p>
+      Remember when we called <code>.detach()</code> on the state?
+      We do that every time before we pass it into the network.
+      Well that's important. While the environment is responsible for what reward the agent predicts it will get,
+      it would be wrong to modify the state according to the loss.<br>
+      If we don't detach it, when we backprop the error, the state tensor will absorb a portion of the loss.<br>
+      So why is that bad? Well, the state is just state. It's life. <br>
+      You can't change the laws of physics, you can only change your interpretation of the state, and your choices.<br>
+      So the loss should be accounted for in the change to the network weights, not the state.
+    </p>
+    <h5>This Isn't How They Do It In My Textbook</h5>
+    <p>
+      You were expecting a bunch of nonsense about temporal difference and compounding reward probabilities and whatnot
+      weren't you? <br>
+      Don't worry. We will get there.
+    </p>
+  </div>
+
+
+  <div class="grid-container full u-align-left">
+    <h4>The Whole Agent</h4>
+    <p>
+      The <strong>agent</strong> class holds the network and functions as a nice place to put utilities needed
+      for decision making. You've already seen all this code. It's just in one place now.<br>
+      I'm not a huge fan of unnecessary classes but this Agent will be convenient later when we add stuff to it.
+    </p>
+    <pre><code class="language-python">class Agent():
+    def __init__(self, lr, inputShape, numActions=2):
+        self.network = Network(lr, inputShape, numActions)
+
+    def chooseAction(self, observation):
+        state = torch.tensor(observation).float()
+        state = state.to(self.dqn.device) 
+        state = state.unsqueeze(0)
+    
+        qValues = self.dqn(state)
+        action = torch.argmax(qValues)
+        return action.item()
+
+    def learn(self, state, reward): 
+        self.network.optimizer.zero_grad()  #   pytorch stuff: resets all the tensor derivatives
+    
+        state = torch.tensor(state).float().detach()  # detach it so we dont backprop through it
+        state = state.to(self.dqn.device) # and put it on the gpu/cpu
+        state = state.unsqueeze(0)
+    
+        qValues = self.network(state)
+        valueOfBestAction = qValues.max()
+        loss = self.network.loss(valueOfBestAction, reward) 
+    
+        loss.backward()
+        self.network.optimizer.step()</code></pre>
+  </div>
+
+  <!-- 
+
+
+
+
+
+        YOU AARE HERE NOW
+
+
+
+
+ -->
+
+
+  <!-- <div class="grid-container halves u-align-left">
+   </div>
+   <h4>Settings</h4>
+   <div class="grid-container halves u-align-left">
+       <div>
+           <h5>Layer Sizes</h5>
+           <pre><code>self.fc1Dims = 1024
+ self.fc2Dims = 512</code></pre>
+           <p>If it runs too slowly shrink these down in the network. I've seen the cartpole environment beaten with layer sizes around 32.<br>
+             However, the peak performance of the agent is limited by the network size.
+             The complexity of the agent's strategy will be limited by the network size. 
+             The complexity of the environments the agent can handle will be limited by the small network size.
+             The chance the agent's network gets stuck in a local minima goes down the larger the network is too.<br>
+ 
+             Basically theres a lot of reasons to use a bigger network than you might immediatly think is necessary.
+           </p>
+       </div>
+       <div>
+           <h5>Learning Rate</h5>
+           <pre><code>lr=0.001, </code></pre>
+           <p>The learning rate heavily effects the stability of a deep reinforcement learning agent.<br>
+             If it is too small, your agent will either take way too long to train, or the errors will be so small that it may actually never train.
+             If it is too large, your weights will either go to 0.0 or go to infinity, and youll start getting NAN (not a number) warnings, 
+             and the agent performance will tank to minimum and never recover.<br>
+             If you want to see it happen just set the LR to 100.0 and look at a graph of reward over time.
+           </p>
+       </div>
+   </div>
+ </div> -->
+
+
+  <div class="grid-container full u-align-left">
+    <h4>The Main Loop</h4>
+    <p>
+      All the easy parts are done now. Put the <strong>agent</strong>, into the environment, and trap it in an
+      infinite loop so it can learn the futility of life and give up. <br>
+    </p>
+    <pre><code class="language-python">agent = Agent(lr=0.001, inputShape=(8,), numActions=2)
+env = gym.make('CartPole-v1')
+
+highScore = -math.inf
+while True:                     <strong>#   keep starting new episodes forever</strong>
+    observation = env.reset()   <strong>#   observation is just a commonly used term for the environment state</strong>
+    score, frame, done = 0, 1, False
+    while not done:             <strong>#   keep going until the episode is done</strong>
+        env.render()            <strong>#   draw it on your screen so you can watch</strong>
+        action = agent.chooseAction(observation)
+        nextObservation, reward, done, info = env.step(action)  <strong>#   make the environment go one time step</strong>
+        agent.learn(observation, reward, nextObservation, done)  <strong>#   make your network more accuracte</strong>
+        observation = nextObservation
+        score += reward
+        frame += 1
+
+    highScore = max(highScore, score)
+    print(( "ep {}: high-score {:12.3f}, "
+            "score {:12.3f}, last-episode-time {:4d}").format(
+        episode, highScore, score, frame))</code></pre>
+  </div>
+  <div class="grid-container full">
+    <h4>Run It</h4>
+    <p>You have the basic <strong>DQN</strong> framework now to get it going. The full code is below.<br>
+      Go ahead and run it. </p>
+    <div class="grid-container full">
+      <h3>Full Code</h3>
+      <div class="grid-container full u-align-left">
+        <pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+import gym       
+import math
+import numpy as np
+
+class Network(torch.nn.Module):
+    def __init__(self, alpha, inputShape, numActions):
+        super().__init__()
+        self.inputShape = inputShape
+        self.numActions = numActions
+        self.fc1Dims = 1024
+        self.fc2Dims = 512
+
+        self.fc1 = nn.Linear(*self.inputShape, self.fc1Dims)
+        self.fc2 = nn.Linear(self.fc1Dims, self.fc2Dims)
+        self.fc3 = nn.Linear(self.fc2Dims, numActions)
+
+        self.optimizer = optim.Adam(self.parameters(), lr=alpha)
+        self.loss = nn.MSELoss()
+        # self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cpu")
+        self.to(self.device)
+
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+
+        return x
+
+class Agent():
+    def __init__(self, lr, inputShape, numActions):
+        self.network = Network(lr, inputShape, numActions)
+
+    def chooseAction(self, observation):
+        state = torch.tensor(observation).float().detach()
+        state = state.to(self.network.device)
+        state = state.unsqueeze(0)
+
+        qValues = self.network(state)
+        action = torch.argmax(qValues).item()
+        return action
+
+    def learn(self, state, reward):
+        self.network.optimizer.zero_grad()
+
+        state = torch.tensor(state).float().detach()
+        state = state.to(self.network.device)
+        state = state.unsqueeze(0)
+
+        reward = torch.tensor(reward).float().detach()
+        reward = reward.to(self.network.device)
+
+        qValues = self.network(state)
+        valueOfBestAction = qValues.max()
+
+        loss = self.network.loss(valueOfBestAction, reward)
+
+        loss.backward()
+        self.network.optimizer.step()
+
+if __name__ == '__main__':
+    env = gym.make('CartPole-v1').unwrapped
+    agent = Agent(lr=0.001, inputShape=(4,), numActions=2)
+
+    highScore = -math.inf
+    episode = 0
+    while True:
+        done = False
+        state = env.reset()
+
+        score, frame = 0, 1
+        while not done:
+            env.render()
+
+            action = agent.chooseAction(state)
+            state_, reward, done, info = env.step(action)
+            agent.learn(state, reward)
+
+            state = state_
+
+            score += reward
+            frame += 1
+
+        highScore = max(highScore, score)
+
+        print(( "ep {}: high-score {:12.3f}, "
+                "score {:12.3f}, last-episode-time {:4d}").format(
+            episode, highScore, score,frame))
+
+        episode += 1</code></pre>
+      </div>
+    </div>
+    <div class="grid-container full u-align-left">
+      <h3>Did It Work?</h3>
+      <p>It didn't did it? Do you have any guesses why?<br>
+        Go scour the code a bit, and verify each line makes sense. Maybe do some printing.<br>
+        Don't come back until you atleast tried. <br> <br>
+        Hey. I said stop reading this. Go try.
+      </p>
+    </div>
+    <div class="grid-container full">
+      <h3>. . .</h3>
+    </div>
+    <div class="grid-container full">
+      <h3>. . I . . Gi . .</h3>
+    </div>
+    <div class="grid-container full">
+      <h3>I Give Up</h3>
+      <p>I hope you didn't spend more than 30 minutes trying to figure out why 
+        it doesn't work. That would be really sad.<br>
+        If you did though, don't worry, stress 
+        induced hair-loss is temporary.<br>
+        I set you up. You were doomed to fail from the begining. <br>
+      </p>
+      <p>Let's investigate why you're such a failure in the <a href="/tutorials/rl/deepqlearning2/deepqlearning2.html">next tutorial</a>
+      </p>
+    </div>
+  </div>
+</body>
+
+</html>
