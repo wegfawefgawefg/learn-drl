@@ -39,102 +39,465 @@
     <h1>Wegfawefgawefg's Tutorials</h1>
     <h2>Deep Q Learning Tutorial 2:</h2>
     <h2>Electric Boogaloo</h2>
-    <h3>How To Make A Gambling Bastard With Altzheimer's</h3>
-    <h1>🚧 <i>Tutorial In Progress...</i>🚧 </h1>
-    <!-- <h4>Prerequisites</h4> -->
-    <!-- <ul>You read this right? -->
-    <!-- </p>
+    <h3>How To Make A Pessimistic Bastard</h3>
+    <h4>Prerequisites</h4>
+    <ul>You read this right?
+      </p>
       <li><a href="/tutorials/rl/deepqlearning/deepqlearning.html">Deep Q Learning Tutorial 1</a></li>
-    </ul> -->
+    </ul>
   </div>
 
-  <!-- <div class="grid-container full">
+  <div class="grid-container full">
     <h4>You Lied To Me</h4>
     <p>
-      I'll be honest with you. The Deep Q Learning Agent we made in the last tutorial was never gonna work.
+      I'll be honest with you. The Deep Q Learning Agent we made in the last tutorial was never gonna work. <br>
+      I wish I could have seen your dissapointed face after all that effort.<br><br>
+
+
+      Fear not. It was not a waste of time.<br>
+      With just a few changes we can make it great.
     </p>
   </div>
-  <div class="grid-container full">
-    <h1>🚧 <i>Tutorial Creation In Progress...</i>🚧 </h1>
-  </div> -->
-  <!-- <div class="grid-container full">
-    <h4>Waste Not Want Not</h4>
-    <p class="u-align-left">
-      Okay so you have some state that comes into your network from the environment,
-      and you have a finite set of actions you can take. The first thing we have to do is predict how good the next
-      state will be if we take a specific action.
-    </p>
+  <div class="grid-container full u-align-left">
+    <p>Okay, so when you run it, the terminal looks like this:</p>
+    <pre class="full u-align-center"><code class="language-python">...
+ep 76: high-score       48.000, score        9.000, last-episode-time   10
+ep 77: high-score       48.000, score       10.000, last-episode-time   11
+ep 78: high-score       48.000, score       10.000, last-episode-time   11
+ep 79: high-score       48.000, score       10.000, last-episode-time   11
+ep 80: high-score       48.000, score        9.000, last-episode-time   10
+ep 81: high-score       48.000, score       10.000, last-episode-time   11
+ep 82: high-score       48.000, score       10.000, last-episode-time   11
+ep 83: high-score       48.000, score       10.000, last-episode-time   11
+ep 84: high-score       48.000, score        9.000, last-episode-time   10
+ep 85: high-score       48.000, score       10.000, last-episode-time   11
+ep 86: high-score       48.000, score       10.000, last-episode-time   11
+ep 87: high-score       48.000, score        9.000, last-episode-time   10
+ep 88: high-score       48.000, score       10.000, last-episode-time   11
+ep 89: high-score       48.000, score        9.000, last-episode-time   10
+ep 90: high-score       48.000, score        9.000, last-episode-time   10
+ep 91: high-score       48.000, score        9.000, last-episode-time   10
+ep 92: high-score       48.000, score        8.000, last-episode-time    9
+ep 93: high-score       48.000, score        9.000, last-episode-time   10
+ep 94: high-score       48.000, score        9.000, last-episode-time   10
+ep 95: high-score       48.000, score        9.000, last-episode-time   10
+ep 96: high-score       48.000, score        9.000, last-episode-time   10
+      ...</code></pre>
+    <p class="u-align-left">Those scores are terrible. A good score is around 200 points.
+      Your agent gets 1 point for every frame it didnt drop the pole. 9 might even be the
+      minimum possible score. <br> Needless to say, the agent isn't improving. And no matter how long you run it, it
+      will not improve.<br>
+      In fact, if you set the agent to pick random actions, you will get better performance than our agent as is.<br>
+      Don't believe me? Watch this...</p>
+    <pre><code class="language-python">def chooseAction(self, observation):
+    # state = torch.tensor(observation).float().detach()
+    # state = state.to(self.network.device)
+    # state = state.unsqueeze(0)
 
+    # qValues = self.network(state)
+    # action = torch.argmax(qValues).item()
+    action = random.randint(0, 1)
+
+    return action</code></pre>
+    <p>... and run it ...</p>
+    <pre class="full u-align-center"><code class="language-python">ep 0: high-score       10.000, score       10.000, last-episode-time   11
+ep 1: high-score       12.000, score       12.000, last-episode-time   13
+ep 2: high-score       27.000, score       27.000, last-episode-time   28
+ep 3: high-score       27.000, score       13.000, last-episode-time   14
+ep 4: high-score       27.000, score       18.000, last-episode-time   19
+ep 5: high-score       27.000, score       17.000, last-episode-time   18
+ep 6: high-score       27.000, score       12.000, last-episode-time   13
+ep 7: high-score       27.000, score       15.000, last-episode-time   16
+ep 8: high-score       27.000, score       10.000, last-episode-time   11
+ep 9: high-score       27.000, score       15.000, last-episode-time   16
+ep 10: high-score       27.000, score       19.000, last-episode-time   20
+ep 11: high-score       36.000, score       36.000, last-episode-time   37
+ep 12: high-score       36.000, score       12.000, last-episode-time   13
+ep 13: high-score       57.000, score       57.000, last-episode-time   58
+ep 14: high-score       57.000, score        9.000, last-episode-time   10
+ep 15: high-score       57.000, score       19.000, last-episode-time   20
+ep 16: high-score       57.000, score       15.000, last-episode-time   16
+ep 17: high-score       57.000, score       20.000, last-episode-time   21
+ep 18: high-score       57.000, score       13.000, last-episode-time   14
+ep 19: high-score       57.000, score       13.000, last-episode-time   14
+ep 20: high-score       57.000, score       16.000, last-episode-time   17
+ep 21: high-score       57.000, score       56.000, last-episode-time   57</code></pre>
+    <p>Look at those scores. They are substantially higher than our learning agent.<br>
+      Okay so what gives?</p>
   </div>
+  <div class="grid-container full u-align-left">
+    <h4>Post Mortem</h4>
+    <p>
+      It's time to investigate what is going wrong.
+      Let's see which actions the agent is taking.
+    </p>
+    <pre><code class="language-python">def chooseAction(self, observation):
+    state = torch.tensor(observation).float().detach()
+    state = state.to(self.network.device)
+    state = state.unsqueeze(0)
 
-  <div class="grid-container halves u-align-left">
-    <div class="left">
-      <h5>Action Outcome Prediction</h5>
-      <p>Consider the following:</p>
-      <strong>Ex:</strong> The agent is given a picture of a burger.
-      <div class="grid-container full">
-        <div class="u-align-left">
-          <p>
-            It outputs 3 values. One per available action.<br />
-            <br />
-            <strong>Eat:</strong> Predict we will get 100.0 Points <br />
-            <strong>Dont Eat:</strong> -10.0 Points <br />
-            <strong>Eat, Throw Up, Then Eat Again:</strong> 200.0 Points<br />
-          </p>
-          <p>Each output is a prediction of how good the next state of the environment will be if it does that
-            action.
-          </p>
-        </div>
+    qValues = self.network(state)
+    action = torch.argmax(qValues).item()
+    print(action) # here
+    return action</code></pre>
+    <p>... and run ...</p>
+    <pre><code class="language-python">...
+ep 5: high-score       11.000, score       11.000, last-episode-time   12
+0
+0
+0
+0
+0
+0
+0
+0
+0
+ep 6: high-score       11.000, score        9.000, last-episode-time   10
+0
+0
+0
+0
+0
+0
+0
+0
+0
+ep 7: high-score       11.000, score        9.000, last-episode-time   10
+0
+0
+0
+0
+0
+0
+0
+0
+0
+...</code></pre>
+    <p>So the agent always picks one action. Rerun it a few times to see if the action it decides to
+      repeat is the same across runs.
+    </p>
+    <p>Okay I did that. It seems to just pick one action at random and mash that one. <br>
+      Alright, time for more prints. Let's look at the <strong>QValues</strong>.
+      Is it picking correctly? Do they look sane?</p>
+    <pre><code class="language-python">def chooseAction(self, observation):
+    state = torch.tensor(observation).float().detach()
+    state = state.to(self.network.device)
+    state = state.unsqueeze(0)
+
+    qValues = self.network(state)
+    action = torch.argmax(qValues).item()
+    print("qValues: {}, action {}".format(qValues, action)) # happy printing
+    return action</code></pre>
+    <p>you know the drill</p>
+    <pre><code class="language-python">qValues: tensor([[-0.0304, -0.1123]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 0.5467, -0.1014]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 1.1103, -0.1368]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 1.4888, -0.1696]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 1.4374, -0.1851]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 1.0218, -0.1893]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 0.4915, -0.1777]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 0.6207, -0.1962]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 1.1235, -0.2413]], grad_fn=<AddmmBackward>), action 0
+ep 0: high-score        9.000, score        9.000, last-episode-time   10
+qValues: tensor([[ 1.3182, -0.1829]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 1.2014, -0.1902]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 1.1133, -0.2033]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 1.1132, -0.2105]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 1.1815, -0.2261]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 1.2351, -0.2414]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 1.2081, -0.2509]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 1.0592, -0.2488]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 0.8426, -0.2346]], grad_fn=<AddmmBackward>), action 0
+...
+</code></pre>
+    <p>By the way that <code>grad_fn=<\AddmmBackward></code> it keeps printing out
+      is the derivative of the last action performed on the tensor. Which happens
+      to be passing it through the ADAM Optimizer. You can hide that weird print by using
+      <code>.detach()</code> on it when you print it</p>
+    <p>Anyways, the q values start kinda random. They look like random floats. That makes sense, because the weights of
+      the
+      network are random. <br>
+      If we skip ahead to a future episode:
+    </p>
+    <pre><code class="language-python">...
+ep 29: high-score       11.000, score        9.000, last-episode-time   10
+qValues: tensor([[ 0.9909, -0.3292]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 0.9975, -0.3475]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 0.9999, -0.3630]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 0.9931, -0.3728]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 0.9912, -0.3755]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 0.9945, -0.3801]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 1.0003, -0.3881]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 0.9978, -0.3959]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 0.9969, -0.4068]], grad_fn=<AddmmBackward>), action 0
+ep 30: high-score       11.000, score        9.000, last-episode-time   10
+qValues: tensor([[ 1.0100, -0.3460]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 1.0139, -0.3623]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 1.0163, -0.3759]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 1.0087, -0.3879]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 1.0066, -0.3916]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 1.0061, -0.3951]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 1.0039, -0.3992]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 0.9966, -0.4057]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 0.9908, -0.4150]], grad_fn=<AddmmBackward>), action 0
+</code></pre>
+    <p>One of the action's <strong>QValue</strong> seems to be approaching 1.<br>
+      The other one seems stable, but hasn't deviated too far from where it started.</p>
+    <p>Let's try printing out the reward now. You're a big boy you can figure out how by yourself
+      this time.
+    </p>
+    <pre><code class="language-python">...
+ep 31: high-score       11.000, score       10.000, last-episode-time   11
+qValues: tensor([[-0.0982,  1.0357]]), action 1
+reward 1.0
+qValues: tensor([[-0.0637,  1.0319]]), action 1
+reward 1.0
+qValues: tensor([[-0.0530,  1.0257]]), action 1
+reward 1.0
+qValues: tensor([[-0.0456,  1.0255]]), action 1
+reward 1.0
+qValues: tensor([[-0.0410,  1.0269]]), action 1
+reward 1.0
+qValues: tensor([[-0.0491,  1.0256]]), action 1
+reward 1.0
+qValues: tensor([[-0.0606,  1.0219]]), action 1
+reward 1.0
+...</code></pre>
+    <p>It looks like the reward is 1.0 every frame. And that the action the agent chooses has a
+      QValue near 1.0. This is good. That means it is learning to correctly estimate the value of
+      the action it tries all the time.
+    </p>
+    <p>And now we know why it doesn't pick the other action. It randomly starts with one QValue
+      as higher than the other. (If you pick 2 random numbers, one has to be higher)
+      The higher QValue is then raised to approximate the reward, which is 1.0. And since it
+      was raised to 1.0, and the other QValue is probably less than 1.0, then when the next frame
+      comes around the agent will just pick the same action. This never ends.
+    </p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h3>Is Rehab Right For You?</h3>
+    <p>Fundamentally this is an issue of not exploring enough.<br>
+      If the agent was trying both the actions, then both the QValues would be right
+      around 1.0. Then it would not just pick one action. Its decisions would be a lot better.<br>
+
+      <ul>You've got some options:
+        <li>punish the agent's bad actions, so that it could learn its favorite action is bad, and then try a different
+          action</li>
+        <li>force the agent to make some random decisions sometimes</li>
+      </ul>
+
+      I'm always responsible for you failing so that you can learn how to do things the right way,
+      so we are going to try punishing the agent naively first.
+    </p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h3>Reward Shaping</h3>
+    <p>Here's the general idea.
+      If the action causes you to fail, the estimated reward should go down.
+    </p>
+    <pre><code class="language-python">...
+while not done:
+    env.render()
+
+    action = agent.chooseAction(state)
+    state_, reward, done, info = env.step(action)
+    if done:  # if you dropped the pole
+        reward = -50.0  # that action was bad
+    agent.learn(state, reward)
+
+    state = state_
+...</code></pre>
+    <p>nice. Try it out.</p>
+    <pre><code class="language-python">...
+qValues: tensor([[0.0366, 0.5643]]), action 1
+qValues: tensor([[0.0642, 0.6074]]), action 1
+qValues: tensor([[0.0559, 1.0360]]), action 1
+qValues: tensor([[0.0471, 1.4809]]), action 1
+ep 0: high-score      -41.000, score      -41.000, last-episode-time   11
+qValues: tensor([[-0.1129,  1.4063]]), action 1
+qValues: tensor([[-0.0601,  1.0136]]), action 1
+qValues: tensor([[0.0054, 0.5944]]), action 1
+qValues: tensor([[0.0532, 0.2115]]), action 1
+qValues: tensor([[ 0.1043, -0.1176]]), action 0
+qValues: tensor([[ 0.1087, -0.0426]]), action 0
+qValues: tensor([[0.1207, 0.1440]]), action 1
+qValues: tensor([[ 0.1917, -0.2176]]), action 0
+qValues: tensor([[0.2152, 0.0013]]), action 0
+qValues: tensor([[0.2579, 0.3355]]), action 1
+qValues: tensor([[ 0.3185, -0.1100]]), action 0
+...</code></pre>
+    <p>Hey maybe worked! It looks like it learned that action 1 is bad. The QValue for
+      action 1 went down, then it picked action 0 instead, and then switched back and forth forever. ))&lt;&gt;(( <br>
+    </p>
+    <p>Let's wait and see if it improves more...</p>
+    <pre><code class="language-python">...
+ep 143: high-score       26.000, score      -41.000, last-episode-time   11
+qValues: tensor([[-13.1998,   1.9950]]), action 1
+qValues: tensor([[-12.7037,   1.8748]]), action 1
+qValues: tensor([[-12.9340,   1.8002]]), action 1
+qValues: tensor([[-13.6834,   1.8688]]), action 1
+qValues: tensor([[-14.9132,   2.5243]]), action 1
+qValues: tensor([[-17.2499,   3.3457]]), action 1
+qValues: tensor([[-21.3560,   2.6179]]), action 1
+qValues: tensor([[-27.4956,  -1.5666]]), action 1
+qValues: tensor([[-36.4758, -18.5921]]), action 1
+qValues: tensor([[-45.7820, -35.8122]]), action 1
+qValues: tensor([[-55.1387, -50.7749]]), action 1
+...</code></pre>
+    <p>aaand it gets stuck again picking one action.</p>
+    <p>Also check out the reward predictions as it gets close to losing the round.
+      It learns that all actions are gonna be bad. <br>
+      It's a sign of intelligence. It's learned the futility of life.
+    </p>
+    <p>So that didn't work.<br>
+      And if you keep running it, you will see it doesnt get better.
+      What if we tried to make a more specific reward that really encourages the
+      network to make the right decisions?</p>
+    <p>We can extract the position and velocity of the cart from the environment state.
+      And make a really specific reward function.<br>
+      Here is an example in pseudocode.
+    </p>
+    <pre><code class="language-python">#  condition if cart is moving left and pole is falling left
+if cartVel < 0.0 and poleAngleVel < 0.0:
+    if action == 1:
+        reward = 10.0
+    else: # action = 0
+        reward = -10.0
+# condition if cart is moving left but pole is moving right
+if cartVel < 0.0 and poleAngleVel > 0.0:
+    if action == 1:
+        reward = 10.0
+    else: # action = 0
+        reward = -10.0</code></pre>
+    <p>I think you see where this is going.</p>
+    <p>This strategy is garanteed to work.<br>
+      All you have to do is keep getting more and more refined with your conditions, and
+      the agent will win the game.</p>
+    <p>
+      Before you go spend an hour making a custom reward function, make sure to read the next section...</p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h3 class="u-align-center">DONT DO IT</h3>
+    <p>Don't do this.<br>
+      This is called <strong>"Reward Shaping"</strong> and it is really bad.<br>
+      Now you might be thinking, "Why is it bad? I want my bot to work. I just want it to do
+      the task, so who cares how i achieve that?"<br>
+      I hope I can talk you out of it.
+    </p>
+    <div class="grid-container halves u-align-left">
+      <div>
+        <h5>Who Is Learning</h5>
+        <p>Is the network really learning how to play the game? Or are you?
+          The whole point of deep reinforcement learning is that we should have an agent
+          that learns the task. If your reward function does all the work, then you can just
+          remove the neural network entirely. The <strong>policy</strong> will just be the conditions
+          you make.
+        </p>
+      </div>
+      <div>
+        <h5>Limiting Performance</h5>
+        <p>A good learning agent doesn't require your human curated rewards.
+          It is extremely unlikely that the conditions you come up with will be better
+          than the policy of an actual learning agent. You want the benefits of AI dont you?
+        </p>
       </div>
     </div>
-    <div class="right">
-      <h5>Picking An Action</h5>
-      <p>
-        Why are we predicting action outcomes? Well, the agent will pick the action with the highest estimation of how
-        many points it will result in. <br>
-        Yes, It is actually that simple.
-      </p>
-      <pre><code class="language-python">predicted_outcomes = network(now_state)
-predicted_outcomes is array([100., -10., 200.])
-
-chosen_action = predicted_outcomes.argmax()
-chosen_action is 2</code></pre>
-      <p>Mmmm. Yummy. :^)</p>
+    <div class="grid-container halves u-align-left">
+      <div>
+        <h5>Flexibility</h5>
+        <p>The reward shape you design only works for a specific environment.
+          You would have to do it all over again each time you changed the environment.
+          Again, it just defeats the point of the DRL agent entirely.
+        </p>
+      </div>
+      <div>
+        <h5>Your Brain Isn't Good Enough</h5>
+        <p>You've probably only seen cartpole or lunar lander at this point,
+          but even amongst the simple environments the reward function necessary to succesfully
+          win the game will be really complicated. <br>
+          And I'm not talking about an optimal reward shape. I just said "win the game". That means
+          minimum win condition.<br>
+          Imagine trying to do reward shaping to make the agent beat zelda or mario, or navigate
+          a room in real life. You might be able to do it with a team of people working nonstop for years.<br>
+          Even then you would likely still fail.
+        </p>
+      </div>
+    </div>
+    <div class="grid-container halves u-align-left">
+      <div>
+        <h5>Gaming The Reward</h5>
+        <p>A neural network is a function approximator.
+          Ideally it resembles a function smoothly.
+        </p>
+        <img src="https://media.geeksforgeeks.org/wp-content/cdn-uploads/20190523171258/overfitting_2.png" width=100%>
+        <p>Your complicated reward function is probably full of local minima and maxima.
+          The network will find them if they exist. And it will get stuck in them, figuring out ways to
+          exploit your function for massive rewards that you never intended for, and then never
+          accomplishing the task you wanted it to do in the first place.<br>
+          It is actually really difficult to make a
+          reward function that doesn't have traps in it. Most of the ai-gym environments have a
+          fairly carefully created reward function. If you go look at the lunar-lander reward code
+          in the ai-gym repo, you'll see what i mean. It's complicated and deliberate. Each fractional
+          reward is scaled in such a way to prevent reward gaming.
+        </p>
+        <a href="https://www.alexirpan.com/2018/02/14/rl-hard.html#reward-function-design-is-difficult"> Read this for
+          some fun.</a>
+        <p>An additional note is that you can have some intuition for this yourself.<br>
+        Consider in cartpole. Is 50 good actions worth one deadly action? We kind of made that claim 
+      in our reward function above didn't we? Should it be 200? How can we know?<br>
+    When i was a noob i made a snake environment and i did a lot of reward shaping. 
+  The snake agent carefully calculated how many apples was worth a game over, and would meticulously 
+plan its path such that it would suicide in a specific number of turns such that the apple was worth it. 
+Even though... I just would prefer it to survive and get the apple instead.</p>
+      </div>
+      <div>
+        <h5>Its Too Much Work</h5>
+        <p>There's an image somewhere of some giant reward shaping equation written for a paper that was
+          just attempting to get one of the ai-gym robots to do a backflip. The equation is
+          big and looks like it is full of calculus. I have no idea how it works, and can
+          only imagine how long it took to make it. (Also it's suboptimal)
+        </p>
+        <p>I spent about a week on my snake agent. Carefully tweaking the magnitude of each 
+          sub reward to try and raise the performance. At one point I even considered letting a 
+          neural network learn the optimal reward magnitudes, but then i realized how stupid i 
+          was for not realizing it would have done that without my reward shaping anyways.<br>
+          I spend almost an entire week on reward shaping snake by the way. Just think about that. Just the 
+          reward shaping. That's what i did. For like 6 hours a day. Don't be me.
+        </p>
+      </div>
+    </div>
+    <div class="grid-container halves u-align-left">
+      <div>
+      </div>
+      <div>
+        <h5>... And Finally, Consistency</h5>
+        <p>When other people make agents to solve the same environment as you,
+          you want to be able to measure the performance of their agents against yours. 
+          If everyone is making custom reward functions, then is their agent 
+          better than yours or not? It becomes unclear. It could be that none of the 
+          parameters or architecture of their agent matters at all, and it's just their reward function<br>
+          So for the most part everyone agrees to not do reward shaping, so that 
+          the results they share are comparable in the most basic way.<br>
+          Actually even just the numbers become different when you shape. You'll notice in our 
+          specific case, once we added the <strong>done</strong> penalty the episode rewards started 
+          totaling up to negative numbers. It wasn't like that before. People looking at our results 
+          would be really confused. Is 200 still a good score in our reward shape? Is 9 a bad score?
+        </p>
+      </div>
     </div>
   </div>
   <div class="grid-container full u-align-left">
-    <p>
-      Let's set up our network that will predict action outcomes, also known as <strong>Q Values.</strong>
-
-    </p>
-    <pre><code class="language-python">class Network(torch.nn.Module):
-    def __init__(self, lr, inputShape, numActions):
-        super().__init__()
-        self.inputShape = inputShape
-        self.numActions = numActions
-        self.fc1Dims = 1024
-        self.fc2Dims = 512
-
-        #   layers
-        self.fc1 = nn.Linear(*self.inputShape, self.fc1Dims)
-        self.fc2 = nn.Linear(self.fc1Dims, self.fc2Dims)
-        self.fc3 = nn.Linear(self.fc2Dims, numActions)  # output 1 outcome estimate per action
-
-        #   pytorch stuff
-        self.optimizer = optim.Adam(self.parameters(), lr=lr)
-        self.loss = nn.MSELoss()
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        # self.device = torch.device("cpu")
-        self.to(self.device)
-
-    def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-
-        return x</code></pre>
+    <h3>Forbidden</h3>
+    <p>Anyways, I hope you don't plan on doing it.</p>
   </div>
-  -->
+  <div class="grid-container full u-align-center">
+    <h3>Oh Right I Almost Forgot</h3>
+    <p>You wanted to make the agent work didn't you?<br>
+    What were we doing again? Oh yeah the issue was our agent wasn't exploring different actions. 
+  And somehow we have to accomplish that without rigging the reward.</p>
+    <p>How about we try a real action exploration strategy in the <a href="/tutorials/rl/deepqlearning3/deepqlearning3.html">next tutorial</a>
+  </div>
+
   <!-- called q values because of probability theory or something. but its not quite the same -->
   <!-- issues:
       catastrophic forgetting. (experience replay)
@@ -154,334 +517,7 @@ chosen_action is 2</code></pre>
 
       - add epsilon greedy in the next tutorial
       -->
-<!--
-  <div class="grid-container halves u-align-left">
-    <div>
-      <h5>Network Inputs</h5>
-      <p>
-        InputShape should be a tuple. In the case of cartpole it's
-        <pre><code>... inputShape=(4,), numActions=2 ...</code></pre>
-        The numActions is just how many discrete actions you can choose from for the environment.
-      </p>
-    </div>
-    <div>
-      <h5>Network Outputs</h5>
-      <p>
-        See in the forward function we just pass in the environment state and out comes an array of
-        numbers.
-      </p>
-      <pre><code>#  self.fc3 = nn.Linear(self.fc2Dims, numActions)
-def forward(self, x):
-    x = F.relu(self.fc1(x))
-    x = F.relu(self.fc2(x))
-    x = self.fc3(x)
 
-    return x</code></pre>
-      One outcome value prediction for each action.
-      </p>
-      <pre><code class="language-python">predicted_outcomes = network(now_state)
-predicted_outcomes is array([100., -10., 200.])</code></pre>
-    </div>
-  </div>
-  <div class="grid-container full">
-    <p>That's it for the network code.</p>
-  </div>
-  <div class="grid-container full u-align-left">
-    <h4>Choose Wisely</h4>
-    <p>Let's make the <strong>agent</strong> now.<br>
-      As I said before, the agent will pick the action with the highest value estimation.
-      Why? Well, if you wanted to make an agent that got progressively worse at things, you could pick the lowest. :^)
-    </p>
-    <pre><code class="language-python">def chooseAction(self, observation):
-    # your env state probably comes in as a numpy array of floats. So we have to put it in a tensor
-    state = torch.tensor(observation).float()
-    state = state.to(self.dqn.device) # and put it on the gpu/cpu
-    state = state.unsqueeze(0)  # pytorch likes inputs in a specific shape (1, 8) instead of just (8)
-
-    qValues = self.dqn(state) # pass it through the network to get your estimations
-    action = torch.argmax(qValues) # pick the highest
-    return action.item()  # return an int instead of a tensor containing the index of the best action</code></pre>
-  </div>
-  <div class="grid-container full u-align-left">
-    <h4>Better Forecasting</h4>
-    <p>
-      Unlike in Actor-Critic, this network only has one error to minimize.
-    </p>
-    <pre><code class="language-python">def learn(self, state, reward): 
-    self.network.optimizer.zero_grad()  #   pytorch stuff: resets all the tensor derivatives
-
-    # put our states in tensors and such
-    state = torch.tensor(state).float().detach()  # detach it so we dont backprop through it
-    state = state.to(self.dqn.device) # and put it on the gpu/cpu
-    state = state.unsqueeze(0)
-
-    reward = torch.tensor(reward).float().detach()  # have to put the reward in tensor form too
-    reward = reward.to(self.network.device) # and on the proper device
-
-    qValues = self.network(state)
-    valueOfBestAction = qValues.max()
-
-    # did we accurately predict how much reward the best action would give us?
-    loss = self.network.loss(valueOfBestAction, reward) 
-
-    loss.backward()
-    self.network.optimizer.step()</code></pre>
-  </div>
-  <div class="grid-container full u-align-left">
-    <h5>Why Is That The Loss?</h5>
-    <p>The network takes the difference between the actual <strong>reward</strong> and its predicted reward as its loss.
-      The agent picks an action, gives that action to the environment. The environment gives a reward.
-      Then you get to see how wrong it was.
-
-      The action QValue is the reward prediction right? You want it to be correct.<br><br>
-      If the difference between reward and prediction is zero, it means the network perfectly predicted the
-      reward it would get. That means it "understands reality". <br><br>
-      If the difference is high, it means the network over valued its action. <br>
-      If the difference is low, it means the network under valued its action. <br>
-      Both of those are bad things.
-    </p>
-    <h5>What about that .detach() thing?</h5>
-    <p>
-      Remember when we called <code>.detach()</code> on the state?
-      We do that every time before we pass it into the network.
-      Well that's important. While the environment is responsible for what reward the agent predicts it will get,
-      it would be wrong to modify the state according to the loss.<br>
-      If we don't detach it, when we backprop the error, the state tensor will absorb a portion of the loss.<br>
-      So why is that bad? Well, the state is just state. It's life. <br>
-      You can't change the laws of physics, you can only change your interpretation of the state, and your choices.<br>
-      So the loss should be accounted for in the change to the network weights, not the state.
-    </p>
-    <h5>This Isn't How They Do It In My Textbook</h5>
-    <p>
-      You were expecting a bunch of nonsense about temporal difference and compounding reward probabilities and whatnot
-      weren't you? <br>
-      Don't worry. We will get there.
-    </p>
-  </div>
-
-
-  <div class="grid-container full u-align-left">
-    <h4>The Whole Agent</h4>
-    <p>
-      The <strong>agent</strong> class holds the network and functions as a nice place to put utilities needed
-      for decision making. You've already seen all this code. It's just in one place now.<br>
-      I'm not a huge fan of unnecessary classes but this Agent will be convenient later when we add stuff to it.
-    </p>
-    <pre><code class="language-python">class Agent():
-    def __init__(self, lr, inputShape, numActions=2):
-        self.network = Network(lr, inputShape, numActions)
-
-    def chooseAction(self, observation):
-        state = torch.tensor(observation).float()
-        state = state.to(self.dqn.device) 
-        state = state.unsqueeze(0)
-    
-        qValues = self.dqn(state)
-        action = torch.argmax(qValues)
-        return action.item()
-
-    def learn(self, state, reward): 
-        self.network.optimizer.zero_grad()  #   pytorch stuff: resets all the tensor derivatives
-    
-        state = torch.tensor(state).float().detach()  # detach it so we dont backprop through it
-        state = state.to(self.dqn.device) # and put it on the gpu/cpu
-        state = state.unsqueeze(0)
-    
-        qValues = self.network(state)
-        valueOfBestAction = qValues.max()
-        loss = self.network.loss(valueOfBestAction, reward) 
-    
-        loss.backward()
-        self.network.optimizer.step()</code></pre>
-  </div>
-
-  <!-- 
-
-
-
-
-
-        YOU AARE HERE NOW
-
-
-
-
- -->
-
-
-  <!-- <div class="grid-container halves u-align-left">
-   </div>
-   <h4>Settings</h4>
-   <div class="grid-container halves u-align-left">
-       <div>
-           <h5>Layer Sizes</h5>
-           <pre><code>self.fc1Dims = 1024
- self.fc2Dims = 512</code></pre>
-           <p>If it runs too slowly shrink these down in the network. I've seen the cartpole environment beaten with layer sizes around 32.<br>
-             However, the peak performance of the agent is limited by the network size.
-             The complexity of the agent's strategy will be limited by the network size. 
-             The complexity of the environments the agent can handle will be limited by the small network size.
-             The chance the agent's network gets stuck in a local minima goes down the larger the network is too.<br>
- 
-             Basically theres a lot of reasons to use a bigger network than you might immediatly think is necessary.
-           </p>
-       </div>
-       <div>
-           <h5>Learning Rate</h5>
-           <pre><code>lr=0.001, </code></pre>
-           <p>The learning rate heavily effects the stability of a deep reinforcement learning agent.<br>
-             If it is too small, your agent will either take way too long to train, or the errors will be so small that it may actually never train.
-             If it is too large, your weights will either go to 0.0 or go to infinity, and youll start getting NAN (not a number) warnings, 
-             and the agent performance will tank to minimum and never recover.<br>
-             If you want to see it happen just set the LR to 100.0 and look at a graph of reward over time.
-           </p>
-       </div>
-   </div>
- </div> -->
-
-<!--
-  <div class="grid-container full u-align-left">
-    <h4>The Main Loop</h4>
-    <p>
-      All the easy parts are done now. Put the <strong>agent</strong>, into the environment, and trap it in an
-      infinite loop so it can learn the futility of life and give up. <br>
-    </p>
-    <pre><code class="language-python">agent = Agent(lr=0.001, inputShape=(8,), numActions=2)
-env = gym.make('CartPole-v1')
-
-highScore = -math.inf
-while True:                     <strong>#   keep starting new episodes forever</strong>
-    observation = env.reset()   <strong>#   observation is just a commonly used term for the environment state</strong>
-    score, frame, done = 0, 1, False
-    while not done:             <strong>#   keep going until the episode is done</strong>
-        env.render()            <strong>#   draw it on your screen so you can watch</strong>
-        action = agent.chooseAction(observation)
-        nextObservation, reward, done, info = env.step(action)  <strong>#   make the environment go one time step</strong>
-        agent.learn(observation, reward, nextObservation, done)  <strong>#   make your network more accuracte</strong>
-        observation = nextObservation
-        score += reward
-        frame += 1
-
-    highScore = max(highScore, score)
-    print(( "ep {}: high-score {:12.3f}, "
-            "score {:12.3f}, last-episode-time {:4d}").format(
-        episode, highScore, score, frame))</code></pre>
-  </div>
-  <div class="grid-container full">
-    <h4>Run It</h4>
-    <p>You have the basic <strong>DQN</strong> framework now to get it going. The full code is below.<br>
-      Go ahead and run it. </p>
-    <div class="grid-container full">
-      <h3>Full Code</h3>
-      <div class="grid-container full u-align-left">
-        <pre><code class="language-python">import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-import gym       
-import math
-import numpy as np
-
-class Network(torch.nn.Module):
-    def __init__(self, alpha, inputShape, numActions):
-        super().__init__()
-        self.inputShape = inputShape
-        self.numActions = numActions
-        self.fc1Dims = 1024
-        self.fc2Dims = 512
-
-        self.fc1 = nn.Linear(*self.inputShape, self.fc1Dims)
-        self.fc2 = nn.Linear(self.fc1Dims, self.fc2Dims)
-        self.fc3 = nn.Linear(self.fc2Dims, numActions)
-
-        self.optimizer = optim.Adam(self.parameters(), lr=alpha)
-        self.loss = nn.MSELoss()
-        # self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.device = torch.device("cpu")
-        self.to(self.device)
-
-    def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-
-        return x
-
-class Agent():
-    def __init__(self, lr, inputShape, numActions):
-        self.network = Network(lr, inputShape, numActions)
-
-    def chooseAction(self, observation):
-        state = torch.tensor(observation).float().detach()
-        state = state.to(self.network.device)
-        state = state.unsqueeze(0)
-
-        qValues = self.network(state)
-        action = torch.argmax(qValues).item()
-        return action
-
-    def learn(self, state, reward):
-        self.network.optimizer.zero_grad()
-
-        state = torch.tensor(state).float().detach()
-        state = state.to(self.network.device)
-        state = state.unsqueeze(0)
-
-        reward = torch.tensor(reward).float().detach()
-        reward = reward.to(self.network.device)
-
-        qValues = self.network(state)
-        valueOfBestAction = qValues.max()
-
-        loss = self.network.loss(valueOfBestAction, reward)
-
-        loss.backward()
-        self.network.optimizer.step()
-
-if __name__ == '__main__':
-    env = gym.make('CartPole-v1').unwrapped
-    agent = Agent(lr=0.001, inputShape=(4,), numActions=2)
-
-    highScore = -math.inf
-    episode = 0
-    while True:
-        done = False
-        state = env.reset()
-
-        score, frame = 0, 1
-        while not done:
-            env.render()
-
-            action = agent.chooseAction(state)
-            state_, reward, done, info = env.step(action)
-            agent.learn(state, reward)
-
-            state = state_
-
-            score += reward
-            frame += 1
-
-        highScore = max(highScore, score)
-
-        print(( "ep {}: high-score {:12.3f}, "
-                "score {:12.3f}, last-episode-time {:4d}").format(
-            episode, highScore, score,frame))
-
-        episode += 1</code></pre>
-      </div>
-    </div>
-    <div class="grid-container full u-align-left">
-      <h3>Did It Work?</h3>
-      <p>It didn't did it? Do you have any guesses why?<br>
-        Go scour the code a bit, and verify each line makes sense. Maybe do some printing.
-      </p>
-    </div>
-    <div class="grid-container full">
-      <h3>I Give Up</h3>
-      <p><a href="/tutorials/rl/deepqlearning/deepqlearning2.html">next tutorial</a>
-      </p>
-    </div>
-  </div> -->
 </body>
 
 </html>
