@@ -39,16 +39,585 @@
     <h1>Wegfawefgawefg's Tutorials</h1>
     <h2>Deep Q Learning Tutorial 3:</h2>
     <h3>How To Make A Gambling Bastard</h3>
+    <h3>But Then Force Him To Grow Up</h3>
     <h4>Prerequisites</h4>
     <ul>You read these right?
       </p>
       <li><a href="/tutorials/rl/deepqlearning/deepqlearning.html">Deep Q Learning Tutorial 1</a></li>
       <li><a href="/tutorials/rl/deepqlearning2/deepqlearning2.html">Deep Q Learning Tutorial 2</a></li>
     </ul>
-    <h1>🚧 <i>Tutorial Currently Being Written</i> 🚧</h1>
   </div>
+  <div class="grid-container full">
+    <h3>Exploration</h3>
+    <p>The agent loves <strong>cheesy-potatos</strong>. It knows how good it tastes because it eats it all them
+      time.<br>
+      But how can it know asparagus tastes bad if it never tries it?<br> Can one truely grow big and strong
+      with a diet of only <strong>cheesy-potatos</strong>?<br>
+    </p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4>Good Parenting</h4>
+    <p>We are going to dice up some god damn asparagus and mix it in with the <strong>cheesy-potatos</strong>.<br>
+    </p>
+    <pre><code class="language-python">def chooseAction(self, observation):
+    state = torch.tensor(observation).float().detach()
+    state = state.to(self.network.device)
+    state = state.unsqueeze(0)
 
-  
+    qValues = self.network(state)
+    action = torch.argmax(qValues).item()
+
+    chanceOfAsparagus = random.randint(1, 10)
+    if chanceOfAsparagus == 1:  #   10% chance
+        action = random.randint(0, 1)
+
+    print("qValues: {}, action {}".format(qValues.detach(), action))
+    return action</code></pre>
+    <p>We also need to change the learn function, because before we were just picking,
+      the greatest QValue but now we arent.
+    </p>
+    <pre><code class="language-python">agent.learn(state, action, reward)</code></pre>
+    <pre><code class="language-python">def learn(self, state, action, reward):
+    self.network.optimizer.zero_grad()
+
+    state = torch.tensor(state).float().detach()
+    state = state.to(self.network.device)
+    state = state.unsqueeze(0)
+
+    reward = torch.tensor(reward).float().detach()
+    reward = reward.to(self.network.device)
+
+    qValues = self.network(state)
+    valueOfChosenAction = qValues[action] # see here
+
+    loss = self.network.loss(valueOfChosenAction, reward) # and here
+
+    loss.backward()
+    self.network.optimizer.step()</code></pre>
+    <p>Also dont forget to remove that weird reward shaping we did before.
+      You know the if done: reward = -50.0 stuff.<br>
+      Anyways, run it.</p>
+    <pre><code class="language-python">ep 101: high-score       46.000, score       17.000, last-episode-time   18
+qValues: tensor([[0.8201, 1.0442]]), action 1
+qValues: tensor([[0.8697, 1.0116]]), action 1
+qValues: tensor([[0.9164, 0.9933]]), action 1
+qValues: tensor([[0.9674, 0.9799]]), action 1
+qValues: tensor([[1.0183, 0.9588]]), action 0
+qValues: tensor([[0.9658, 0.9770]]), action 1
+qValues: tensor([[1.0147, 0.9566]]), action 0
+qValues: tensor([[0.9655, 0.9794]]), action 1
+qValues: tensor([[1.0109, 0.9561]]), action 0
+qValues: tensor([[0.9678, 0.9859]]), action 1</code></pre>
+    <h4>Hell Yeaaa</h4>
+    <p>Cool. The agent is now trying both actions regularly, and the that means it has a reasonable
+      estimation of the value of each reward. You can see both the qvalues are right around 1.0. Which makes
+      sense because the reward is always 1.0.
+    </p>
+  </div>
+  <div class="grid-container full">
+    <h3>It Still Never Gets Better</h3>
+    <p>The scores are higher than before, but the agent never improves, even though it is learning.<br>
+      The problem lies in the way we are considering the value of our actions.</p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4>Minimum Necessary Force</h4>
+    <p>Consider the way the reward works. Our reward is always 1.0. If the reward is always 1.0, the actions
+      should be equally valued no matter what. That's a problem because we want the agent to pick actions
+      such that the game goes on longer. <br>
+      One option would be to set the reward to 0.0 when the done comes in as true. That way the network
+      would know when it failed. But hey, isn't that reward shaping? It is, however its the only form of acceptable
+      reward shaping.
+      It only comes into play when the agent fails the task. It is fundamentally a minimum reward shape. Pass or Fail.
+    </p>
+    <h4>Hedonism</h4>
+    <p>I can tell you right now it wont work. The agent will learn to predict a 0 reward for one of the actions because
+      it knows failure
+      will come next frame. Then our agent will pick to move the cart such that the pole moves
+      in the opposite direction of the fall only in the single frame right before the done. Great so it will get
+      one extra frame of performance out of that.<br>
+      You might protest and say "Why wouldnt it slowly learn to pick actions that avoid the 0 reward earlier and
+      earlier?"<br>
+      It won't. That 0 reward will never propogate into our earlier decisions, because earlier decisions will
+      always get a reward of 1.0. So up until the second to last step, it wont even try.<br>
+      Our agent will eat <strong>cheesy-potatos</strong> up until the point where the doctor says:
+      "You're heart is failing. You have one day to live.", and then our agent will eat a single salad and die
+      on the treadmill later that night. It's a losing strategy to choose your actions only with regard
+      to the feelings they give you right now.
+    </p>
+    <h4>Foresight</h4>
+    <p>Somehow our agent needs to predict how much future reward an action
+      will result in, when its picking an action now.<br>
+      One way to do that would be to change the network so that it predicts how many frames it has left before
+      the pole falls, and then select the action with the bigger number. That will probably work.
+      But that solution would only work for this specific environment, and you already know how that goes.</p>
+    <p>When you choose to eat salad, is the value of the salad just the taste of the salad? Or
+      in your mind does the salad's value contain all the health benefits as well? <br>
+    </p>
+    <pre><code class="language-python">saladValue = reward # is this how you think?
+saladValue = reward + futureReward  # or is this how you think?</code></pre>
+    <p>Hey actually that looks easy to code. Lets try that.</p>
+    <pre><code class="language-python">def learn(self, lastState, lastAction, lastReward, 
+                state, action, reward, done):
+    self.network.optimizer.zero_grad()
+
+    lastState = torch.tensor(lastState).float().detach().to(self.network.device).unsqueeze(0)
+    state = torch.tensor(state).float().detach().to(self.network.device).unsqueeze(0)
+    # lastReward = torch.tensor(lastReward).float().detach().to(self.network.device)
+    # reward = torch.tensor(reward).float().detach().to(self.network.device)
+
+    lastQValues = self.network(lastState)
+    # qValues = self.network(state)
+
+    valueOfLastAction = lastQValues[0][lastAction]
+
+    #   saladValue = reward + futureReward
+    trueValueOfLastAction = valueOfLastAction + reward * (1 - done) 
+    # (1 - done) because if the game ended, there is no next reward
+
+    loss = self.network.loss(trueValueOfLastAction, valueOfLastAction)
+
+    loss.backward()
+    self.network.optimizer.step()</code></pre>
+    <p>You will also have to change your main environment loop</p>
+    <pre><code class="language-python">while True:
+    done = False
+    state = env.reset()
+
+    score, frame = 0, 1
+    lastState, lastAction, lastReward, lastDone = None, None, None, None  # remember the past
+    while not done:
+        env.render()
+
+        action = agent.chooseAction(state)
+        nextState, reward, done, info = env.step(action)
+        
+        if lastAction is not None:  #   on turn 1 we wont have a past to learn from
+            agent.learn(
+                lastState, lastAction, lastReward, nextState, action, reward, done)
+
+        lastState, lastAction, lastReward, lastDone = state, action, reward, done
+        state = nextState
+
+        score += reward
+        frame += 1</code></pre>
+    <p>Run it a few times, and you will see that sometimes it actually kinda works.</p>
+    <pre><code class="language-python">... # a lucky run
+ep 0: high-score       51.000, score       51.000, last-episode-time   52
+ep 1: high-score       53.000, score       53.000, last-episode-time   54
+ep 2: high-score       62.000, score       62.000, last-episode-time   63
+ep 3: high-score      141.000, score      141.000, last-episode-time  142
+ep 4: high-score      141.000, score       58.000, last-episode-time   59
+ep 5: high-score      141.000, score       37.000, last-episode-time   38
+ep 6: high-score      141.000, score      102.000, last-episode-time  103
+... # a different lucky run
+ep 0: high-score       21.000, score       21.000, last-episode-time   22
+ep 1: high-score       21.000, score       19.000, last-episode-time   20
+ep 2: high-score       21.000, score       21.000, last-episode-time   22
+ep 3: high-score       29.000, score       29.000, last-episode-time   30
+ep 4: high-score       29.000, score       14.000, last-episode-time   15
+ep 5: high-score       29.000, score       16.000, last-episode-time   17
+ep 6: high-score       29.000, score       27.000, last-episode-time   28
+ep 7: high-score       29.000, score       25.000, last-episode-time   26
+ep 8: high-score       29.000, score       18.000, last-episode-time   19
+ep 9: high-score       29.000, score       23.000, last-episode-time   24
+...</code></pre>
+    <p>Are we just getting lucky? Sort of. It is kind of sensetive to initial conditions.<br>
+      To sanity check ourselves we should look at the qvalues.</p>
+    <pre><code class="language-python">...
+ep 7: high-score       64.000, score       50.000, last-episode-time   51
+qValues: tensor([[-0.0455, -0.0202]]), action 1
+qValues: tensor([[-0.0480, -0.0398]]), action 1
+qValues: tensor([[-0.0486, -0.0556]]), action 0
+qValues: tensor([[-0.0473, -0.0411]]), action 1
+qValues: tensor([[-0.0479, -0.0578]]), action 0
+qValues: tensor([[-0.0464, -0.0439]]), action 1
+qValues: tensor([[-0.0477, -0.0610]]), action 0
+...</code></pre>
+    <p>It looks about right. Each action is worth around 1 reward to the environment. Each predicted action
+      value should be a little bit less than the reward, in this case roughly 95% of the reward. Why? Because our action
+      predictions should be absorbing
+      some 0 rewards from the done flag. That should push them below the normal 1.0.</p>
+    <h4>A New Perspective</h4>
+    <p>
+      However, if you look at our qvalues, they arent slightly less than 1.0 like i just said.
+      Well they would be, but we have an additional force here. We want our predicted action from before to
+      be equal to our prediction value now that we know the future. To minimize that, our error is the difference
+      between those. So if we guessed 1.0, but then got surprised by the done == True, then in the future
+      we are gonna guess 0.95. Look at the difference between future guess and past guess. 0.95 - 1.0<br>
+      That's just under 0.0. Which is what our qvalues are.<br>
+      So the nature of our qvalues has changed. Our qvalues are no longer an estimation of future reward.<br>
+      Instead, they have become an estimation of how advantageous the action is relative to our current state.
+    </p>
+    <p>That is a much more complicated notion of action value. And notice the numbers are all negative.
+      Well in cartpole if you aren't that good at balancing (like our agent), most actions will result in you
+      being in a slightly worse off position than you were in before. (because your pole is falling)<br>
+      If it was better at the game, the numbers probably wouldn't be so pessimistic.
+    </p>
+    <h4>Missing Link</h4>
+    <p>We aren't really being consistent. Notice in our code we are using the reward as it is returned by the
+      environment.</p>
+    <pre><code class="language-python">lastQValues = self.network(lastState)
+trueValueOfLastAction = valueOfLastAction + reward * (1 - done)
+valueOfLastAction = lastQValues[0][lastAction]</code></pre>
+    <p>
+      The value of the future is being dictated by the environment, wheras the value of the past is
+      the agent's interpretation.<br>
+      If the past is up to interpretation, shouldn't the future be too?<br>
+    </p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h3 class=u-align-center>Psychic</h3>
+    <p>It's time to predict the future, <strong>and</strong> the past.<br>
+      Let's try to come up with a loss function that has both. I don't promise this is going to work.
+      I'm just sketching out ideas.</p>
+    <pre><code class="language-python">def learn(self, state, action, nextState, done):
+    self.network.optimizer.zero_grad()
+
+    state = torch.tensor(state).float().detach().to(self.network.device).unsqueeze(0)
+    nextState = torch.tensor(nextState).float().detach().to(self.network.device).unsqueeze(0)
+
+    qValues = self.network(state)               # predict the past
+    nextQValues = self.network(nextState)       # predict the future
+
+    predictedValueOfNow = qValues[0][action]    # get value of action we took
+    futureActionValue = nextQValues[0].max()    # assume we will take the best action available next
+
+    trueValueOfNow = predictedValueOfNow + futureActionValue * (1 - done)
+
+    loss = self.network.loss(trueValueOfNow, predictedValueOfNow)
+
+    loss.backward()
+    self.network.optimizer.step()</code></pre>
+    <div class="grid-container halves u-align-left">
+      <div>
+        <h5>The Future Looks Bright</h5>
+        <p>Seems good doesn't it? The network is predicting the past action values, <strong>and</strong> the future
+          action values.
+          Also you can see for the value of the future it assumes it's going to pick the highest action value:
+          <pre><code class="language-python"> nextQValues[0].max()</code></pre> Which is a reasonable assumption to
+          make.
+          Why would we assume we are going to make bad decisions in the future? (Don't answer that)
+        </p>
+
+      </div>
+      <div>
+        <h5>Loss</h5>
+        <p>
+          The error is the difference between our predictions.</p>
+        <pre><code class="language-python">trueValueOfNow = predictedValueOfNow + futureActionValue * (1 - done)
+loss = self.network.loss(trueValueOfNow, predictedValueOfNow)</code></pre>
+        <p>This loss makes the basic philosophical claim that we should have valued our past actions such that those
+          values include the value of our
+          future actions. And of course the <code>* (1 - done)</code> is there because if we are about to die it doesn't
+          matter how we
+          value our future. We have no future. YOLO
+        </p>
+      </div>
+
+    </div>
+    <p>This equation looks good. There's just one tiny problem.</p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4 class="u-align-center">Expand Your Mind By Constraining It</h4>
+    <p>Where does the agent get correction from? The equation seems good until you want to give the agent feedback.<br>
+      The predicted values start out as random numbers, and that's fine because relative to future and past values those
+      numbers
+      will be scaled similarly. But the problem is the agent has no incentive to do what we want it to.
+      We could add back in the the inflexible reward from the environment, but by doing that aren't we limiting the
+      agent's sense of
+      value?
+    </p>
+    <h5>Fundamental Intrinsic Motivations</h5>
+    <p>An animal has urges and motive. It likes acquiring treats, and eating delicious foods. Something
+      in the animal's brain has to distinguish between delicious and non-delicious foods (sweet potatos), and that
+      something isn't learned.<br>
+      The animal doesn't have to know anything about sugars and fats. That ethereal goodness had by cake, or uncooked
+      raw organs if you are
+      a lion, is built into the brain by default, and almost universally cannot be ignored or overriden.
+      And importantly, for the vast majority of circumstances it <strong>should not</strong> be overriden. That narrow
+      motivator, as dumb as it may seem, could be absolutely important for success, and is likely why it isn't a learned
+      reward.<br>
+    </p>
+    <h5>Some Motivations Are Better Than Others</h5>
+    <p>Some of those basic rewards bias the agent in a way that only works in a specific
+      environment. Fat people are tuned for environments with less food. Put them in an environment with lots of food
+      and
+      suddenly the strategy of eating all the food becomes... suboptimal. A lot of the basic animal motivations
+      are like this. They encourage good strategy in narrow environments.<br>
+      There are more complicated motivations that encourage good behaviour in almost any environment. These motivations
+      might leverage a basic constraint and a little bit of learning.
+      A great example of one of these is curiosity. A curious agent would go out exploring to look for resources or
+      new tools. A non curious one might stare at a wall until the next hunger pain strikes. <br>
+      Another good one is boredom. Even an action that is good, such as chopping wood or stacking bricks,
+      might either just be less valuable after a while, or the act itself might prevent you from exploring other
+      actions.<br>
+      Both of these are programmable emotions that we could create. (and surprisingly easily. I encourage you to think
+      about how
+      because I plan on making some tutorials on them in the future).
+      However, complicated motivations are not only not necessary for many environments but could be extremely
+      detrimental to performance.
+      That is especially the case for tasks we humans want robots to do for us. Neither curiosity nor boredom
+      are good for balancing poles. </p>
+    <h5>Im Stupid And I Still Don't Understand</h5>
+    Essentially, there is unlimited potential for us at this step. The motivation we give the agent could be just about
+    anything.
+    It could be a reward for discovering new things, or making more agents. :^)<br>
+    But at the same time it could be something dead simple. And dead simple could be the optimal motivation for a dead
+    simple
+    task such as balancing a pole. There is nothing wrong with simple, or narrow minded. Biology is full of agents
+    spanning
+    the entire gamut of reward flexibility.
+    </p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4 class="u-align-center">Minimum Reward</h4>
+    <p>
+      The minimum reward depends on the environment. In a universe where you dont have to eat, getting hungry doesn't
+      make a lot of sense. In a universe with a pole, 1 happy point for alive, and 0 happy points for dead is all we
+      need.
+      Why don't we write that code into the agent? It doesn't really matter where the code is. The reward could come
+      from
+      triggering fall sensors when the pole smashes into the ground.
+      From an outside perspective where the reward comes from is arbitrary. The environment is code just like the agent.
+      Each environment has slightly different rules. We could code new "fundamental motivations" for the agent each time
+      we change the environment, but luckily for us the people who make the environments normally do that.
+      Some environments do some reward shaping and you can disagree with their reward and write your own if that is
+      the case. But usually the provided minimum viable reward is unbiased enough to be practical.
+    </p>
+    <h4>Slip In The Environment Reward</h4>
+    <p>All we do is make a slight change to our learn function.<br>
+      When we calculate the true value of now, instead of adding our past prediction to our future one, we use
+      the value the environment gave us as a judgement of our last action. Biased? Yes. But it allows a gateway for
+      feedback,
+      and bootstraps the whole process. Arguably since we are learning to predict the environments reward it
+      doesn't even need to stay there for any more than just the begining part of
+      training but that complicates things. Anyways it's nearly a one word change from before.</p>
+    <pre><code class="language-python">#   we have to pass some extra stuff in but its stuff we already have on hand
+def learn(self, state, action, reward, nextState, done): 
+      self.network.optimizer.zero_grad()
+      
+      # put stuff in tensors, in the right shape, on the right device
+      state = torch.tensor(state).float().detach().to(self.network.device).unsqueeze(0)
+      state_ = torch.tensor(state_).float().detach().to(self.network.device).unsqueeze(0)
+      reward = torch.tensor(reward).float().detach().to(self.network.device)
+      
+      qValues = self.network(state)       #   predict the action values of the past
+      nextQValues = self.network(state_)  #   predict the action values of the future
+      
+      predictedValueOfNow = qValues[0][action]    #   get the value of the action we took, ignore the rest
+      futureActionValue = nextQValues[0].max()    #   assume we take the best action next
+      
+      trueValueOfNow = reward + futureActionValue * (1 - done)  #   "temporal difference learning"
+      
+      loss = self.network.loss(trueValueOfNow, predictedValueOfNow)   
+                            #   our prior prediction of now should have been  
+                            #   equal to our retrospective prediction of now 
+      
+      loss.backward()
+      self.network.optimizer.step()</code></pre>
+    <p>Also we need to change the environment loop to pass in the present and future state, and the reward and done.</p>
+    <pre><code class="language-python">...
+while True:
+    done = False
+    state = env.reset()
+
+    score, frame = 0, 1
+    while not done:
+        env.render()
+
+        action = agent.chooseAction(state)
+        state_, reward, done, info = env.step(action) # dont overwrite the state yet, 
+                                                      # we need state and nextState (state_)
+        
+        agent.learn(state, action, reward, state_, done)  #   state_ is short for nextState
+                                                          #   you will see it a lot in DRL code
+        state = state_  # okay we used the last state now
+                        # so we dont need it anymore. overwrite
+        score += reward
+        frame += 1
+...</code></pre>
+    <h4 class="u-align-center">Temporal Difference</h4>
+    <p>
+      I put it off long enough, but that was it. "Temporal Difference Learning" <br>
+      I could have dropped it on you at the begining of tuturial one, but I
+      think now that you have context for why it is how it is you won't feel like its just random math.
+      Anyways, instead of re-explaining TD and its formalization I will send you over to the tutorial you supposedly had
+      already
+      read. <a href="/tutorials/rl/actorcritic/actorcritic.html#improving-our-choices-in-life">TD Explanation</a><br>
+      Okay I'll assume you read that, and peaked at the math, and you wondered how it can be used in the context of
+      DQL instead of actor-critic. But hey now you know why it is, and how. Nice.
+    </p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4>Full Code</h4>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+import gym       
+import math
+import numpy as np
+import random
+
+class Network(torch.nn.Module):
+    def __init__(self, alpha, inputShape, numActions):
+        super().__init__()
+        self.inputShape = inputShape
+        self.numActions = numActions
+        self.fc1Dims = 1024
+        self.fc2Dims = 512
+
+        self.fc1 = nn.Linear(*self.inputShape, self.fc1Dims)
+        self.fc2 = nn.Linear(self.fc1Dims, self.fc2Dims)
+        self.fc3 = nn.Linear(self.fc2Dims, numActions)
+
+        self.optimizer = optim.Adam(self.parameters(), lr=alpha)
+        self.loss = nn.MSELoss()
+        # self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cpu")
+        self.to(self.device)
+
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+
+        return x
+
+class Agent():
+    def __init__(self, lr, inputShape, numActions):
+        self.network = Network(lr, inputShape, numActions)
+
+    def chooseAction(self, observation):
+        state = torch.tensor(observation).float().detach()
+        state = state.to(self.network.device)
+        state = state.unsqueeze(0)
+
+        qValues = self.network(state)
+        action = torch.argmax(qValues).item()
+
+        chanceOfAsparagus = random.randint(1, 10)
+        if chanceOfAsparagus == 1:  #   10% chance
+            action = random.randint(0, 1)
+
+        # print("qValues: {}, action {}".format(qValues.detach(), action))
+        return action
+
+    def learn(self, state, action, reward, state_, done):
+        self.network.optimizer.zero_grad()
+
+        state = torch.tensor(state).float().detach().to(self.network.device).unsqueeze(0)
+        state_ = torch.tensor(state_).float().detach().to(self.network.device).unsqueeze(0)
+        reward = torch.tensor(reward).float().detach().to(self.network.device)
+
+        qValues = self.network(state)
+        nextQValues = self.network(state_)
+
+        predictedValueOfNow = qValues[0][action]    #   interpret the past
+        futureActionValue = nextQValues[0].max()    #   interpret the future
+
+        trueValueOfNow = reward + futureActionValue * (1 - done)
+
+        loss = self.network.loss(trueValueOfNow, predictedValueOfNow)
+
+        loss.backward()
+        self.network.optimizer.step()
+
+if __name__ == '__main__':
+    env = gym.make('CartPole-v1').unwrapped
+    agent = Agent(lr=0.0001, inputShape=(4,), numActions=2)
+
+    highScore = -math.inf
+    episode = 0
+    while True:
+        done = False
+        state = env.reset()
+
+        score, frame = 0, 1
+        while not done:
+            env.render()
+
+            action = agent.chooseAction(state)
+            state_, reward, done, info = env.step(action)
+            
+            agent.learn(state, action, reward, state_, done)
+            state = state_
+
+            score += reward
+            frame += 1
+            # print("reward {}".format(reward))
+
+        highScore = max(highScore, score)
+
+        print(( "ep {}: high-score {:12.3f}, "
+                "score {:12.3f}, last-episode-time {:4d}").format(
+            episode, highScore, score,frame))
+
+        episode += 1
+      
+    </code></pre>
+    <p>I let mine run for a few hours and check out these results.</p>
+    <pre><code class="language-python">...
+ep 20538: high-score     2762.000, score       89.000, last-episode-time   90
+ep 20539: high-score     2762.000, score       68.000, last-episode-time   69
+ep 20540: high-score     2762.000, score      796.000, last-episode-time  797
+ep 20541: high-score     2762.000, score       93.000, last-episode-time   94
+ep 20542: high-score     2762.000, score      105.000, last-episode-time  106
+ep 20543: high-score     2762.000, score      141.000, last-episode-time  142
+ep 20544: high-score     2762.000, score      210.000, last-episode-time  211
+ep 20545: high-score     2762.000, score      257.000, last-episode-time  258
+ep 20546: high-score     2762.000, score      210.000, last-episode-time  211
+ep 20547: high-score     2762.000, score      245.000, last-episode-time  246
+ep 20548: high-score     2762.000, score       61.000, last-episode-time   62
+ep 20549: high-score     2762.000, score       67.000, last-episode-time   68
+ep 20550: high-score     2762.000, score      139.000, last-episode-time  140
+...</code></pre>
+    <p>Nice those are some high scores.<br>
+      However, there are also a lot of pretty bad scores in there...</p>
+    <pre><code class="language-python">...
+ep 20372: high-score     2762.000, score      240.000, last-episode-time  241
+ep 20373: high-score     2762.000, score       48.000, last-episode-time   49
+ep 20374: high-score     2762.000, score       96.000, last-episode-time   97
+ep 20375: high-score     2762.000, score       74.000, last-episode-time   75
+ep 20376: high-score     2762.000, score       43.000, last-episode-time   44
+ep 20377: high-score     2762.000, score      213.000, last-episode-time  214
+ep 20378: high-score     2762.000, score       94.000, last-episode-time   95
+ep 20379: high-score     2762.000, score       78.000, last-episode-time   79
+ep 20380: high-score     2762.000, score       62.000, last-episode-time   63
+ep 20381: high-score     2762.000, score       12.000, last-episode-time   13
+ep 20382: high-score     2762.000, score        9.000, last-episode-time   10
+ep 20383: high-score     2762.000, score       12.000, last-episode-time   13
+ep 20384: high-score     2762.000, score       53.000, last-episode-time   54
+ep 20385: high-score     2762.000, score       60.000, last-episode-time   61
+...</code></pre>
+    <p>Hmmm. It's almost as if it is forgetting how to be good sometimes.
+      If only there was a way to make it remember what it learned. <br>
+      There is, but that's a story for a different tutorial.-LINK
+      TO TUTORIAL HERE-</p>
+    <h5>The Rest Is Peanuts</h5>
+    <p>But anyways you did it. You are now in the realm of Deep Q Learning.
+      Almost all of deep reinforcement learning is just upgrades and modifications to the program 
+      you are currently in posession of. Don't believe me? Go look at a reinforcement learning timeline from the past 20 years.<br>
+      Dueling Networks, Target Networks, Distributional QValues, Intrinsic Curiosity Modules, Recurrent Q Networks...
+      Branching Q Networks, Proximal Policy Optimization... <br> 
+      They are all just tweaks and addons to what you've got now. 
+    </p>
+      
+  </div>
+  <div class="grid-container full">
+    <h3>God</h3>
+    <p>That concludes this tutorial. <br>
+      Congratulations. You made your first synthetic life.<br>
+    </p>
+    <h4>Where To Go Now</h4>
+    <p>Go read papers and other tutorials I guess. Or fill a planet with agents and stare at them for all eternity out of 
+      sheer boredome at your immense will.<br>
+    </p>
+    <a href="index.html">Tutorial Hub</a>
+    <p></p>
+    <p></p>
+    <p></p>
+  </div>
 </body>
 
 </html>
