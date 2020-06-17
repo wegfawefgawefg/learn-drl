@@ -51,7 +51,7 @@
     <h4>You Lied To Me</h4>
     <p>
       I'll be honest with you. The Deep Q Learning Agent we made in the last tutorial was never gonna work. <br>
-      I wish I could have seen your dissapointed face after all that effort.<br><br>
+      I wish I could have seen your dissapointed face after all that effort. :^)<br><br>
 
 
       Fear not. It was not a waste of time.<br>
@@ -59,8 +59,9 @@
     </p>
   </div>
   <div class="grid-container full u-align-left">
-    <p>Okay, so when you run it, the terminal looks like this:</p>
-    <pre class="full u-align-center"><code class="language-python">...
+    <div class="grid-container full">
+      <p>Okay, so when you ran it, the terminal looked like this:</p>
+      <pre class="full u-align-center"><code class="language-python">...
 ep 76: high-score       48.000, score        9.000, last-episode-time   10
 ep 77: high-score       48.000, score       10.000, last-episode-time   11
 ep 78: high-score       48.000, score       10.000, last-episode-time   11
@@ -83,12 +84,16 @@ ep 94: high-score       48.000, score        9.000, last-episode-time   10
 ep 95: high-score       48.000, score        9.000, last-episode-time   10
 ep 96: high-score       48.000, score        9.000, last-episode-time   10
       ...</code></pre>
-    <p class="u-align-left">Those scores are terrible. A good score is around 200 points.
-      Your agent gets 1 point for every frame it didnt drop the pole. 9 might even be the
-      minimum possible score. <br> Needless to say, the agent isn't improving. And no matter how long you run it, it
-      will not improve.<br>
-      In fact, if you set the agent to pick random actions, you will get better performance than our agent as is.<br>
-      Don't believe me? Watch this...</p>
+      <p class="u-align-left">The environment gives 1 point for every frame the pole doesn't drop beyond a critical
+        angle.
+        Those scores are terrible. A good score is around 200 points.
+        9 might even be the minimum possible score.
+      </p>
+    </div>
+    <h5>Shameful Performance</h5>
+    Needless to say, the agent isn't improving. And no matter how long you run it, it will not improve.<br>
+    In fact, if you set the agent to pick random actions, you will get better performance than our agent as is.<br>
+    Don't believe me? Watch this...</p>
     <pre><code class="language-python">def chooseAction(self, observation):
     # state = torch.tensor(observation).float().detach()
     # state = state.to(self.network.device)
@@ -126,10 +131,10 @@ ep 21: high-score       57.000, score       56.000, last-episode-time   57</code
       Okay so what gives?</p>
   </div>
   <div class="grid-container full u-align-left">
-    <h4>Post Mortem</h4>
+    <h4 class="u-align-center">Post Mortem</h4>
     <p>
-      It's time to investigate what is going wrong.
-      Let's see which actions the agent is taking.
+      It's time to investigate what is going wrong. Undo the random action selection stuff.
+      Then let's see which actions the agent is taking.
     </p>
     <pre><code class="language-python">def chooseAction(self, observation):
     state = torch.tensor(observation).float().detach()
@@ -173,10 +178,10 @@ ep 7: high-score       11.000, score        9.000, last-episode-time   10
 0
 0
 ...</code></pre>
-    <p>So the agent always picks one action. Rerun it a few times to see if the action it decides to
-      repeat is the same across runs.
+    <p>So the agent picks the same action over and over. That sucks.
+      Rerun it a few times to see if the action is different between runs.
     </p>
-    <p>Okay I did that. It seems to just pick one action at random and mash that one. <br>
+    <p>Okay I did that. It seems to just pick one action at random early on and mash that one. <br>
       Alright, time for more prints. Let's look at the <strong>QValues</strong>.
       Is it picking correctly? Do they look sane?</p>
     <pre><code class="language-python">def chooseAction(self, observation):
@@ -190,56 +195,55 @@ ep 7: high-score       11.000, score        9.000, last-episode-time   10
     return action</code></pre>
     <p>you know the drill</p>
     <pre><code class="language-python">qValues: tensor([[-0.0304, -0.1123]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 0.5467, -0.1014]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 1.1103, -0.1368]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 1.4888, -0.1696]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 1.4374, -0.1851]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 1.0218, -0.1893]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 0.4915, -0.1777]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 0.6207, -0.1962]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 1.1235, -0.2413]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 0.5467, -0.1014]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 1.1103, -0.1368]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 1.4888, -0.1696]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 1.4374, -0.1851]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 1.0218, -0.1893]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 0.4915, -0.1777]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 0.6207, -0.1962]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 1.1235, -0.2413]], grad_fn=<\AddmmBackward>), action 0
 ep 0: high-score        9.000, score        9.000, last-episode-time   10
-qValues: tensor([[ 1.3182, -0.1829]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 1.2014, -0.1902]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 1.1133, -0.2033]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 1.1132, -0.2105]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 1.1815, -0.2261]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 1.2351, -0.2414]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 1.2081, -0.2509]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 1.0592, -0.2488]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 0.8426, -0.2346]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 1.3182, -0.1829]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 1.2014, -0.1902]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 1.1133, -0.2033]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 1.1132, -0.2105]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 1.1815, -0.2261]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 1.2351, -0.2414]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 1.2081, -0.2509]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 1.0592, -0.2488]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 0.8426, -0.2346]], grad_fn=<\AddmmBackward>), action 0
 ...
 </code></pre>
     <p>By the way that <code>grad_fn=<\AddmmBackward></code> it keeps printing out
-      is the derivative of the last action performed on the tensor. Which happens
-      to be passing it through the ADAM Optimizer. You can hide that weird print by using
-      <code>.detach()</code> on it when you print it</p>
+      is the derivative of the last action performed on the tensor. <br>
+      The tensor happens to be passing it through the ADAM Optimizer last. Hence the name.<br>
+      You can hide that weird print by using <code>.detach()</code> on it when you print it. That is because
+      detach disables derivative tracking on tensors.</p>
     <p>Anyways, the q values start kinda random. They look like random floats. That makes sense, because the weights of
-      the
-      network are random. <br>
-      If we skip ahead to a future episode:
+      the network are random. If we skip ahead to a future episode:
     </p>
     <pre><code class="language-python">...
 ep 29: high-score       11.000, score        9.000, last-episode-time   10
-qValues: tensor([[ 0.9909, -0.3292]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 0.9975, -0.3475]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 0.9999, -0.3630]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 0.9931, -0.3728]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 0.9912, -0.3755]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 0.9945, -0.3801]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 1.0003, -0.3881]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 0.9978, -0.3959]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 0.9969, -0.4068]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 0.9909, -0.3292]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 0.9975, -0.3475]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 0.9999, -0.3630]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 0.9931, -0.3728]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 0.9912, -0.3755]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 0.9945, -0.3801]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 1.0003, -0.3881]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 0.9978, -0.3959]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 0.9969, -0.4068]], grad_fn=<\AddmmBackward>), action 0
 ep 30: high-score       11.000, score        9.000, last-episode-time   10
-qValues: tensor([[ 1.0100, -0.3460]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 1.0139, -0.3623]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 1.0163, -0.3759]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 1.0087, -0.3879]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 1.0066, -0.3916]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 1.0061, -0.3951]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 1.0039, -0.3992]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 0.9966, -0.4057]], grad_fn=<AddmmBackward>), action 0
-qValues: tensor([[ 0.9908, -0.4150]], grad_fn=<AddmmBackward>), action 0
+qValues: tensor([[ 1.0100, -0.3460]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 1.0139, -0.3623]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 1.0163, -0.3759]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 1.0087, -0.3879]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 1.0066, -0.3916]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 1.0061, -0.3951]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 1.0039, -0.3992]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 0.9966, -0.4057]], grad_fn=<\AddmmBackward>), action 0
+qValues: tensor([[ 0.9908, -0.4150]], grad_fn=<\AddmmBackward>), action 0
 </code></pre>
     <p>One of the action's <strong>QValue</strong> seems to be approaching 1.<br>
       The other one seems stable, but hasn't deviated too far from where it started.</p>
@@ -268,32 +272,50 @@ reward 1.0
       the action it tries all the time.
     </p>
     <p>And now we know why it doesn't pick the other action. It randomly starts with one QValue
-      as higher than the other. (If you pick 2 random numbers, one has to be higher)
+      as higher than the other. (If you pick 2 random numbers, one has to be higher.)
       The higher QValue is then raised to approximate the reward, which is 1.0. And since it
       was raised to 1.0, and the other QValue is probably less than 1.0, then when the next frame
       comes around the agent will just pick the same action. This never ends.
     </p>
   </div>
   <div class="grid-container full u-align-left">
-    <h3>Is Rehab Right For You?</h3>
-    <p>Fundamentally this is an issue of not exploring enough.<br>
-      If the agent was trying both the actions, then both the QValues would be right
-      around 1.0. Then it would not just pick one action. Its decisions would be a lot better.<br>
+    <h4 class="u-align-center">Exploration</h4>
+    <h5>When To Get Help For Addiction</h5>
+    <p>I want one thing to be clear: Even though the performance isn't improving from the perspective of 
+      balancing the pole, the network is not malfunctioning. It is doing exactly what we want it to.
+      The network is accurately predicting  the reward it will get for the action it has "studied". 
+      The reward prediction for the action it has <strong>not</strong> been taking is obviously wrong though. 
+      The environment returns a reward of 1.0 every step of an episode, so both actions should have value predictions around 1.0. The agent 
+      just hasn't been providing training data for the action that it never picks. And so even though the 
+      network is functioning effectively, and exactly as intended, it isn't being trained on the right material.<br>
+      Fundamentally this is an issue of not exploring enough.
+    </p>
+      
 
-      <ul>You've got some options:
+      <h5>Is Rehab Right For You?</h5>
+      <p>If the agent was trying both the actions, then both the QValues would be right
+        around 1.0. Then the agent would not just pick one action. Its decisions would be better.
+        You've got lots of options to fix this. But all of them involve making our agent pick more diverse actions.<br>
+      </p>
+      <ul><strong>Options:</strong>
         <li>punish the agent's bad actions, so that it could learn its favorite action is bad, and then try a different
           action</li>
         <li>force the agent to make some random decisions sometimes</li>
+        <li>inject noise into the network</li>
+        <li>let the network output chances of actions instead, then select actions stochastically from that range</li>
       </ul>
 
-      I'm always responsible for you failing so that you can learn how to do things the right way,
-      so we are going to try punishing the agent naively first.
+      I'm always responsible for making you fail so that you can learn how to do things the right way later.
+      So we are going to try option one first: punishing the agent's repeated decisions manually.
     </p>
   </div>
   <div class="grid-container full u-align-left">
-    <h3>Reward Shaping</h3>
-    <p>Here's the general idea.
-      If the action causes you to fail, the estimated reward should go down.
+    <h4 class="u-align-center">Reward Shaping</h4>
+    <h5>A Firm Hand</h5>
+    <p>Here's the general idea. We are going to hack the reward such that the agent does what we want it to. 
+      (Or what we think we want it to...) 
+      If the action causes the agent to fail, the estimated reward for that action should go down, right? 
+      Instead of letting the agent figure that out we can just spank it with our own abusive hands.
     </p>
     <pre><code class="language-python">...
 while not done:
@@ -303,7 +325,7 @@ while not done:
     state_, reward, done, info = env.step(action)
     if done:  # if you dropped the pole
         reward = -50.0  # that action was bad
-    agent.learn(state, reward)
+    agent.learn(state, reward)  # and you should feel bad
 
     state = state_
 ...</code></pre>
@@ -344,16 +366,16 @@ qValues: tensor([[-36.4758, -18.5921]]), action 1
 qValues: tensor([[-45.7820, -35.8122]]), action 1
 qValues: tensor([[-55.1387, -50.7749]]), action 1
 ...</code></pre>
-    <p>aaand it gets stuck again picking one action.</p>
-    <p>Also check out the reward predictions as it gets close to losing the round.
-      It learns that all actions are gonna be bad. <br>
-      It's a sign of intelligence. It's learned the futility of life.
-    </p>
-    <p>So that didn't work.<br>
-      And if you keep running it, you will see it doesnt get better.
-      What if we tried to make a more specific reward that really encourages the
-      network to make the right decisions?</p>
-    <p>We can extract the position and velocity of the cart from the environment state.
+    <p>aaand it gets stuck again picking one action. Also that score was -41. It got harder to interpret.</p>
+    <h5>Pessimism</h5>
+    <p>Check out the reward predictions as it gets close to the end of the episode. 
+      They become more and more negative. It learns that all actions are gonna be bad.
+      It's learned the futility of life. (a sign of real intelligence)<br>
+      Anyways, our strategy didn't work. If you keep running it, you will see it doesnt get better.</p>
+      
+      <h5>A More Rigorous Approach</h5>
+    <p>Maybe -50.0 is just too big, or too vague. What if we tried to make a more specific reward that really encourages the
+      network to make the right decisions? We can extract the position and velocity of the cart from the environment state.
       And make a really specific reward function.<br>
       Here is an example in pseudocode.
     </p>
@@ -368,16 +390,17 @@ if cartVel < 0.0 and poleAngleVel > 0.0:
     if action == 1:
         reward = 10.0
     else: # action = 0
-        reward = -10.0</code></pre>
+        reward = -10.0
+...</code></pre>
     <p>I think you see where this is going.</p>
-    <p>This strategy is garanteed to work.<br>
+    <h5 class="u-align-center">The Temptations Of Evil</h5>
+    <p>This strategy is garanteed to work in cartpole.
       All you have to do is keep getting more and more refined with your conditions, and
-      the agent will win the game.</p>
-    <p>
-      Before you go spend an hour making a custom reward function, make sure to read the next section...</p>
+      the agent will win the game.
+      But before you go spend an hour making a custom reward function, make sure to read the next section...</p>
   </div>
   <div class="grid-container full u-align-left">
-    <h3 class="u-align-center">DONT DO IT</h3>
+    <h1 class="u-align-center">DONT DO IT</h1>
     <p>Don't do this.<br>
       This is called <strong>"Reward Shaping"</strong> and it is really bad.<br>
       Now you might be thinking, "Why is it bad? I want my bot to work. I just want it to do
@@ -391,7 +414,7 @@ if cartVel < 0.0 and poleAngleVel > 0.0:
           The whole point of deep reinforcement learning is that we should have an agent
           that learns the task. If your reward function does all the work, then you can just
           remove the neural network entirely. The <strong>policy</strong> will just be the conditions
-          you make.
+          <strong>you</strong> make.
         </p>
       </div>
       <div>
@@ -419,7 +442,7 @@ if cartVel < 0.0 and poleAngleVel > 0.0:
           minimum win condition.<br>
           Imagine trying to do reward shaping to make the agent beat zelda or mario, or navigate
           a room in real life. You might be able to do it with a team of people working nonstop for years.<br>
-          Even then you would likely still fail.
+          People have tried. Likely even under best circumstances you would still fail.
         </p>
       </div>
     </div>
@@ -438,17 +461,17 @@ if cartVel < 0.0 and poleAngleVel > 0.0:
           reward function that doesn't have traps in it. Most of the ai-gym environments have a
           fairly carefully created reward function. If you go look at the lunar-lander reward code
           in the ai-gym repo, you'll see what i mean. It's complicated and deliberate. Each fractional
-          reward is scaled in such a way to prevent reward gaming.
+          reward is scaled in such a way to minimize reward gaming.
         </p>
         <a href="https://www.alexirpan.com/2018/02/14/rl-hard.html#reward-function-design-is-difficult"> Read this for
           some fun.</a>
-        <p>An additional note is that you can have some intuition for this yourself.<br>
-        Consider in cartpole. Is 50 good actions worth one deadly action? We kind of made that claim 
-      in our reward function above didn't we? Should it be 200? How can we know?<br>
-    When i was a noob i made a snake environment and i did a lot of reward shaping. 
-  The snake agent carefully calculated how many apples was worth a game over, and would meticulously 
-plan its path such that it would suicide in a specific number of turns such that the apple was worth it. 
-Even though... I just would prefer it to survive and get the apple instead.</p>
+        <p>Imagine that you are an agent.<br>
+          Consider cartpole. Is 50 good actions worth one deadly action? We kind of made that claim
+          in our reward function above didn't we? Should it be 200 since 200 is a winning score? How can we know?<br>
+          When i was a noob i made a snake environment and i did a lot of reward shaping.
+          The snake agent carefully calculated how many apples was worth a game over, and would meticulously
+          plan its path such that it would suicide in a specific number of turns such that the apple was worth it.
+          Even though... I just would prefer it to survive and get the apple instead.</p>
       </div>
       <div>
         <h5>Its Too Much Work</h5>
@@ -457,12 +480,15 @@ Even though... I just would prefer it to survive and get the apple instead.</p>
           big and looks like it is full of calculus. I have no idea how it works, and can
           only imagine how long it took to make it. (Also it's suboptimal)
         </p>
-        <p>I spent about a week on my snake agent. Carefully tweaking the magnitude of each 
-          sub reward to try and raise the performance. At one point I even considered letting a 
-          neural network learn the optimal reward magnitudes, but then i realized how stupid i 
-          was for not realizing it would have done that without my reward shaping anyways.<br>
-          I spend almost an entire week on reward shaping snake by the way. Just think about that. Just the 
-          reward shaping. That's what i did. For like 6 hours a day. Don't be me.
+        <p>When i was new to deep reinforcement learning I spent about a week on an agent 
+          that plays snake. I carefully tweaked the magnitude of each
+          sub reward in my reward conditions to try and raise the performance. At one point I even considered letting a
+          neural network learn the optimal reward magnitudes, but then i realized how stupid that
+          was because a good agent would have done that without my reward shaping anyways.<br>
+          I spent almost an entire week on reward shaping snake by the way. Just think about that. Just the
+          reward shaping. That's what i did. For like 6 hours a day. Don't be me.<br>
+          At the end of that it turned out i just had a bug in my agent code. Once I fixed that bug, it 
+          worked great without the reward shaping.
         </p>
       </div>
     </div>
@@ -472,30 +498,34 @@ Even though... I just would prefer it to survive and get the apple instead.</p>
       <div>
         <h5>... And Finally, Consistency</h5>
         <p>When other people make agents to solve the same environment as you,
-          you want to be able to measure the performance of their agents against yours. 
-          If everyone is making custom reward functions, then is their agent 
-          better than yours or not? It becomes unclear. It could be that none of the 
-          parameters or architecture of their agent matters at all, and it's just their reward function<br>
-          So for the most part everyone agrees to not do reward shaping, so that 
+          you want to be able to measure the performance of their agents against yours.
+          If everyone is making custom reward functions, then is their agent
+          better than yours or not? It becomes unclear. It could be that none of the
+          parameters or architecture of their agent matters at all, and it's just their reward function 
+          pulling all the weight.<br>
+          So for the most part everyone agrees to not do reward shaping, so that
           the results they share are comparable in the most basic way.<br>
-          Actually even just the numbers become different when you shape. You'll notice in our 
-          specific case, once we added the <strong>done</strong> penalty the episode rewards started 
-          totaling up to negative numbers. It wasn't like that before. People looking at our results 
+          Actually even just the numbers become different when you shape. You'll notice in our
+          specific case, once we added the <strong>done</strong> penalty the episode rewards started
+          totaling up to negative numbers. It wasn't like that before. People looking at our results
           would be really confused. Is 200 still a good score in our reward shape? Is 9 a bad score?
         </p>
       </div>
     </div>
   </div>
   <div class="grid-container full u-align-left">
-    <h3>Forbidden</h3>
+    <h5>I Forbid You</h5>
     <p>Anyways, I hope you don't plan on doing it.</p>
   </div>
   <div class="grid-container full u-align-center">
-    <h3>Oh Right I Almost Forgot</h3>
+    <h4>Oh Right I Almost Forgot</h4>
     <p>You wanted to make the agent work didn't you?<br>
-    What were we doing again? Oh yeah the issue was our agent wasn't exploring different actions. 
-  And somehow we have to accomplish that without rigging the reward.</p>
-    <p>How about we try a real action exploration strategy in the <a href="/tutorials/rl/deepqlearning3/deepqlearning3.html">next tutorial</a>
+      What were we doing again? Oh yeah the issue was our agent wasn't exploring different actions.
+      And somehow we have to accomplish that without rigging the reward.</p>
+    <p>How about we try a real action exploration strategy in the <a
+        href="/tutorials/rl/deepqlearning3/deepqlearning3.html">next tutorial</a>?
+    <p></p>
+    <p></p>
   </div>
 
   <!-- called q values because of probability theory or something. but its not quite the same -->
