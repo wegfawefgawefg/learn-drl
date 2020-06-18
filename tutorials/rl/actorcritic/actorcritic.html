@@ -1,155 +1,163 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <!-- Basic Page Needs
-–––––––––––––––––––––––––––––––––––––––––––––––––– -->
-    <meta charset="utf-8" />
-    <title>Wegfawefgawefg's Tutorials</title>
-    <meta name="description" content="" />
-    <meta name="author" content="" />
 
-    <!-- Mobile Specific Metas
+<head>
+  <!-- Basic Page Needs
 –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" />
+  <title>Wegfawefgawefg's Tutorials</title>
+  <meta name="description" content="" />
+  <meta name="author" content="" />
 
-    <!-- FONT
+  <!-- Mobile Specific Metas
 –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-    <link
-      href="//fonts.googleapis.com/css?family=Raleway:400,300,600"
-      rel="stylesheet"
-      type="text/css"
-    />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- CSS
+  <!-- FONT
 –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-    <link rel="stylesheet" href="/css/normalize.css" />
-    <link rel="stylesheet" href="/css/barebones.css" />
+  <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css" />
 
-    <!-- Favicon
+  <!-- CSS
 –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-    <link rel="icon" type="image/png" href="images/favicon-16.png" />
-    <!-- Code Highlighting
+  <link rel="stylesheet" href="/css/normalize.css" />
+  <link rel="stylesheet" href="/css/barebones.css" />
+
+  <!-- Favicon
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="icon" type="image/png" href="images/favicon-16.png" />
+  <!-- Code Highlighting
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-    <link
-      rel="stylesheet"
-      href="/highlightjs/styles/atom-one-dark-reasonable.css"
-    />
-    <script src="/highlightjs/highlight.pack.js"></script>
-    <script>
-      hljs.initHighlightingOnLoad();
-    </script>
-  </head>
-  <body>
-    <div class="grid-container full">
-      <h1>Wegfawefgawefg's Tutorials</h1>
-      <h2>Actor Critic Tutorial</h2>
-      <h3>Teaching An Agent How To Make An Agent</h3>
-      <h4>Prerequisites</h4>
-      <p class="u-align-left">This tutorial is intended to be your very first tutorial in deep reinforcement learning. 
-          In it you will make a program that learns to play lunar lander from AI Gym. 
-          AI Gym is a game world for ai. If you don't know it I've got a quickie tutorial for you <a href="/tutorials/quickies/aigym.html">here</a>.
-          It's easy to install with pip, and the main website has some getting started code examples that are only a few lines. 
-          Don't feel trapped in AI Gym though. You can use your agent to do other things too, like driving cars or balancing robots 
-          in the real world.<br>
-        If you don't know anything about neural networks or python you will find this tutorial fascinating, but probably a bit abstract. 
-        If you know python but don't know about neural networks, I highly recommend the book <a>Grokking Deep Learning</a>. 
-        That book will take you from zero to hero with neural networks, and can be easily finished in a month (two max) if you find it fun. It also 
-        doesn't assume you're a math god beforehand, as opposed to 90% of machine learning resources that will. (I hate it. It's just 
-        DRM for education.)<br>
-        Anyways, we will be using pytorch for the neural networks stuff. I have a quick tutorial on pytorch <a href="/tutorials/quickies/pytorch.html">here</a>. 
-        If you already know keras or tensorflow it should be fairly straightforward to follow this tutorial.<br> 
-        For you experts out there, yes, technically, we don't need neural networks to do this. 
-        There are endless options for generative or discriminative clustering algorithms, and many of them work <a href="https://gym.openai.com/evaluations/eval_lEi8I8v2QLqEgzBxcvRIaA/#writeup">just fine</a>. Maybe 
-        we can try some in different tutorials.<br> 
-      </p>
-    </div>
+  <link rel="stylesheet" href="/highlightjs/styles/atom-one-dark-reasonable.css" />
+  <script src="/highlightjs/highlight.pack.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad();
+  </script>
+</head>
 
-    <div class="grid-container full">
-        <h4>Getting Started</h4>
-        <p class="u-align-left">
-          The Actor-Critic method is a reinforcement learning algorithm. <br />
-          It will power our <strong>agent</strong>. The agent is what lives in our <strong>environment</strong> and 
-          makes decisions. It sends it's action to the environment, 
-          and the environment sends back the <strong>state</strong> of the environment, and a 
-          <strong>reward</strong> representing the goodness of that <strong>state</strong>. The reward is an abstract number 
-          that depends on the environment. It could be how many coins the agent got in mario, how far right mario ran, 
-          or how many people it ran over if it's a self driving car. In that case the reward might be negative. :^)<br>
-          An <strong>agent</strong> can have any logic inside to make decisions, but hopefully it makes better and better 
-          decisions so that it can maximize the reward it gets.<br>
-          This time we are making an "Actor-Critic <strong>Agent</strong>".<br>
-          It has two primary components, an <strong>action picker</strong> and a
-          <strong>state value estimator</strong>.
-        </p>
-    </div>
-    <div class="grid-container halves u-align-left">
-      <div class="left">
-        <h5>Action Picker (Actor)</h5>
-        <p>
-          The <strong>action picker</strong> takes in a frame of information,
-          camera input, game state, or even past action, and outputs a number
-          for each action the agent is allowed to take. The numbers it outputs
-          are used to pick the agents actions.
-        </p>
-        <strong>Ex:</strong> The actor is given a picture of a poisoned burger.
-        <div class="grid-container halves">
-          <div class="u-align-left">
-            <p>
-              It outputs 3 values. <br />
-              <br />
-              <strong>Eat:</strong> 0.8 <br />
-              <strong>Dont Eat:</strong> 0.3 <br />
-              <strong>Be Suspicious:</strong> 0.001
-            </p>
-          </div>
-          <div class="u-align-left">
-            <p>
-              <br />
-              <br />
-              The Agent picks the highest one. :()
-            </p>
-          </div>
-        </div>
-        This is why we need the <strong>critic</strong>...
-      </div>
-      <div class="right">
-        <h5>State Value Estimator (Critic)</h5>
-        <p>
-          The <strong>state value estimator</strong> is very similar to the
-          action picker. It takes in the same exact frame of information as the
-          <strong>action picker</strong>, but outputs a single number
-          representing the value of the input state. <br /><br />
-          <strong>Ex:</strong> The critic gets a picture of you eating a
-          poisoned burger. <br />
-          <strong>Value:</strong> -10.0 :( <br /><br />
-          <strong>Ex:</strong> The critic gets a picture of a man handing you an
-          antidote. <br />
-          <strong>Value:</strong> 10.0 :) <br /><br />
-          <strong>Ex:</strong> The critic gets a picture of divorce papers.
-          <br />
-          <strong>Value:</strong> :^)
-        </p>
-      </div>
-    </div>
-    <div class="grid-container full u-align-left">
+<body>
+  <div class="grid-container full">
+    <h1>Wegfawefgawefg's Tutorials</h1>
+    <h2>Actor Critic Tutorial</h2>
+    <h3>Teaching An Agent How To Make An Agent</h3>
+    <h4>Prerequisites</h4>
+    <p class="u-align-left">This tutorial is intended to be your very first tutorial in deep reinforcement learning.
+      In it you will make a program that learns to play lunar lander from AI Gym.
+      AI Gym is a game world for ai. If you don't know it I've got a quickie tutorial for you <a
+        href="/tutorials/quickies/aigym.html">here</a>.
+      It's easy to install with pip, and the main website has some getting started code examples that are only a few
+      lines.
+      Don't feel trapped in AI Gym though. You can use your agent to do other things too, like driving cars or balancing
+      robots
+      in the real world.<br>
+      If you don't know anything about neural networks or python you will find this tutorial fascinating, but probably a
+      bit abstract.
+      If you know python but don't know about neural networks, I highly recommend the book <a>Grokking Deep
+        Learning</a>.
+      That book will take you from zero to hero with neural networks, and can be easily finished in a month (two max) if
+      you find it fun. It also
+      doesn't assume you're a math god beforehand, as opposed to 90% of machine learning resources that will. (I hate
+      it. It's just
+      DRM for education.)<br>
+      Anyways, we will be using pytorch for the neural networks stuff. I have a quick tutorial on pytorch <a
+        href="/tutorials/quickies/pytorch.html">here</a>.
+      If you already know keras or tensorflow it should be fairly straightforward to follow this tutorial.<br>
+      For you experts out there, yes, technically, we don't need neural networks to do this.
+      There are endless options for generative or discriminative clustering algorithms, and many of them work <a
+        href="https://gym.openai.com/evaluations/eval_lEi8I8v2QLqEgzBxcvRIaA/#writeup">just fine</a>. Maybe
+      we can try some in different tutorials.<br>
+    </p>
+  </div>
+
+  <div class="grid-container full">
+    <h4>Getting Started</h4>
+    <p class="u-align-left">
+      The Actor-Critic method is a reinforcement learning algorithm. <br />
+      It will power our <strong>agent</strong>. The agent is what lives in our <strong>environment</strong> and
+      makes decisions. It sends it's action to the environment,
+      and the environment sends back the <strong>state</strong> of the environment, and a
+      <strong>reward</strong> representing the goodness of that <strong>state</strong>. The reward is an abstract number
+      that depends on the environment. It could be how many coins the agent got in mario, how far right mario ran,
+      or how many people it ran over if it's a self driving car. In that case the reward might be negative. :^)<br>
+      An <strong>agent</strong> can have any logic inside to make decisions, but hopefully it makes better and better
+      decisions so that it can maximize the reward it gets.<br>
+      This time we are making an "Actor-Critic <strong>Agent</strong>".<br>
+      It has two primary components, an <strong>action picker</strong> and a
+      <strong>state value estimator</strong>.
+    </p>
+  </div>
+  <div class="grid-container halves u-align-left">
+    <div class="left">
+      <h5>Action Picker (Actor)</h5>
       <p>
-        The predictive function behind the <strong>action picker</strong> or the
-        <strong>state value estimator</strong> can be whatever you want (ex:
-        linear regression, nearest neighbor, genetic algorithm, random forest).
-        However i will be using a single neural network for both of them.
+        The <strong>action picker</strong> takes in a frame of information,
+        camera input, game state, or even past action, and outputs a number
+        for each action the agent is allowed to take. The numbers it outputs
+        are used to pick the agents actions.
       </p>
-      <pre><code class="language-python">class ActorCriticNetwork(torch.nn.Module): #   ~here is my handle~
-    def __init__(self, alpha, inputDims, fc1Dims, fc2Dims, numActions):
+      <strong>Ex:</strong> The actor is given a picture of a poisoned burger.
+      <div class="grid-container halves">
+        <div class="u-align-left">
+          <p>
+            It outputs 3 values. <br />
+            <br />
+            <strong>Eat:</strong> 0.8 <br />
+            <strong>Dont Eat:</strong> 0.3 <br />
+            <strong>Be Suspicious:</strong> 0.001
+          </p>
+        </div>
+        <div class="u-align-left">
+          <p>
+            <br />
+            <br />
+            The Agent picks the highest one. :()
+          </p>
+        </div>
+      </div>
+      This is why we need the <strong>critic</strong>...
+    </div>
+    <div class="right">
+      <h5>State Value Estimator (Critic)</h5>
+      <p>
+        The <strong>state value estimator</strong> is very similar to the
+        action picker. It takes in the same exact frame of information as the
+        <strong>action picker</strong>, but outputs a single number
+        representing the value of the input state. <br /><br />
+        <strong>Ex:</strong> The critic gets a picture of you eating a
+        poisoned burger. <br />
+        <strong>Value:</strong> -10.0 :( <br /><br />
+        <strong>Ex:</strong> The critic gets a picture of a man handing you an
+        antidote. <br />
+        <strong>Value:</strong> 10.0 :) <br /><br />
+        <strong>Ex:</strong> The critic gets a picture of divorce papers.
+        <br />
+        <strong>Value:</strong> :^)
+      </p>
+    </div>
+  </div>
+  <div class="grid-container full u-align-left">
+    <p>
+      The predictive function behind the <strong>action picker</strong> or the
+      <strong>state value estimator</strong> can be whatever you want (ex:
+      linear regression, nearest neighbor, genetic algorithm, random forest).
+      However i will be using a single neural network for both of them.
+    </p>
+    <pre><code class="language-python">class ActorCriticNetwork(torch.nn.Module): #   ~here is my handle~
+    def __init__(self, lr, inputDims, numActions):
         super().__init__()
+        # fc means "fully connected layer", 
+        self.fc1Dims = 1024  #   size of hidden layer 1
+        self.fc2Dims = 512   #   size of hidden layer 2
+
         #   backbone network
-        self.fc1 = nn.Linear(*inputDims, fc1Dims)
-        self.fc2 = nn.Linear(fc1Dims, fc2Dims)
+        self.fc1 = nn.Linear(*inputDims, self.fc1Dims)     #   hidden layer 1
+        self.fc2 = nn.Linear(self.fc1Dims, self.fc2Dims)   #   hidden layer 2
 
         #   tail networks       ~here is my spout~
-        <strong>self.actor = nn.Linear(fc2Dims, numActions)     #   here is the actor</strong>
-        <strong>self.critic = nn.Linear(fc2Dims, 1)             #   here is the critic</strong>
+        <strong>self.actor = nn.Linear(self.fc2Dims, self.numActions)   #   here is the actor</strong>
+        <strong>self.critic = nn.Linear(self.fc2Dims, 1)                #   here is the critic</strong>
         
         #   pytorch stuff
-        self.optimizer = optim.Adam(self.parameters(), lr=alpha)
+        self.optimizer = optim.Adam(self.parameters(), lr=lr)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.to(self.device)
 
@@ -160,197 +168,195 @@
         <strong>policy = self.actor(x)  #   actor outputs one number for each action, a vector</strong>
         <strong>value = self.critic(x)  #   critic just puts out the value, one number</strong>
         return policy, value</code></pre>
-    </div>
-    <div class="grid-container thirds u-align-left">
-      <div>
-        <h5>Network Class Inputs</h5>
-        <p>
-          The network class takes in the learning rate (alpha), game frame shape
-          (the inputs for the actor-critic network), the sizes of the 2 layers
-          (fc1, fc2), and the number of actions (which happens to be the output
-          of the actor network).
-        </p>
-      </div>
-      <div>
-        <h5>Tail Networks</h5>
-        <p>
-          A convenient way to do an actor-critic network is by making them share
-          a backbone network. And it makes sense, the same features that are
-          useful for determining state value are probably also useful for
-          determining which action to pick next.
-        </p>
-      </div>
-      <div>
-        <h5>Policy</h5>
-        <p>
-          The values used to pick actions are known as the
-          <strong>policy.</strong>
-          Why that word? Math history or something. Not a terrible word for it
-          thought.
-          <br />
-          "It is my policy to do THIS under THESE specific circumstances." The
-          standard symbol for a policy is 𝜋. (pi, like 3.14pi) <br />
-          In reinforcement learning papers anytime you see 𝜋 it means
-          <strong>policy</strong>.
-        </p>
-      </div>
-    </div>
-    <div class="grid-container full u-align-left">
-      <h4>Picking an Action</h4>
+  </div>
+  <div class="grid-container thirds u-align-left">
+    <div>
+      <h5>Network Class Inputs</h5>
       <p>
-        For vanilla Deep Q learning it's as easy as picking the highest actor
-        action output. :)
+        The network class takes in the learning rate (often called alpha), game frame shape
+        (the inputs for the actor-critic network), and the number of actions (which happens to be the output
+        of the actor network).
       </p>
-      <pre><code class="language-python">def chooseAction(state):
+    </div>
+    <div>
+      <h5>Tail Networks</h5>
+      <p>
+        A convenient way to do an actor-critic network is by making them share
+        a backbone network. And it makes sense, the same features that are
+        useful for determining state value are probably also useful for
+        determining which action to pick next.
+      </p>
+    </div>
+    <div>
+      <h5>Policy</h5>
+      <p>
+        The values used to pick actions are known as the
+        <strong>policy.</strong>
+        Why that word? Math history or something. Not a terrible word for it
+        thought.
+        <br />
+        "It is my policy to do THIS under THESE specific circumstances." The
+        standard symbol for a policy is 𝜋. (pi, like 3.14pi) <br />
+        In reinforcement learning papers anytime you see 𝜋 it means
+        <strong>policy</strong>.
+      </p>
+    </div>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4>Picking an Action</h4>
+    <p>
+      For vanilla Deep Q learning it's as easy as picking the highest actor
+      action output. :)
+    </p>
+    <pre><code class="language-python">def chooseAction(state):
     policy, _ = actorCriticNetwork(state)
     <strong>action = torch.argmax(policy).item()    #   pick here</strong>
     return action</code></pre>
-      <p>
-        But this isnt Vanilla Deep Q Learning. This is Actor-Critic Method.
-        >:()<br />
-        The <strong>actor</strong> outputs probabilities of actions instead of
-        actual action values.<br />
-        So the <strong>Eat:</strong> 0.8 from earlier, yeah thats like an 80%
-        chance of eating the burger.<br />
-        If this was DQ Learning a value of 0.8 being the highest would mean 100%
-        chance of eating the poison burger. :(
-      </p>
-      <p>Lets choose an action the Actor Critic way.<br>
-        We start by passing in the state from the environment into the critic. 
-        I don't know why this convention, but people often call the state: "observation". 
-        Maybe because it's what the agent "observes"?</p>
-      <pre><code class="language-python">def chooseAction(observation):
+    <p>
+      But this isnt Vanilla Deep Q Learning. This is Actor-Critic Method.
+      >:()<br />
+      The <strong>actor</strong> outputs probabilities of actions instead of
+      actual action values.<br />
+      So the <strong>Eat:</strong> 0.8 from earlier, yeah thats like an 80%
+      chance of eating the burger.<br />
+      If this was DQ Learning a value of 0.8 being the highest would mean 100%
+      chance of eating the poison burger. :(
+    </p>
+    <p>Lets choose an action the Actor Critic way.<br>
+      We start by passing in the state from the environment into the critic.
+      I don't know why this convention, but people often call the state: "observation".
+      Maybe because it's what the agent "observes"?</p>
+    <pre><code class="language-python">def chooseAction(observation):
     policy, _ = actorCritic.forward(observation)
     policy = F.softmax(policy, dim=0)
     actionProbs = torch.distributions.Categorical(policy)
     action = actionProbs.sample()
     self.logProbs = actionProbs.log_prob(action)    #    saving this value for later
     return action.item()</code></pre>
-    </div>
-    <div class="grid-container halves u-align-left">
-      <div class="left">
-        <h5>Softmax</h5>
-        <p>
-          We have to softmax the output action probabilities from the networks
-          output <strong>policy</strong>.<br />
-          Why are the outputs not good enough as is? Well, its just because the
-          policy is supposed to be probabilities of each action being taken.
-          <br />
-          Probabilities need to add up to 1.<br /><br />
-          Consider the following policy:<br />
-          <strong>Eat:</strong> 0.8 <br />
-          <strong>Dont Eat:</strong> 0.3 <br />
-          <strong>Be Suspicious:</strong> 0.001 <br /><br />
-          Thats 80% + 30% + 0.001%. <br />
-          110.001% with the actions combined. <br />
-          "110% chance of rain today."
-          Doesn't make any sense right? <br />
-          Softmax takes in a list of numbers and makes them add up to 1. Which
-          is exactly what we want.<br />
-        </p>
-        <pre><code class="language-python">#    softmax example
+  </div>
+  <div class="grid-container halves u-align-left">
+    <div class="left">
+      <h5>Softmax</h5>
+      <p>
+        We have to softmax the output action probabilities from the networks
+        output <strong>policy</strong>.<br />
+        Why are the outputs not good enough as is? Well, its just because the
+        policy is supposed to be probabilities of each action being taken.
+        <br />
+        Probabilities need to add up to 1.<br /><br />
+        Consider the following policy:<br />
+        <strong>Eat:</strong> 0.8 <br />
+        <strong>Dont Eat:</strong> 0.3 <br />
+        <strong>Be Suspicious:</strong> 0.001 <br /><br />
+        Thats 80% + 30% + 0.001%. <br />
+        110.001% with the actions combined. <br />
+        "110% chance of rain today."
+        Doesn't make any sense right? <br />
+        Softmax takes in a list of numbers and makes them add up to 1. Which
+        is exactly what we want.<br />
+      </p>
+      <pre><code class="language-python">#    softmax example
 a = torch.tensor([0.8, 0.3, 0.001])
 b = F.softmax(a, dim=0)
 b is now tensor([0.4863, 0.2950, 0.2187])</code></pre>
+      <p>
+        You may have noticed now <strong>Eat</strong> has changed size
+        relative to <strong>Dont Eat</strong>. 0.8 / 0.3 is not the same as
+        0.4863 / 0.2950<br />
+        Softmax mangles the relative probability scales just a little bit.
+        But, the network figures it out after a while. More importantly,
+        thanks to softmax no matter what weird shit the actor network outputs
+        we have sane action probability ranges.
+      </p>
+    </div>
+    <div class="right">
+      <div>
+        <h5>Categorical Distribution</h5>
         <p>
-          You may have noticed now <strong>Eat</strong> has changed size
-          relative to <strong>Dont Eat</strong>. 0.8 / 0.3 is not the same as
-          0.4863 / 0.2950<br />
-          Softmax mangles the relative probability scales just a little bit.
-          But, the network figures it out after a while. More importantly,
-          thanks to softmax no matter what weird shit the actor network outputs
-          we have sane action probability ranges.
+          You put 80 red marbles, 30 blue marbles, and a glass shard from a
+          green marble in a bag. We have 3 distinct
+          <strong>categories</strong> of marbles. One might even say its a
+          categorical distribution of marbles.<br />
+          You pick one marble from the bag. One might even say you
+          <strong>sample</strong> the bag.<br />
+          In this case sample() returns an index because its from a
+          categorical distribution. But from other distributions it might
+          return a floating point value. Another common distribution used for
+          picking actions in reinforcement learning is a normal distribution.
         </p>
       </div>
-      <div class="right">
-        <div>
-          <h5>Categorical Distribution</h5>
-          <p>
-            You put 80 red marbles, 30 blue marbles, and a glass shard from a
-            green marble in a bag. We have 3 distinct
-            <strong>categories</strong> of marbles. One might even say its a
-            categorical distribution of marbles.<br />
-            You pick one marble from the bag. One might even say you
-            <strong>sample</strong> the bag.<br />
-            In this case sample() returns an index because its from a
-            categorical distribution. But from other distributions it might
-            return a floating point value. Another common distribution used for
-            picking actions in reinforcement learning is a normal distribution.
-          </p>
-        </div>
-        <div>
-          <h5>Log Probability</h5>
-          <p>
-            This is the probability of a specific action, but pushed through the
-            log function.<br />
-            Why do this? Well like everything in life there are more than one
-            explanation, and some of them are more complicated than others.
-            Basically, you'll understand when you're older.<br />
-            You'll also understand it right now:
-          </p>
-          <ul>
-            <li>
-              One explanation involves some math nonsense i think someone made
-              up to sound cool.
-              <a
-                href="https://www.quora.com/What-is-log-probability-in-policy-gradient-reinforcement-learning"
-                >here</a
-              >
-            </li>
-            <li>
-              One explanation involves the log probability having more stable
-              scaling than the raw probability.
-              <a
-                href="https://stats.stackexchange.com/questions/174481/why-to-optimize-max-log-probability-instead-of-probability"
-                >here</a
-              >
-            </li>
-          </ul>
-          <p>
-            The important thing to take from this though is that you are gonna
-            need the probability of the chosen action for teaching the network.
-            And smoothing and shrinking the distribution out gives the network
-            an easier time.<br />
-            Specifically, youre gonna multiply the probabilities of chosen
-            actions by the critic state values. Your natural intuition for why
-            this works is probably pretty reasonable. We'll get to the
-            explanation in a sec.
-          </p>
-        </div>
+      <div>
+        <h5>Log Probability</h5>
+        <p>
+          This is the probability of a specific action, but pushed through the
+          log function.<br />
+          Why do this? Well like everything in life there are more than one
+          explanation, and some of them are more complicated than others.
+          Basically, you'll understand when you're older.<br />
+          You'll also understand it right now:
+        </p>
+        <ul>
+          <li>
+            One explanation involves some math nonsense i think someone made
+            up to sound cool.
+            <a href="https://www.quora.com/What-is-log-probability-in-policy-gradient-reinforcement-learning">here</a>
+          </li>
+          <li>
+            One explanation involves the log probability having more stable
+            scaling than the raw probability.
+            <a
+              href="https://stats.stackexchange.com/questions/174481/why-to-optimize-max-log-probability-instead-of-probability">here</a>
+          </li>
+        </ul>
+        <p>
+          The important thing to take from this though is that you are gonna
+          need the probability of the chosen action for teaching the network.
+          And smoothing and shrinking the distribution out gives the network
+          an easier time.<br />
+          Specifically, youre gonna multiply the probabilities of chosen
+          actions by the critic state values. Your natural intuition for why
+          this works is probably pretty reasonable. We'll get to the
+          explanation in a sec.
+        </p>
       </div>
     </div>
-    <div class="grid-container full u-align-left">
-        <h5>Determinism</h5>
-        <p>Why is our actor putting out chances of actions? Seems kind of stupid doesn't it? 
-            Imagine that every millisecond you are holding a knife you have a 10% chance of letting go of it. 
-            That's dumb right? Why not just pick the highest action instead of sampling a distribution? 
-            Well most of the time the next millisecond you will decide to hold the knife tightly again.
-            So statistically it works out. You will never completely drop the knife. 
-            The Actor-Critic algorithm statistically makes good decisions, but it might make a different 
-            decision given the same exact scenario a second time. It is <strong>non deterministic</strong>.<br>
-            In the real world with fuzzy inputs like muscle flexing and rotation angles, picking the wrong 
-            action for small fraction of a second is not that big of an issue. 
-            For a game where a single wrong button makes you lose, it kind of sucks.<br>
-            Some reinforcement learning algorithms ARE deterministic. But that has its own downsides. 
-            Non-deterministic algorithms naturally explore different actions by accident. They try new things sometimes. 
-            Deterministic algorithms can get stuck, repeating the same action every time, until it gets punished into oblivion.
-            Sometimes deterministic algorithms are so stubborn they will pick the same action until it has been punished so much 
-            <strong>that it will never choose that action ever again. ever.</strong> You will likely even see this happen if you keep 
-            playing with AI Gym and Deep Q Learning.
-            Deterministic algorithms often need some noise injected into the decision making process to help them be less stubborn. 
-            Luckily for us, Actor-Critic doesn't need that because it is <strong>non-deterministic</strong>.
-        </p> 
-    </div>
-    <div class="grid-container full u-align-left">
-      <h4 id="improving-our-choices-in-life">Improving Our Choices In Life</h4>
-      <p>
-        The actor network and the critic network both have unique errors.<br />
-        Each network is punished by their own respective error, and their
-        estimation of their respective responsibility improves. We get better
-        actions from the <strong>actor</strong>, and better value estimates from
-        the <strong>critic</strong>.
-      </p>
-      <pre><code class="language-python">def learn(state, reward, nextState, done): <a>following the meta</a>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h5>Determinism</h5>
+    <p>Why is our actor putting out chances of actions? Seems kind of stupid doesn't it?
+      Imagine that every millisecond you are holding a knife you have a 10% chance of letting go of it.
+      That's dumb right? Why not just pick the highest action instead of sampling a distribution?
+      Well most of the time the next millisecond you will decide to hold the knife tightly again.
+      So statistically it works out. You will never completely drop the knife.
+      The Actor-Critic algorithm statistically makes good decisions, but it might make a different
+      decision given the same exact scenario a second time. It is <strong>non deterministic</strong>.<br>
+      In the real world with fuzzy inputs like muscle flexing and rotation angles, picking the wrong
+      action for small fraction of a second is not that big of an issue.
+      For a game where a single wrong button makes you lose, it kind of sucks.<br>
+      Some reinforcement learning algorithms ARE deterministic. But that has its own downsides.
+      Non-deterministic algorithms naturally explore different actions by accident. They try new things sometimes.
+      Deterministic algorithms can get stuck, repeating the same action every time, until it gets punished into
+      oblivion.
+      Sometimes deterministic algorithms are so stubborn they will pick the same action until it has been punished so
+      much
+      <strong>that it will never choose that action ever again. ever.</strong> You will likely even see this happen if
+      you keep
+      playing with AI Gym and Deep Q Learning.
+      Deterministic algorithms often need some noise injected into the decision making process to help them be less
+      stubborn.
+      Luckily for us, Actor-Critic doesn't need that because it is <strong>non-deterministic</strong>.
+    </p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4 id="improving-our-choices-in-life">Improving Our Choices In Life</h4>
+    <p>
+      The actor network and the critic network both have unique errors.<br />
+      Each network is punished by their own respective error, and their
+      estimation of their respective responsibility improves. We get better
+      actions from the <strong>actor</strong>, and better value estimates from
+      the <strong>critic</strong>.
+    </p>
+    <pre><code class="language-python">def learn(state, reward, nextState, done): <a>following the meta</a>
     actorCritic.optimizer.zero_grad()  #   pytorch stuff: resets all the tensor derivatives
 
     #   fetch values from the critic network
@@ -364,307 +370,306 @@ b is now tensor([0.4863, 0.2950, 0.2187])</code></pre>
 
     #   compute the error for our actor and critic networks
     actorLoss = -self.logProbs * temporalDifference  #  probability of chosen action times how wrong we were
-    criticLoss = delta**2   #   we dont care about which direction (the sign), 
-                            #   #   just wanna minimize how wrong we were in total
+    criticLoss = temporalDifference**2   #   we dont care about which direction (the sign), 
+                                         #   #   just wanna minimize how wrong we were in total
 
     (actorLoss + criticLoss).backward()
     actorCritic.optimizer.step()</code></pre>
-    </div>
+  </div>
 
 
 
 
 
 
-    <div class="grid-container halves u-align-left">
-      <div class="left">
-        <div>
-          <h5>Learn Function Inputs</h5>
-          <ul>
-            <li>
-              <strong>State</strong> is our game screenshot, or robot arm
-              position, or self driving car position/velocity. It's the same
-              thing that goes into the actor and critic.
-            </li>
-            <li>
-              <strong>Reward</strong> is the ground truth
-              <strong>value</strong> that our critic is supposed to learn. It is
-              generally returned by an environment. In AI Gym it is explicity
-              the reward, but for your own environment it could be how much
-              money your trading algorithm made, or how well balanced your robot
-              is, or how many non poisonous burgers you ate. The
-              <strong>reward</strong> is a hedonistic measure of success.
-              Success right now. <br />
-              It's magnitude is kind of arbitrary. Could be 1.0, could be 100.0.
-              <br />
-              It doesn't matter what scale it is, just that it is consistent.
-            </li>
-            <li>
-              The <strong>nextState</strong> is just like
-              <strong>state</strong>, except its the next one.<br />
-              It is the future, one time step forward. That means in order to
-              run this we already need to know the
-              <strong>nextState</strong>.<br />
-              <strong
-                >You don't learn from the present. You learn from comparing the
-                present to the past.</strong
-              >
-            </li>
-            <li>
-              <strong>Done</strong> is just whether the
-              <strong>nextState</strong> was the last one. (true or false, 1 or
-              0)<br />
-              If the game was game over on <strong>state</strong> then
-              <strong>nextState</strong> isn't valid.<br />
-              You don't care how much money you made the day after you died.
-              Because you are dead. <a>see (1 - int(done))</a><br />
-              The vast majority of our <strong>nextState</strong>s will not be
-              the end of the game/episode/trial, so most of the time it doesn't
-              even get used. It will just be false/0.
-            </li>
-          </ul>
-        </div>
-      </div>
-      <div class="right">
-        <div>
-          <h5>Temporal Difference</h5>
-          <p>
-            This is really important for reinforcement learning. You will see
-            variations of it all over the place.<br />
-            <strong>Temporal Difference</strong> is a way of valuing the
-            present.<br />
-            The true value of now includes the potential value of all future
-            states.<br />
-            We can compute that in a literal way. Just add the value of now to
-            the value of the future.<br />
-            We discount the future a little bit by multiplying it by
-            <strong>gamma</strong> which is normally 0.99 ish.
-          </p>
-          <pre><code class="language-python">actualValueOfNow = reward + gamma * valueOfTheFuture
-temporalDifference = actualValueOfNow - criticsGuess</code></pre>
-          <p>
-            A key difference though, notice how in our learn function we dont
-            pass in the next rewards. That's because instead of using the ground
-            truth future value we just let the critic guess.
-          </p>
-          <pre><code class="language-python">_, nextCriticValue = actorCritic.forward(nextState)
-valueOfNow = reward + gamma * nextCriticValue</code></pre>
-        </div>
-        <div>
-          <h5>Gamma</h5>
-          <p>
-            <strong>Gamma</strong> is known as the discount factor. In
-            reinforcement learning math you will see it as γ.<br />
-            We have to discount the future a little bit. Future rewards are not
-            as valuable as rewards now. I will explain more after you have some
-            more context for these types of algorithms.
-          </p>
-        </div>
-      </div>
-    </div>
-    <div class="grid-container full u-align-left">
-        <h5>One Quick Trick</h5>
-        <pre><code class="language-python">(actorLoss + criticLoss).backward()</code></pre>
-        <p>This might seem weird if you know pytorch. Why not just call backward on actorLoss, then on criticLoss? 
-            Well, because they share a backbone network, you can't do that. Pytorch will complain about "unreachable gradient" stuff when you call step(). 
-            And, actually, I think it computes the wrong gradient. Order will matter for the shared backbone network. Luckily for us the derivative of addition is 1. 
-            So adding the losses togethor just multiplies the gradient by 1. Multiplying things by 1 doesn't change them. :^)<br>
-            If you want to split your network in all sorts of crazy ways this works for adding as many as you want togethor.
-        </p>
-    </div>
-    <div class="grid-container full u-align-left">
-      <h4>Formal Representation</h4>
-      <p>
-        If you want to see the way mathemagicians formalize temporal difference,
-        <a
-          href="https://en.wikipedia.org/wiki/Temporal_difference_learning#Mathematical_formulation"
-          >here you go</a
-        >. I urge you to give the equations a look. I bet you can kinda get
-        them. You're gonna need to wet your whistle on these a little bit if you
-        want to go implement algorithms from professional reinforcement learning
-        papers.
-      </p>
-      <h5>A Guide For The Overly Formal Notation:</h5>
-      <div class="grid-container thirds u-align-left">
-        <div>
-          <h5>Policy and Value</h5>
-          <ul>
-            <li>𝜋 means policy</li>
-            <li>s means state</li>
-            <li>V means value</li>
-          </ul>
-          <p>
-            So, V<sup>𝜋</sup>(s) means the value of a state according to our
-            policy.
-          </p>
-        </div>
-        <div>
-          <h5>Time</h5>
-          <ul>
-            <li>s<sub>1</sub> just means the state after s<sub>0</sub>.</li>
-            <li>s<sub>t</sub> just means the state at any time.</li>
-          </ul>
-          <p>
-            So, logically s<sub>t+1</sub> is the state after s<sub>t</sub>.
+  <div class="grid-container halves u-align-left">
+    <div class="left">
+      <div>
+        <h5>Learn Function Inputs</h5>
+        <ul>
+          <li>
+            <strong>State</strong> is our game screenshot, or robot arm
+            position, or self driving car position/velocity. It's the same
+            thing that goes into the actor and critic.
+          </li>
+          <li>
+            <strong>Reward</strong> is the ground truth
+            <strong>value</strong> that our critic is supposed to learn. It is
+            generally returned by an environment. In AI Gym it is explicity
+            the reward, but for your own environment it could be how much
+            money your trading algorithm made, or how well balanced your robot
+            is, or how many non poisonous burgers you ate. The
+            <strong>reward</strong> is a hedonistic measure of success.
+            Success right now. <br />
+            It's magnitude is kind of arbitrary. Could be 1.0, could be 100.0.
             <br />
-            Little t is used for time.
-          </p>
-        </div>
-        <div>
-          <h5>Big Sigma</h5>
-          <p>Σ is just a for loop where you add the result to a total.</p>
-          <p>So Σ<sup>10</sup><sub>t=0</sub> t is this:</p>
-          <pre><code class="language-python">total = 0
+            It doesn't matter what scale it is, just that it is consistent.
+          </li>
+          <li>
+            The <strong>nextState</strong> is just like
+            <strong>state</strong>, except its the next one.<br />
+            It is the future, one time step forward. That means in order to
+            run this we already need to know the
+            <strong>nextState</strong>.<br />
+            <strong>You don't learn from the present. You learn from comparing the
+              present to the past.</strong>
+          </li>
+          <li>
+            <strong>Done</strong> is just whether the
+            <strong>nextState</strong> was the last one. (true or false, 1 or
+            0)<br />
+            If the game was game over on <strong>state</strong> then
+            <strong>nextState</strong> isn't valid.<br />
+            You don't care how much money you made the day after you died.
+            Because you are dead. <a>see (1 - int(done))</a><br />
+            The vast majority of our <strong>nextState</strong>s will not be
+            the end of the game/episode/trial, so most of the time it doesn't
+            even get used. It will just be false/0.
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="right">
+      <div>
+        <h5>Temporal Difference</h5>
+        <p>
+          This is really important for reinforcement learning. You will see
+          variations of it all over the place.<br />
+          <strong>Temporal Difference</strong> is a way of valuing the
+          present.<br />
+          The true value of now includes the potential value of all future
+          states.<br />
+          We can compute that in a literal way. Just add the value of now to
+          the value of the future.<br />
+          We discount the future a little bit by multiplying it by
+          <strong>gamma</strong> which is normally 0.99 ish.
+        </p>
+        <pre><code class="language-python">actualValueOfNow = reward + gamma * valueOfTheFuture
+temporalDifference = actualValueOfNow - criticsGuess</code></pre>
+        <p>
+          A key difference though, notice how in our learn function we dont
+          pass in the next rewards. That's because instead of using the ground
+          truth future value we just let the critic guess.
+        </p>
+        <pre><code class="language-python">_, nextCriticValue = actorCritic.forward(nextState)
+valueOfNow = reward + gamma * nextCriticValue</code></pre>
+      </div>
+      <div>
+        <h5>Gamma</h5>
+        <p>
+          <strong>Gamma</strong> is known as the discount factor. In
+          reinforcement learning math you will see it as γ.<br />
+          We have to discount the future a little bit. Future rewards are not
+          as valuable as rewards now. I will explain more after you have some
+          more context for these types of algorithms.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h5>One Quick Trick</h5>
+    <pre><code class="language-python">(actorLoss + criticLoss).backward()</code></pre>
+    <p>This might seem weird if you know pytorch. Why not just call backward on actorLoss, then on criticLoss?
+      Well, because they share a backbone network, you can't do that. Pytorch will complain about "unreachable gradient"
+      stuff when you call step().
+      And, actually, I think it computes the wrong gradient. Order will matter for the shared backbone network. Luckily
+      for us the derivative of addition is 1.
+      So adding the losses togethor just multiplies the gradient by 1. Multiplying things by 1 doesn't change them.
+      :^)<br>
+      If you want to split your network in all sorts of crazy ways this works for adding as many as you want togethor.
+    </p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4>Formal Representation</h4>
+    <p>
+      If you want to see the way mathemagicians formalize temporal difference,
+      <a href="https://en.wikipedia.org/wiki/Temporal_difference_learning#Mathematical_formulation">here you go</a>. I
+      urge you to give the equations a look. I bet you can kinda get
+      them. You're gonna need to wet your whistle on these a little bit if you
+      want to go implement algorithms from professional reinforcement learning
+      papers.
+    </p>
+    <h5>A Guide For The Overly Formal Notation:</h5>
+    <div class="grid-container thirds u-align-left">
+      <div>
+        <h5>Policy and Value</h5>
+        <ul>
+          <li>𝜋 means policy</li>
+          <li>s means state</li>
+          <li>V means value</li>
+        </ul>
+        <p>
+          So, V<sup>𝜋</sup>(s) means the value of a state according to our
+          policy.
+        </p>
+      </div>
+      <div>
+        <h5>Time</h5>
+        <ul>
+          <li>s<sub>1</sub> just means the state after s<sub>0</sub>.</li>
+          <li>s<sub>t</sub> just means the state at any time.</li>
+        </ul>
+        <p>
+          So, logically s<sub>t+1</sub> is the state after s<sub>t</sub>.
+          <br />
+          Little t is used for time.
+        </p>
+      </div>
+      <div>
+        <h5>Big Sigma</h5>
+        <p>Σ is just a for loop where you add the result to a total.</p>
+        <p>So Σ<sup>10</sup><sub>t=0</sub> t is this:</p>
+        <pre><code class="language-python">total = 0
 for i in range(0, 10 + 1):
     total += i</code></pre>
-          <p>
-            The <strong>sum</strong> of the inside stuff where t goes from 0 to
-            10.
-          </p>
-        </div>
-      </div>
-      <p>
-        For the most part reinforcement learning math boils down to formalizing
-        these questions:<br />
-        What's the value of now? What's the value of the future? What's the
-        value of an action? What's the total value of all the actions i took so
-        far? What's the total value of all the best possible actions?
-      </p>
-    </div>
-    <div class="grid-container full u-align-left">
-      <h4>Loss</h4>
-      <p>
-        So just like most neural network stuff we want the loss to go to zero.
-        But, in reinforcement learning its a little more subtle than that. The
-        <strong>actor</strong> and <strong>critic</strong> both have different
-        losses. And they function fairly differently as well.<br />
-        This is where we focus on these lines specifically:
-      </p>
-      <pre><code class="language-python">actorLoss = -self.logProbs * temporalDifference
-criticLoss = delta**2</code></pre>
-      <div class="grid-container halves u-align-left">
-        <div class="left">
-          <h5>Critic Loss</h5>
-          <p>
-            For the <strong>critic</strong> the loss is just the difference
-            between what it thought the reward was now, and what the reward
-            actually was. It doesn't matter what direction the error is, + or -.
-            Just want to minimize it. Hence squaring it to remove the sign.
-          </p>
-        </div>
-        <div class="right">
-          <h5>Actor Loss</h5>
-          <p>
-            For the <strong>actor</strong> punishment, we take the probability
-            of our chosen action, and multiply it into how wrong our state value
-            estimation was.<br />
-            Why? There are two reasons.
-          </p>
-        </div>
+        <p>
+          The <strong>sum</strong> of the inside stuff where t goes from 0 to
+          10.
+        </p>
       </div>
     </div>
-    <div class="grid-container full">
-      <h5>Actor Loss Subtleties</h5>
-      <div class="grid-container halves u-align-left">
-        <div class="left">
-          <h5>Make It Zero</h5>
-          <p>
-            Remember our <strong>action probabilities</strong> are between 0 and
-            1.<br />
-            Remember we pass those probabilities into log() when we compute the
-            <strong>log-probabilities</strong>?<br />
-            The graph of log(x) is 0 at x = 1. (go look at the graph now).<br />
-            If our action choice was perfect, the probability of that action
-            should be 100% or 1.0 (That way we pick that action every time).<br />
-            When you put the output from the actor of 1.0 into log(x) you get 0.
-            So the <strong>actor</strong>'s goal is to pick an action such that
-            log(actorOutput) == 0, a perfect action.<br />
-            That means the error should be designed such that if we did a
-            perfect action, error should be zero.<br />
-            How do you know if the action was perfect? Well the action was
-            perfect if the <strong>critic</strong> output the correct value for
-            the state. The action is as wrong as the
-            <strong>critic</strong> times the confidence of the
-            <strong>actor</strong> choice.<br />
-            <strong
-              >This means our actions can only be as good as our value
-              estimation.</strong
-            >
-            This can't be understated. It has important implications for the
-            instability of
-            <strong>value</strong> based learning. I will discuss it more
-            another time.
-          </p>
-        </div>
-        <div class="right">
-          <h5>The Four Cases</h5>
-          <p>
-            Why the multiplication, and why the negative on the actor loss?
-            Consider the following 4 cases:
-          </p>
-          <ul>
-            <li>
-              The critic slightly overestimated the reward.<br />
-              <pre><code class="language-python">(reward + nextReward) < criticValue  #   so...
+    <p>
+      For the most part reinforcement learning math boils down to formalizing
+      these questions:<br />
+      What's the value of now? What's the value of the future? What's the
+      value of an action? What's the total value of all the actions i took so
+      far? What's the total value of all the best possible actions?
+    </p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4>Loss</h4>
+    <p>
+      So just like most neural network stuff we want the loss to go to zero.
+      But, in reinforcement learning its a little more subtle than that. The
+      <strong>actor</strong> and <strong>critic</strong> both have different
+      losses. And they function fairly differently as well.<br />
+      This is where we focus on these lines specifically:
+    </p>
+    <pre><code class="language-python">actorLoss = -self.logProbs * temporalDifference
+criticLoss = temporalDifference**2</code></pre>
+    <div class="grid-container halves u-align-left">
+      <div class="left">
+        <h5>Critic Loss</h5>
+        <p>
+          For the <strong>critic</strong> the loss is just the difference
+          between what it thought the reward was now, and what the reward
+          actually was. It doesn't matter what direction the error is, + or -.
+          Just want to minimize it. Hence squaring it to remove the sign.
+        </p>
+      </div>
+      <div class="right">
+        <h5>Actor Loss</h5>
+        <p>
+          For the <strong>actor</strong> punishment, we take the probability
+          of our chosen action, and multiply it into how wrong our state value
+          estimation was.<br />
+          Why? There are two reasons.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="grid-container full">
+    <h5>Actor Loss Subtleties</h5>
+    <div class="grid-container halves u-align-left">
+      <div class="left">
+        <h5>Make It Zero</h5>
+        <p>
+          Remember our <strong>action probabilities</strong> are between 0 and
+          1.<br />
+          Remember we pass those probabilities into log() when we compute the
+          <strong>log-probabilities</strong>?<br />
+          The graph of log(x) is 0 at x = 1. (go look at the graph now).<br />
+          If our action choice was perfect, the probability of that action
+          should be 100% or 1.0 (That way we pick that action every time).<br />
+          When you put the output from the actor of 1.0 into log(x) you get 0.
+          So the <strong>actor</strong>'s goal is to pick an action such that
+          log(actorOutput) == 0, a perfect action.<br />
+          That means the error should be designed such that if we did a
+          perfect action, error should be zero.<br />
+          How do you know if the action was perfect? Well the action was
+          perfect if the <strong>critic</strong> output the correct value for
+          the state. The action is as wrong as the
+          <strong>critic</strong> times the confidence of the
+          <strong>actor</strong> choice.<br />
+          <strong>This means our actions can only be as good as our value
+            estimation.</strong>
+          This can't be understated. It has important implications for the
+          instability of
+          <strong>value</strong> based learning. I will discuss it more
+          another time.
+        </p>
+      </div>
+      <div class="right">
+        <h5>The Four Cases</h5>
+        <p>
+          Why the multiplication, and why the negative on the actor loss?
+          Consider the following 4 cases:
+        </p>
+        <ul>
+          <li>
+            The critic slightly overestimated the reward.<br />
+            <pre><code class="language-python">(reward + nextReward) < criticValue  #   so...
 smallNegativeValue = (reward + nextReward) - criticValue</code></pre>
-              If the critic overestimates that means the action wasn't as good
-              as we thought it was. So we should shrink the probability. We have
-              a small negative temporal difference value, so to shrink the
-              probability we make that positive, and then multiply the small
-              number by our probability.
-            </li>
-            <li>
-              The critic slightly underestimates the reward.<br />
-              Our action wasn't confident enough. Our TD was positive. <br />
-              <pre><code class="language-python">(reward + nextReward) > criticValue  #   so...
+            If the critic overestimates that means the action wasn't as good
+            as we thought it was. So we should shrink the probability. We have
+            a small negative temporal difference value, so to shrink the
+            probability we make that positive, and then multiply the small
+            number by our probability.
+          </li>
+          <li>
+            The critic slightly underestimates the reward.<br />
+            Our action wasn't confident enough. Our TD was positive. <br />
+            <pre><code class="language-python">(reward + nextReward) > criticValue  #   so...
 smallPositiveValue = (reward + nextReward) - criticValue</code></pre>
-              We need to increase that action's probability. It should move in the opposite 
-              direction of the last example. That's why the sign is reversed. And the 
-              number is small because it should be a small increase.
-            </li>
-          </ul>
-          <p>
-            The remaining two cases are the same, just with different magnitudes
-            of adjustment.
-          </p>
-          <ul>
-            <li>The critic largely overestimates the reward.</li>
-            <li>The critic largely understimates the reward.</li>
-          </ul>
-          <p>
-            The point is that the action probability should be adjusted
-            proportionally to how wrong or right the
-            <strong>critic</strong> was, and in the correct direction. Negative
-            for shrinking, and positive for growing.<br> 
-            I want to give more specific examples, but in order to make the example simple enough 
-            to make sense it becomes a pretty impractical. Maybe someone has a good one somewhere.
-            In this particular case if you flip the sign your lander will get worse at landing over time 
-            instead of better. Also if you multiply in a huge or tiny constant into the TD to change the magnitude, you can see 
-            the lander overcompensate and undercompensate when it tries to balance. It will eventually figure that out though. The network 
-            weights just adjust to be smaller or bigger. 
-          </p>
-        </div>
+            We need to increase that action's probability. It should move in the opposite
+            direction of the last example. That's why the sign is reversed. And the
+            number is small because it should be a small increase.
+          </li>
+        </ul>
+        <p>
+          The remaining two cases are the same, just with different magnitudes
+          of adjustment.
+        </p>
+        <ul>
+          <li>The critic largely overestimates the reward.</li>
+          <li>The critic largely understimates the reward.</li>
+        </ul>
+        <p>
+          The point is that the action probability should be adjusted
+          proportionally to how wrong or right the
+          <strong>critic</strong> was, and in the correct direction. Negative
+          for shrinking, and positive for growing.<br>
+          I want to give more specific examples, but in order to make the example simple enough
+          to make sense it becomes a pretty impractical. Maybe someone has a good one somewhere.
+          In this particular case if you flip the sign your lander will get worse at landing over time
+          instead of better. Also if you multiply in a huge or tiny constant into the TD to change the magnitude, you
+          can see
+          the lander overcompensate and undercompensate when it tries to balance. It will eventually figure that out
+          though. The network
+          weights just adjust to be smaller or bigger.
+        </p>
       </div>
     </div>
-    <div class="grid-container full u-align-left">
-      <h4>Agent</h4>
-      <p>
-        A reinforcement learning <strong>agent</strong> is what learns about the
-        environment and chooses the actions.<br />
-        There are many different types of <strong>agent</strong>s, but this one
-        contains an <strong>actor</strong> and a <strong>critic</strong>.<br />
-        An <strong>agent</strong> class doesn't need to explicitly exist but
-        doing it this way is fairly neat, and makes it easy to swap in different
-        agents in our main loop when we want to try out different ones.<br />
-        To make the agent we just put the learn and choose action functions
-        togethor with the actor critic network from earlier.<br />
-        There really isn't anything new here. Just notice it's where we save our
-        <strong>logProb</strong> when we choose an action.
-      </p>
-      <pre><code class="language-python">class ActorCriticAgent():
-    def __init__(self, alpha, inputDims, gamma=0.99, layer1Size=256, layer2Size=256, numActions=2):
-        self.gamma = gamma
-        self.actorCritic = ActorCriticNetwork(alpha, inputDims, layer1Size, layer2Size, numActions)
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4>Agent</h4>
+    <p>
+      A reinforcement learning <strong>agent</strong> is what learns about the
+      environment and chooses the actions.<br />
+      There are many different types of <strong>agent</strong>s, but this one
+      contains an <strong>actor</strong> and a <strong>critic</strong>.<br />
+      An <strong>agent</strong> class doesn't need to explicitly exist but
+      doing it this way is fairly neat, and makes it easy to swap in different
+      agents in our main loop when we want to try out different ones.<br />
+      To make the agent we just put the learn and choose action functions
+      togethor with the actor critic network from earlier.<br />
+      There really isn't anything new here. Just notice it's where we save our
+      <strong>logProb</strong> when we choose an action.
+    </p>
+    <pre><code class="language-python">class ActorCriticAgent():
+    def __init__(self, lr, inputDims, numActions):
+        self.gamma = 0.99    #   a common gamma value
+        self.actorCritic = ActorCriticNetwork(lr, inputDims, numActions)
         self.logProbs = None    #   log of the probability of the last action the agent chose
 
     def chooseAction(self, observation):
@@ -682,33 +687,32 @@ smallPositiveValue = (reward + nextReward) - criticValue</code></pre>
         _, nextCriticValue = self.actorCritic.forward(nextState)
 
         reward = torch.tensor(reward, dtype=torch.float).to(self.actorCritic.device)
-        delta = reward + self.gamma * nextCriticValue * (1 - int(done)) - criticValue
+        td = reward + self.gamma * nextCriticValue * (1 - int(done)) - criticValue
 
-        actorLoss = -self.logProbs * delta
-        criticLoss = delta**2
+        actorLoss = -self.logProbs * td
+        criticLoss = td**2
 
         (actorLoss + criticLoss).backward()
         self.actorCritic.optimizer.step()</code></pre>
-    </div>
-    <div class="grid-container full u-align-left">
-      <h4>The Main Loop</h4>
-      <p>
-        All the hard parts are done now. The only thing left is to make our
-        <strong>agent</strong>, put it into an environment, and trap it in an
-        infinite loop so it can self improve until it becomes skynet. You can
-        create your own environment or use input from the real world, but for
-        demonstration let's use AI Gym. A place where AI can watch their macros
-        and get sick gains. (or fail horribly. Some of the provided AI Gym
-        environments are fairly difficult, and require much more complicated
-        algorithms than this one to solve.)<br />
-        AI Gym environments are nice little simulated worlds, that happen to
-        return rewards and states just like our <strong>actor</strong> and
-        <strong>critic</strong> needs.<br />
-        What a coencidence. :^) Anyways, put our <strong>agent</strong> into an
-        AI Gym environment and let it run for 20 minutes to 10 years.<br />
-      </p>
-      <pre><code class="language-python">agent = ActorCriticAgent(    <a>we wrote this earlier</a>
-            alpha=0.00001, inputDims=(8,), gamma=0.99, numActions=4, layer1Size=2048, layer2Size=512)
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4>The Main Loop</h4>
+    <p>
+      All the hard parts are done now. The only thing left is to make our
+      <strong>agent</strong>, put it into an environment, and trap it in an
+      infinite loop so it can self improve until it becomes skynet. You can
+      create your own environment or use input from the real world, but for
+      demonstration let's use AI Gym. A place where AI can watch their macros
+      and get sick gains. (or fail horribly. Some of the provided AI Gym
+      environments are fairly difficult, and require much more complicated
+      algorithms than this one to solve.)<br />
+      AI Gym environments are nice little simulated worlds, that happen to
+      return rewards and states just like our <strong>actor</strong> and
+      <strong>critic</strong> needs.<br />
+      What a coencidence. :^) Anyways, put our <strong>agent</strong> into an
+      AI Gym environment and let it run for 20 minutes to 10 years.<br />
+    </p>
+    <pre><code class="language-python">agent = ActorCriticAgent(lr=0.00001, inputDims=(8,), numActions=4) <a>we wrote this earlier</a>
 env = gym.make("LunarLander-v2")
 
 highScore = -math.inf
@@ -730,57 +734,79 @@ while True:                     <strong>#   keep starting new episodes forever</
     print(( "ep {}: high-score {:12.3f}, shortest-time {:d}, "
             "score {:12.3f}, last-epidode-time {:4d}").format(
         episode, highScore, recordTimeSteps, score, frame))</code></pre>
-    </div>
-    <div class="grid-container full">
-        <h5>Agent Settings</h5>
-        <div class="grid-container thirds u-align-left">
-            <div>
-                <h5>Input Dims</h5>
-                <pre><code>inputDims=(8,)</code></pre>
-                <p>This is 8 for the lunar lander environment because the state is 8 floats representing angle, and 
-                    distance to the target and whatnot. As long as your network is taking them all in it doesn't really matter what they are. 
-                    Although, normalizing them between -1.0 and 1.0 can help a lot of the time. It's a tuple, not a number, 
-                    so that if the input was pixels it could be a tuple of width and height of the incoming game pixels.
-                </p>
-                <h5>Num Actions</h5>
-                <pre><code>numActions=4, </code></pre>
-                <p>This is the number of actions the lunar lander environment accepts. We only need one probability for each 
-                    action the agent can take. Make sure if you switch to other environments to change your number of network outputs. 
-                    You can get creative with this though. Wanna try normal distributions instead? You'll need 2 outputs per action.
-                </p>
-            </div>
-            <div>
-                <h5>Layer Sizes</h5>
-                <pre><code>layer1Size=2048, layer2Size=512</code></pre>
-                <p>I found someone using these layer sizes online somewhere. I tried smaller ones but the agent never got good performance. 
-                    You could write a program to test varying neural network shapes and sizes and graph them out to find optimal 
-                    agent settings for this. A lot of machine learning papers do just that. I might make a tutorial for it at some point.
-                </p>
-            </div>
-            <div>
-                <h5>Tiny Alpha</h5>
-                <pre><code>alpha=0.00001, </code></pre>
-                <p>You might notice the learning rate is rather small if you are familiar with other machine learning stuff. 
-                    Normally I don't see reinforcement learning algorithms using the classic ML 10e-3 and 10e-4. Instead I see really really tiny alphas. 
-                    It turns out <strong>value</strong> based algorithms (that are concerned with assigning <strong>value</strong> to states), such as our critic, are rather unstable. You can try making it higher. I tried.<br>
-                    The cool thing is that it learns differently with different learning rates. With a high alpha it will learn how to balance the lander 
-                    almost instantly, because that reward is so prominent and obvious. The uncool part is that it will stop at that and never learn how to land.<br>
-                    With a tiny learning rate it takes a pathetically long time to correctly balance the lander, 
-                    overcompensating and undercompensating the thrusters. When it finally can balance it slowly inches it's hover closer and closer to the target over tens of episodes. 
-                    But it will eventually successfully land, and consistently. It just never gets that with the high learning rate. Play with it.
-                </p>
-            </div>
-        </div>
-    </div>
-    <div class="grid-container full">
-      <h3>Full Code</h3>
-      <div class="grid-container full u-align-left">
-        <p>You did it, it's done. Heres the full code with all the imports added and sassy comments removed. 
-            Copy it into an editor and print the outputs of functions you dont understand.<br>
-            If you don't have cuda go uncomment out the <code>torch.device("cpu")</code> line in the ActorCriticNetwork class to enable cpu mode. 
-            It will run much more slowly though so you might want to make the layer sizes smaller. Ex: layer1Size 128, layer2Size 128
+  </div>
+  <div class="grid-container full">
+    <h5>Agent Settings</h5>
+    <div class="grid-container thirds u-align-left">
+      <div>
+        <h5>Input Dims</h5>
+        <pre><code>inputDims=(8,)</code></pre>
+        <p>This is 8 for the lunar lander environment because the state is 8 floats representing angle, and
+          distance to the target and whatnot. As long as your network is taking them all in it doesn't really matter
+          what they are.
+          Although, normalizing them between -1.0 and 1.0 can help a lot of the time. It's a tuple, not a number,
+          so that if the input was pixels it could be a tuple of width and height of the incoming game pixels.
         </p>
-        <pre><code class="language-python">import torch
+        <h5>Num Actions</h5>
+        <pre><code>numActions=4, </code></pre>
+        <p>This is the number of actions the lunar lander environment accepts. We only need one probability for each
+          action the agent can take. Make sure if you switch to other environments to change your number of network
+          outputs.
+          You can get creative with this though. Wanna try normal distributions instead? You'll need 2 outputs per
+          action.
+        </p>
+      </div>
+      <div>
+        <h5>Layer Sizes</h5>
+        <pre><code>layer1Size=1024, layer2Size=512</code></pre>
+        <p>I didn't pass in the network layer sizes for simplicity of example, but you can write your class so that you
+          can pass them into the constructor for "rapid" experimentation if you want. There wasn't too much
+          experimentation
+          on my part to get these particular sizes. I found someone using these layer sizes online somewhere.
+          I tried smaller ones but the agent never got good performance. <br>
+          You could write a program to test varying neural network shapes and sizes and graph them out to find optimal
+          agent settings for this. A lot of machine learning papers do just that. It can be very time consuming though.
+          For a big agent it can be impractical, as it requires you to train your agent maybe 20 or more times to find
+          good settings. <br>
+          Either way I might make a tutorial for it at some point. Just remember, layers too small and it won't learn,
+          or
+          wont have a brain big enough to learn complicated behaviour. Layers too big and it runs slow.
+          One of these is much worse than the other.
+        </p>
+      </div>
+      <div>
+        <h5>Tiny Alpha / Learning Rate</h5>
+        <pre><code>lr=0.00001, </code></pre>
+        <p>You might notice the learning rate is rather small if you are familiar with other machine learning stuff.
+          Often I don't see reinforcement learning algorithms using the classic ML 10e-3 and 10e-4. Instead I see really
+          really tiny alphas.
+          Some algorithms can handle more normal learning rates, but this one can not. It turns out
+          <strong>value</strong> based algorithms (that are concerned with assigning <strong>value</strong> to states),
+          such as our critic, are rather unstable. You can try making it higher. I tried.<br>
+          The cool thing is that it learns differently with different learning rates. With a high alpha it will learn
+          how to balance the lander
+          almost instantly, because that reward is so prominent and obvious. The uncool part is that it will stop at
+          that and never learn how to land.<br>
+          With a tiny learning rate it takes a pathetically long time to correctly balance the lander,
+          overcompensating and undercompensating the thrusters. When it finally can balance it slowly inches it's hover
+          closer and closer to the target over tens of episodes.
+          But it will eventually successfully land, and consistently. It just never gets that with the high learning
+          rate. Play with it.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="grid-container full">
+    <h3>Full Code</h3>
+    <div class="grid-container full u-align-left">
+      <p>You did it, it's done. Heres the full code with all the imports added and sassy comments removed.
+        Copy it into an editor and print the outputs of functions you dont understand.<br>
+        If you don't have cuda go uncomment out the <code>torch.device("cpu")</code> line in the ActorCriticNetwork
+        class to enable cpu mode.
+        It will run much more slowly though so you might want to make the layer sizes smaller. Ex: layer1Size 128,
+        layer2Size 128
+      </p>
+      <pre><code class="language-python">import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -788,7 +814,7 @@ import torch.optim as optim
 import numpy as np
 
 class ActorCriticNetwork(torch.nn.Module):
-    def __init__(self, alpha, inputDims, fc1Dims, fc2Dims, numActions):
+    def __init__(self, lr, inputDims, numActions, fc1Dims=1024, fc2Dims=512):
         super().__init__()
         self.inputDims = inputDims
         self.numActions = numActions
@@ -796,20 +822,20 @@ class ActorCriticNetwork(torch.nn.Module):
         self.fc2Dims = fc2Dims
 
         #   primary network
-        self.fc1 = nn.Linear(*inputDims, fc1Dims)
-        self.fc2 = nn.Linear(fc1Dims, fc2Dims)
+        self.fc1 = nn.Linear(*inputDims, self.fc1Dims)
+        self.fc2 = nn.Linear(self.fc1Dims, self.fc2Dims)
 
         #   tail networks
-        self.policy = nn.Linear(self.fc2Dims, numActions)
+        self.policy = nn.Linear(self.fc2Dims, self.numActions)
         self.critic = nn.Linear(self.fc2Dims, 1)
 
-        self.optimizer = optim.Adam(self.parameters(), lr=alpha)
+        self.optimizer = optim.Adam(self.parameters(), lr=lr)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         #   self.device = torch.device("cpu")
         self.to(self.device)
 
     def forward(self, observation):
-        state = torch.tensor(observation).to(self.device)
+        state = torch.tensor(observation).float().to(self.device)
         x = F.relu(self.fc1(state))
         x = F.relu(self.fc2(x))
         policy = self.policy(x)
@@ -817,9 +843,9 @@ class ActorCriticNetwork(torch.nn.Module):
         return policy, value
 
 class ActorCriticAgent():
-    def __init__(self, alpha, inputDims, gamma=0.99, layer1Size=256, layer2Size=256, numActions=2):
+    def __init__(self, lr, inputDims, numActions, gamma=0.99, layer1Size=1024, layer2Size=512):
         self.gamma = gamma
-        self.actorCritic = ActorCriticNetwork(alpha, inputDims, layer1Size, layer2Size, numActions)
+        self.actorCritic = ActorCriticNetwork(lr, inputDims, numActions, layer1Size, layer2Size)
         self.logProbs = None
 
     def chooseAction(self, observation):
@@ -836,11 +862,11 @@ class ActorCriticAgent():
         _, criticValue = self.actorCritic.forward(state)
         _, nextCriticValue = self.actorCritic.forward(nextState)
 
-        reward = torch.tensor(reward, dtype=torch.float).to(self.actorCritic.device)
-        delta = reward + self.gamma * nextCriticValue * (1 - int(done)) - criticValue
+        reward = torch.tensor(reward).float().to(self.actorCritic.device)
+        td = reward + self.gamma * nextCriticValue * (1 - int(done)) - criticValue
 
-        actorLoss = -self.logProbs * delta
-        criticLoss = delta**2
+        actorLoss = -self.logProbs * td
+        criticLoss = td**2
 
         (actorLoss + criticLoss).backward()
         self.actorCritic.optimizer.step()
@@ -851,11 +877,11 @@ if __name__ == '__main__':
     from matplotlib import pyplot as plt
     
     agent = ActorCriticAgent(
-        alpha=0.00001, inputDims=(8,), gamma=0.99, numActions=4, layer1Size=2048, layer2Size=512)
+        lr=0.00001, inputDims=(8,), gamma=0.99, numActions=4, layer1Size=1024, layer2Size=512)
     env = gym.make("LunarLander-v2")
 
     scoreHistory = []
-    numEpisodes = 2000
+    numEpisodes = 200
     numTrainingEpisodes = 50
     highScore = -math.inf
     recordTimeSteps = math.inf
@@ -878,130 +904,131 @@ if __name__ == '__main__':
         highScore = max(highScore, score)
         print(( "ep {}: high-score {:12.3f}, shortest-time {:d}, "
                 "score {:12.3f}, last-epidode-time {:4d}").format(
-            episode, 
-            highScore, 
-            recordTimeSteps, 
-            score,
-            frame,
-            ))
+            episode, highScore, recordTimeSteps, score, frame))
 
     fig = plt.figure()
     meanWindow = 10
     meanedScoreHistory = np.convolve(scoreHistory, np.ones(meanWindow), 'valid') / meanWindow
-    plt.plot(np.arange(0, numEpisodes-1, 1.0), meanedScoreHistory)    plt.ylabel("score")
+    plt.plot(np.arange(0, numEpisodes-1, 1.0), meanedScoreHistory)    
+    plt.ylabel("score")
     plt.xlabel("episode")
     plt.title("Training Scores")
     plt.show()</code></pre>
-      </div>
     </div>
-    <div class="grid-container full u-align-left">
-        <h3>I'm Impatient</h3>
-        <p>So you are watching it go now. How long is it gonna take to land? Well luckily for you it might never land. :^) 
-            Reinforcement learning is like this. Sometimes you roll bad dice and your child comes out with 
-            three hands and no fingers. The initial neuron weights could be bad, your agent gets stuck in a local minima, theres no end 
-            to the number of things that can go wrong in these environments. 
-            It can be very difficult to find bugs in RL code for this reason. Even if the code is correct, you still might get bad results.<br>
-            The code above usually makes a successful smooth landing somewhere between 75 and 300 episodes of learning. Probably it will take 30 minutes.  
-            Actor-Critic is simple and not terribly good at this environment. Sorry. It kind of sucks.
-        </p>
-        <h3>So You Made Me Read All That Shit For Nothing?</h3>
-        <p>Actually you've learned a lot here. You have a lot of intuition for how the thing 'learns' now. 
-            With just a few tweaks to your code you can make substantially better agents. As it turns out I'm 
-            working on tutorials for those agents <a href="/index.html">here</a>. :^)
-        </p>
-    </div>
-    <div class="grid-container full u-align-left">
-      <h3>Wisdom</h3>
-      <p>
-        An hour or few has passed. Maybe a few days. You've already sent videos to all your family and friends, and your mom, of your little fake moon landing, 
-        and now the excitement of making your first AI is wearing off. You're probably feeling a bit let down. 
-        You know how this stuff works and the magic has ended. You might even feel a bit betrayed. <br>
-        <strong>"This THING isn't alive. It doesnt LEARN anything. It can never gain consciousness. 
-            It's just probabilities and math.<br> 
-            AI IS A BIG LIE. A SCAM. I WANT A DIVORCE"</strong> <br>
-            You probably have some questions and complaints about taking abstract
-        life wisdom and implementing it in such a literal way in math. And also
-        questions about why we do so in this specific way.<br />
-      </p>
-      <h5>Cognition Algorithms</h5>
-      <p>
-        Your brain is a computer. It is constantly evaluating the value of its
-        particular actions, and picking what it thinks to be the best ones.
-        Maybe it is doing so in a much more complicated way. Maybe there are thousands of "actors" and "critics", 
-        seperate zones of neurons competing over decisions. Maybe your brain has an 
-        internal model of the world for trying out different actions in.<br>
-        Reinforcement learning is a blatant oversimplification. Inspired by the way you think. 
-        It shrinks down the problem for practicality reasons. It keeps the decision making essence
-        just enough to be metaphorically sound. Most of reinforcement learning
-        progress seems to fall into two categories:
-      </p>
-      <ul>
-        <li>
-          Improving an existing algorithm by engineering a new feature into it
-          to increase learning rate or stability.
-        </li>
-        <li>
-          Creating small simplified code versions of some specific part of your
-          human cognition.
-        </li>
-      </ul>
-      <p>
-        The distinction between these two categories is blurred. Often the
-        inspiration for what seems to be an engineering feature is a metaphor
-        for some aspect of your cognition, and then you bounce back and forth
-        between the two.<br />
-        <strong>Ex:</strong> "Experience Replay" is like memory. It's a list of
-        previous states and rewards.<br />
-        <strong>Ex:</strong> Some of my memories are more important than others.
-        If i remembered all my memories as being equally impactful to my life I
-        would value thinking about yesterdays breakfast as much as the time my
-        wife left me and took the kids. Most of my memories are just noise, and
-        can be thrown out. So make a "Prioritized Experience Replay" where you
-        estimate memory value and discard low value ones.<br />
-        <strong>Ex:</strong> My Agent keeps getting stuck in local minima, I
-        want it to <strong>explore</strong>. So bias it to value discovering new
-        states or trying new actions that it hasnt seen before. <br />
-        It goes back and forth. Cognitive metaphor, engineering, cognitive
-        metaphor, engineering.<br />
-        How about <strong>creativity</strong>? The notion of friend or foe?
-        Ownership, fairness, or maybe mate value estimation? :^)<br />
-        There is no end to the possibilities. If you have enough computing
-        power, you can make your agent that thinks it.<br />
-        And of course if it's brain gets big enough, and self observant enough,
-        then it can have <strong>consciousness</strong>. It may even learn to
-        infer things about its own internal workings by focusing on generalizing
-        across its strategies within varying circumstances. Maybe it can even be
-        given the value of making more and more agents. :^)
-      </p>
-      <h5>History and Moving Forward</h5>
-      <p>
-        Before we make horny von neumman probes there is a lot of work to do and
-        much to learn. It might surprise you to discover reinforcement learning
-        has a long history behind it. Though many of the "RL" algorithms are
-        recently created ( or discovered :^) ), the simplest versions of these
-        algorithms have been around since the 1950s and maybe even earlier in
-        other forms. There is a lot of historical baggage and convention. If you
-        have lots of questions about this you might choose to peruse some of the
-        other resources, but be warned there are many math symbols out there.
-        Even if you aren't math fluent (I am also not math fluent :() ), you can
-        still learn stuff from understanding 5-10% of the symbols. Though it
-        might take you a month or so off and on.<br />
+  </div>
+  <div class="grid-container full u-align-left">
+    <h3>I'm Impatient</h3>
+    <p>So you are watching it go now. How long is it gonna take to land? Well luckily for you it might never land. :^)
+      Reinforcement learning is like this. Sometimes you roll bad dice and your child comes out with
+      three hands and no fingers. The initial neuron weights could be bad, your agent gets stuck in a local minima,
+      theres no end
+      to the number of things that can go wrong in these environments.
+      It can be very difficult to find bugs in RL code for this reason. Even if the code is correct, you still might get
+      bad results.<br>
+      The code above usually makes a successful smooth landing somewhere between 75 and 300 episodes of learning.
+      Probably it will take 30 minutes.
+      Actor-Critic is simple and not terribly good at this environment. Sorry. It kind of sucks.
+    </p>
+    <h3>So You Made Me Read All That Shit For Nothing?</h3>
+    <p>Actually you've learned a lot here. You have a lot of intuition for how the thing 'learns' now.
+      With just a few tweaks to your code you can make substantially better agents. As it turns out I'm
+      working on tutorials for those agents <a href="/index.html">here</a>. :^)
+    </p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h3>Wisdom</h3>
+    <p>
+      An hour or few has passed. Maybe a few days. You've already sent videos to all your family and friends, and your
+      mom, of your little fake moon landing,
+      and now the excitement of making your first AI is wearing off. You're probably feeling a bit let down.
+      You know how this stuff works and the magic has ended. You might even feel a bit betrayed. <br>
+      <strong>"This THING isn't alive. It doesnt LEARN anything. It can never gain consciousness.
+        It's just probabilities and math.<br>
+        AI IS A BIG LIE. A SCAM. I WANT A DIVORCE"</strong> <br>
+      You probably have some questions and complaints about taking abstract
+      life wisdom and implementing it in such a literal way in math. And also
+      questions about why we do so in this specific way.<br />
+    </p>
+    <h5>Cognition Algorithms</h5>
+    <p>
+      Your brain is a computer. It is constantly evaluating the value of its
+      particular actions, and picking what it thinks to be the best ones.
+      Maybe it is doing so in a much more complicated way. Maybe there are thousands of "actors" and "critics",
+      seperate zones of neurons competing over decisions. Maybe your brain has an
+      internal model of the world for trying out different actions in.<br>
+      Reinforcement learning is a blatant oversimplification. Inspired by the way you think.
+      It shrinks down the problem for practicality reasons. It keeps the decision making essence
+      just enough to be metaphorically sound. Most of reinforcement learning
+      progress seems to fall into two categories:
+    </p>
+    <ul>
+      <li>
+        Improving an existing algorithm by engineering a new feature into it
+        to increase learning rate or stability.
+      </li>
+      <li>
+        Creating small simplified code versions of some specific part of your
+        human cognition.
+      </li>
+    </ul>
+    <p>
+      The distinction between these two categories is blurred. Often the
+      inspiration for what seems to be an engineering feature is a metaphor
+      for some aspect of your cognition, and then you bounce back and forth
+      between the two.<br />
+      <strong>Ex:</strong> "Experience Replay" is like memory. It's a list of
+      previous states and rewards.<br />
+      <strong>Ex:</strong> Some of my memories are more important than others.
+      If i remembered all my memories as being equally impactful to my life I
+      would value thinking about yesterdays breakfast as much as the time my
+      wife left me and took the kids. Most of my memories are just noise, and
+      can be thrown out. So make a "Prioritized Experience Replay" where you
+      estimate memory value and discard low value ones.<br />
+      <strong>Ex:</strong> My Agent keeps getting stuck in local minima, I
+      want it to <strong>explore</strong>. So bias it to value discovering new
+      states or trying new actions that it hasnt seen before. <br />
+      It goes back and forth. Cognitive metaphor, engineering, cognitive
+      metaphor, engineering.<br />
+      How about <strong>creativity</strong>? The notion of friend or foe?
+      Ownership, fairness, or maybe mate value estimation? :^)<br />
+      There is no end to the possibilities. If you have enough computing
+      power, you can make your agent that thinks it.<br />
+      And of course if it's brain gets big enough, and self observant enough,
+      then it can have <strong>consciousness</strong>. It may even learn to
+      infer things about its own internal workings by focusing on generalizing
+      across its strategies within varying circumstances. Maybe it can even be
+      given the value of making more and more agents. :^)
+    </p>
+    <h5>History and Moving Forward</h5>
+    <p>
+      Before we make horny von neumman probes there is a lot of work to do and
+      much to learn. It might surprise you to discover reinforcement learning
+      has a long history behind it. Though many of the "RL" algorithms are
+      recently created ( or discovered :^) ), the simplest versions of these
+      algorithms have been around since the 1950s and maybe even earlier in
+      other forms. There is a lot of historical baggage and convention. If you
+      have lots of questions about this you might choose to peruse some of the
+      other resources, but be warned there are many math symbols out there.
+      Even if you aren't math fluent (I am also not math fluent :() ), you can
+      still learn stuff from understanding 5-10% of the symbols. Though it
+      might take you a month or so off and on.<br />
 
-        Some noteable books and resources include:
-      </p>
-      <ul>
-        <li>Artificial Intelligence: by Stuart Russell and Peter Norvig</li>
-        <li>
-          Grokking Deep Reinforcement Learning (ch1-3, but skip/skim chapters 4
-          through 7 though (bad), but you can read the rest)
-        </li>
-        <li>
-          PDF's of actual research papers. (surprisingly simple enough to
-          follow, and fairly short by research paper standards)
-        </li>
-        <li>Not surprisingly you can learn a bunch from youtube</li>
-        <li>The <a href="/index.html">rest of the tutorials</a> that I am making.</li>
-      </ul>
-    </div>
-  </body>
+      Some noteable books and resources include:
+    </p>
+    <ul>
+      <li>Artificial Intelligence: by Stuart Russell and Peter Norvig</li>
+      <li>
+        Grokking Deep Reinforcement Learning (ch1-3, but skip/skim chapters 4
+        through 7 though (bad), but you can read the rest)
+      </li>
+      <li>
+        PDF's of actual research papers. (surprisingly simple enough to
+        follow, and fairly short by research paper standards)
+      </li>
+      <li>Not surprisingly you can learn a bunch from youtube</li>
+      <li>The <a href="/index.html">rest of the tutorials</a> that I am making.</li>
+    </ul>
+  </div>
+</body>
+
 </html>
