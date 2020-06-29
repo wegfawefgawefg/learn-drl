@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Basic Page Needs
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta charset="utf-8" />
+  <title>Wegfawefgawefg's Tutorials</title>
+  <meta name="description" content="" />
+  <meta name="author" content="" />
+
+  <!-- Mobile Specific Metas
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- FONT
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css" />
+
+  <!-- CSS
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="stylesheet" href="/css/normalize.css" />
+  <link rel="stylesheet" href="/css/barebones.css" />
+
+  <!-- Favicon
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="icon" type="image/png" href="images/favicon-16.png" />
+  <!-- Code Highlighting
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="stylesheet" href="/highlightjs/styles/atom-one-dark-reasonable.css" />
+  <script src="/highlightjs/highlight.pack.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad();
+  </script>
+</head>
+
+<body>
+  <div class="grid-container full">
+    <h1>Wegfawefgawefg's Tutorials</h1>
+    <h2>Experience Replay Tutorial</h2>
+    <h3>Your First Add-On</h3>
+    <h4>❗❗❗Message For Impatient Noobs❗❗❗</h4>
+    <p class="u-align-left">This tutorial has a lot of explanation before it gets down to the code. 
+      The reason for that is that this is the begining of real reinforcement learning. Going forward from here, the 
+      changes to the agents get much more complex. If you dont understand "why" somebody invented some 
+      modification to an agent, then most likely you will just be copying 
+      other peoples code, and spending enourmous amounts of time debugging random errors at very little value to yourself, 
+      and your own understanding.<br> I have seen first hand, and have heard from more than a handful of beginners 
+      that got stuck doing that for months at a time, struggling endlessly with more and more complicated agents in hopes 
+      of solving just one or two environments. <strong>I don't want that to be you.</strong>
+      For that reason, this tutorial takes a very scenic route. But I promise when you get there you will have some 
+      new perspectives, questions, and context for why the researchers are investigating the solutions that they are. 
+      You will probably also have some ideas for how to improve your agents performance.
+    </p>
+    <h4>Prerequisites</h4>
+    <p class="u-align-left">This tutorial builds onto the naive Deep Q Learning agent from the
+      <a href="/tutorials/rl/deepqlearning/deepqlearning.html">DQN Tutorial</a>. It would be very helpful for
+      understanding
+      this one if you read that one. You wont need any additional tools or software that you did not need in
+      <strong>that</strong> tutorial.
+    </p>
+  </div>
+  <div class="grid-container full">
+    <h4>Getting Started</h4>
+    <p class="u-align-left">
+      Deep Q Learning works okay on its own, but it has some fundamental problems that make it not that practical by
+      itself.
+      Interestingly, almost all the base drl algorithms have the same fundamental issues:
+    </p>
+    <ul class="u-align-left">
+      <li>The agent can take way too many episodes to learn a task</li>
+      <li>The agent can "forget" it's good solution and regress even after mastering a task</li>
+      <li>The agent can be too unreliable, having equally many terrible runs as great runs</li>
+      <li>The agent might have no real model of how it's environment works</li>
+      <li>The agent probably only has a naive notion of exploration, consisting generally of making random moves some of
+        the time...</li>
+      <li>The agent might feel cold and lonely inside, laying in bed all night unable to sleep, wondering if it is
+        somehow fundamentally incapable of love.</li>
+    </ul>
+    <p class="u-align-left">
+      There are a bunch of different factors that contribute to these big issues, but just like in real life you dont
+      need to fix every problem to see improvements in more than one place.
+      If you address any one cause of issue in drl, you probably end up solving portions of more than one of the
+      problems that you weren't
+      trying to fix. For example, if you smell bad during the day you could start
+      showering every morning. But it doesn't just fix your smell, it clears up your acne too, and your car smells
+      better,
+      and then the next thing you know you are married and have ten kids. <br>
+      In <strong>deep reinforcement learning</strong> it is the same. Solutions to foundational problems usually come in
+      the form of just
+      tweaks and additions to the base algorithms, as opposed to changing them
+      in some fundamental way. And then you get magical performance improvements in other areas for free.
+      In fact, almost all the advancements you will see in reinforcement learning are just additions to the basic
+      algorithms that you are already familiar with: <strong>Actor-Critic</strong> and <strong>DQN</strong>.
+      There are additions that limit how much the qvalues can change at each update step.
+      There are additions that vote in the qvalues from multiple networks.
+      There are even additions that add in artificial curiosity. (we are gonna do curiosity in a later tutorial >:)
+      But, in this tutorial, we are going to reach for the low hanging fruit.
+      We are going to address some of the stability issues and forgetting problems our DQN agent currently has.
+    </p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4>Instability</h4>
+    <p>
+      By stability issues I am referring to the huge variation in the scores the dqn agent got.
+      Let's look at those total episodic reward's again that the Deep Q agent gave us in cartpole from the last
+      tutorial.
+    </p>
+    <pre><code class="language-python">...
+ep 20372: high-score     2762.000, score      240.000, last-episode-time  241   #   good
+ep 20373: high-score     2762.000, score       48.000, last-episode-time   49   #   not good
+ep 20374: high-score     2762.000, score       96.000, last-episode-time   97   
+ep 20375: high-score     2762.000, score       74.000, last-episode-time   75
+ep 20376: high-score     2762.000, score       43.000, last-episode-time   44
+ep 20377: high-score     2762.000, score      213.000, last-episode-time  214   #   great
+ep 20378: high-score     2762.000, score       94.000, last-episode-time   95
+ep 20379: high-score     2762.000, score       78.000, last-episode-time   79
+ep 20380: high-score     2762.000, score       62.000, last-episode-time   63
+ep 20381: high-score     2762.000, score       12.000, last-episode-time   13
+ep 20382: high-score     2762.000, score        9.000, last-episode-time   10   #   terrible
+ep 20383: high-score     2762.000, score       12.000, last-episode-time   13
+ep 20384: high-score     2762.000, score       53.000, last-episode-time   54
+ep 20385: high-score     2762.000, score       60.000, last-episode-time   61
+...</code></pre>
+    <p>In cartpole 200 is actually passable. It is a sign there is a bunch of intentional pole balancing going on.
+      You can see our agent got scores around 200 a few times. </p>
+    <pre><code class="language-python">ep 20372: high-score     2762.000, score      240.000, last-episode-time  241   #   good
+ep 20377: high-score     2762.000, score      213.000, last-episode-time  214   #   great</code></pre>
+    <p>...and in those 20,000 episodes there were even some fantastic
+      scores up in the thousands.</p>
+    <pre><code class="language-python">high-score     2762.000   # holy shit</code></pre>
+    <p>
+      But it also got way more totally horrible scores like 12 and 9. Look at that huge streak of scores less than 100
+      up above.<br>
+      To give you an idea of how bad a 9 is,
+      if you take no action the pole falls in 9 steps. It is the minimum possible score. If you make random actions
+      you are almost guaranteed to get a better score than 9.<br>
+      Imagine one morning you get into your car to drive to work, but instead of putting the car into reverse to back
+      out of the driveway, you put it in drive. Then you drive it straight into your living room. But wait you dont
+      stop there. You hold the steering wheel perfectly straight, foot on the gas, and drive through 8 additional
+      houses.
+      The only thing that prevents you
+      from crashing more is the fact that the 9th house is made of brick. <code>done = True</code>
+      Would anyone who really knew how to drive do such a thing?
+      How can the agent be so good sometimes,
+      and so terrible other times? Is it fair to say the agent knows how to play cartpole at all?
+      How many retorical questions am i going to ask?
+      What is even going on.
+    </p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4 class="u-align-center">Feature Detectors</h4>
+    <p>To understand sources of instability, it helps to know what is really going on inside the neural network.
+      "It's making a function that estimates qvalues." Okay, duh, you know that. How? Do you know what the network
+      is actually doing? It is surprisingly a lot more simple than you might think. <br>
+      If you look at the neurons a bit more thoroughly you can find collections of neurons that function as
+      detectors of patterns. In image classification these <strong>feature detectors</strong> trigger on patterns of
+      pixels.
+      It starts from simpler patterns like edges and gradients, then the next layer is shapes and corners, and each
+      successive
+      layer moves up the ladder of complexity until you are detecting ear shape and position and eventually dog or cat.
+      If you don't know what im talking about you should go look up feature visualizations in convolutional neural
+      networks right now.
+    </p>
+    <div class="grid-container halves u-align-left">
+      <img src="/tutorials/rl/experiencereplay/2.jpg" width=80%>
+      <div class="right">
+        <p>In reinforcement learning it works exactly the same way.
+          Early layers detect edges and simple patterns. And later layers detect combinations of simpler patterns,
+          <strong>meta patterns</strong>.
+          How does the network pick which pattern to detect? Any pattern in the environment that
+          influences reward could show up in the network somewhere. In computer vision these patterns are called
+          <strong>features</strong>.
+          If i was an RL (reinforcement learning) agent, I can think of a few <strong>feature detectors</strong>
+          I might want to have:
+          <lu>
+            <li>"Dangerously-low-pole-angle" is a sign of incoming low reward. So its a good pattern to look for.
+              I would want a neuron that activates if that happens.</li>
+            <li>"Pole-pointing-straight-up" is a good sign of incoming good reward. I better have a neuron that detects
+              that.</li>
+            <li>"Pole-decelerating-while-moving-towards-pointing-up" is a very positive thinking neuron.</li>
+            <li>"Pole-rotating-clockwise-while-cart-moving-left" is a sign that if i move the cart to the right, im
+              gonna get a
+              low reward, but if i move it left i'll get a high reward.</li>
+          </lu>
+        </p>
+      </div>
+    </div>
+    <p>It actually works that way. In the case of cartpole there are no pixels, but you can
+      detect these patters by looking at relationships and ranges of the inputs.
+      Lets try it ourselves.</p>
+    <h5>Be The Network</h5>
+    <p>The state in cartpole is 4 values. They represent 4 aspects of the cartpole: cart position, cart velocity,
+      pole angle, and pole angular velocity. </p>
+    <pre><code class="language-python">state = [0.0, 0.0, 0.0, 0.0]     # cart is centered, not moving, pole is centered, not moving
+state = [0.0, 5.0, -0.1, -0.1]   # cart is centered, cart is moving right, pole is angled to the left, pole is falling left
+state = [9.0, 20.0, 0.0, 0.0]    # oh shit the cart is going off the right of the screen, qvalues = [1.0, 0.0], GO LEFT
+state = [0.0, 0.0, 0.0, 10000.0] # helicopter</code></pre>
+    <p>You can kind of guess how the network would build these detectors too.
+      One neuron might compare pole angular velocity to cart velocity, to assert that cart velocity is the greater of
+      the two.
+      (It's a good thing, because it means the cart is moving under the pole to catch it from falling)
+      A couple neurons might be used to detect the cart angle is within a specific range.
+      You can combine those two features by checking if both those neurons are active at the same time.
+      In that way you can make a feature detector on the next layer that detects "cart is actively counterbalancing
+      falling pole".
+      Weirdly specific specific features, that seem random and useless, can be combined to become more "human" like
+      patterns down the line.<br>
+      When you get to the last layers it is slightly different. The final layers might function more like manager
+      layers.
+      A neuron in the later layers might take a bunch of different detected features and scale the outputs of them and
+      send them
+      to the correct output neuron, the action q value neurons.
+      Something the last layer might say: "Oh hey the low-pole-angle-neuron and high-tip-velocity-neuron are
+      active... multiply those outputs by a negative
+      sign and make them BIG so we output a big low qvalue of -1000 for both the actions, because we are about to lose
+      the game no matter what!!"
+    </p>
+    <h5>Real Examples</h5>
+    <p>If you think it sounds too human to be true and you are skeptical of my philosophical sounding interpretation of
+      the behaviours of these neurons, that is okay. It's okay because you don't have to blindly take my word for it.
+      You can blindly take other people's. There have been a few papers where some people have
+      investigated specific neurons to try and figure out what makes them activate. The way they do this is they show
+      the agent a set of states, and then check which neuron activates. Eventually for each neuron you can figure out
+      what
+      kind of thing that neuron detects.
+    </p>
+    <p>Here are some examples of individual neurons found in one of their pong agents:<br>
+      I cant show you the actual neuron obviously so im showing you pictures of states that make that neuron output a
+      high number.
+      Keep in mind smaller features are in neurons in earlier layers, while bigger features are detected by neurons in
+      later layers.
+    </p>
+    <lu>
+      <li>
+        <p>This early layer neuron detects paddles. That's kind of it.</p>
+        <img src="/tutorials/rl/experiencereplay/1paddleDetectingNeuron.jpg" width=100%>
+      </li>
+      <hr>
+      <li>
+        <p>This early layer neuron detects the ball.</p>
+        <img src="/tutorials/rl/experiencereplay/2balldetector.jpg" width=100%>
+        <p></p>
+      </li>
+      <hr>
+      <li>
+        <p>This neuron combines the paddle detecting neuron and the ball detecting one to detect "enemy will hit the
+          ball".
+        </p>
+        <img src="/tutorials/rl/experiencereplay/3enemywillhitball.jpg" width=100%>
+      </li>
+      <hr>
+      <li>
+        <p>This neuron seems to be detectinng the ball coming at the agent's paddle down and to the right.</p>
+        <img src="/tutorials/rl/experiencereplay/4ballComingAtPaddleDownToRight.jpg" width=100%>
+      </li>
+      <hr>
+      <li>
+        <p>This later layer neuron is detecting something involving the enemy paddle and the ball. I'm not quite sure.
+          To figure out the exact circumstance would maybe require looking at the states leading up to this or following
+          this.
+        </p>
+
+        <img src="/tutorials/rl/experiencereplay/5somethingRelatedToenemeyPaddleAndBall.jpg" width=100%>
+        <p></p>
+      </li>
+      <hr>
+      <li>
+        <p>Your guess is as good as mine. Maybe its an apprehensive "Could Miss" neuron.
+        </p>
+
+        <img src="/tutorials/rl/experiencereplay/6ballGoingToBounceOffWallFromThisAngleQuestionMark.jpg" width=100%>
+        <p></p>
+      </li>
+      <hr>
+      <li>
+        <p>"Aww yeah I bounced the ball" neuron
+        </p>
+
+        <img src="/tutorials/rl/experiencereplay/7ibouncedTheBall.jpg" width=100%>
+        <p></p>
+      </li>
+      <hr>
+      <li>
+        <p>"Fuck I Missed" neuron.     I bet this one is heavily weighted to the q values this state. :^)
+        </p>
+
+        <img src="/tutorials/rl/experiencereplay/8fuckIMissed.jpg" width=100%>
+        <p></p>
+      </li>
+      <hr>
+      <li>
+        <p>Epic wall bounce detecting neuron?            :()
+        </p>
+        <img src="/tutorials/rl/experiencereplay/9epicWallBounce.jpg" width=100%>
+        <p></p>
+      </li>
+    </lu>
+    <p>These concepts are pretty human seeming right?
+      If you wanted to find out what they are for cartpole you could go manually position the cart in various states, 
+      and see which neurons return a high activation. Could be fun.
+    </p>
+  </div>
+    <!-- its kind of random which feature appears. and depends on lucky starting values (thats why initialization is pretty important and 
+      in some drl papers they are rather particular about it) -->
+    <!-- the more neurons you have the more likely you are going to have a lucky initialization of weights that discovers a 
+      useful feature. And the more neurons you have, the more unique features you can detect. make the network bigger then we can detect more patterns!!
+      Basically bigger brain is better. HOWEVER. brain size isnt causing out stability issues.-->
+  <div class="grid-container full u-align-left">
+    <h4 class="u-align-center">Valuable Insight</h4>
+    <p>Now you really know what's really going on in the agent's neural networks. 
+      But how does it help us solve our stability problem?
+      Well since learning that the agent is using feature detectors to anticipate low or high rewards for each action, 
+      you might have formed some opinions about the value of some of these features.
+      Some features are obviously much more useful than others.
+      Maybe you can see where I'm going with this.<br>
+      What kind of features are showing up in our cartpole agent?<br>
+      What kind of features are "best" to solve cartpole?<br>
+      Why is our agent not making/discovering those features?
+    </p>
+    <p>Now you are thinking like a researcher.</p>
+    <h5>You Got Options</h5>
+    <lu>When a neural network isn't doing what you want, you have two options:
+      <li>
+        change the neural network
+      </li>
+      <li>
+        change the data
+      </li>
+    </lu>
+    <p>It seems so obvious for other machine learning stuff, but for some reason in reinforcement learning 
+      you just feel like it would be different.</p>
+      <h5 class="u-align-center">Network</h5>
+      <p class="u-align-center">Maybe we need to change the network to get more consistent performance.</p>
+    <div class="grid-container halves u-align-left">
+      <div class="left">
+        <h5>Architecture</h5>
+        <p>What influence does the neural network architecture have on the features?
+          Well, firstly, the same architectural biases apply in reinforcement learning as apply in all the other types 
+          of machine learning. Convolutional networks are biased towards detecting spatial features (or positional features 
+          if you are including convolving them through time). Recurrent networks are biased towards detecting data order, 
+          transformations or itteritive process features. And fully connected layers aren't biased and so that makes 
+          them good at discovering some features but bad at discovering others. You want to design the 
+          architecture to be biased to discovering features you think are useful for the task.<br>
+          A simple network should be good enough for cartpole.
+        </p>
+        <p>You also have the question of the specific loss function. The temporal difference function 
+          biases the agent to assume time functions the way we describe. In our case our agent is designed 
+          to assume that there is always one best action to take, and that we can know it 
+          without knowing anything other than the current environment state. It has no notion of entire "plans" of actions 
+          or current goal. Maybe it is hard to imagine now, but there 
+          is a lot of black magic that can be done in the loss function that will bias the network to detecting different features. 
+          I think with some complicated future architectures we could see features that represent exploration strategies or maybe even predictions of 
+          what happens next in the world. The possibilities are kind of endless.<br>
+          I know for a fact we don't have to change our architecture to do well consistently in cartpole. 
+          Just from experience.
+        </p>
+        <h5>Network Depth</h5>
+        <p>The more layers the network has, the more complex the features can be. Each layer combines features 
+          from previous layers. So if your network isn't deep enough it might not be able to combine enough simple 
+          features to detect the good meta features. Again, in the case of cartpole, I don't think this really matters that much.
+          Once your network is beyond a few layers the environment just doesnt have any more complicated patterns to discover. <br>
+          Adding a bunch more layers shrinks the gradient, and most of those layers are just wasted anyways, randomly 
+          splitting and recombining into feature detectors that were already ready and formed many layers before.<br>
+          Ours is more than deep enough as is.
+        </p>
+      </div>
+      <div class="right">
+        <h5>Layer Width</h5>
+        <p>If the network has more neurons in a layer, then that layer can detect more features.
+          By more features I mean it has the capacity for detecting more unique patterns in total. 
+          That sounds like bigger would always be a good thing, but how many patterns do you really need to see 
+          to beat cartpole? Is it possible to have the capacity for too many features? The answer is complicated.
+          There shouldn't really be a limit to the number of possible networks that can beat cartpole, but 
+          I suspect all the good networks have basically the same features within.<br>
+          Consider a smaller network with a neuron that detects pole angles between 90 degrees, straight up, 
+          and 180 degrees, horizontal pointing right. Compare that to a larger network that is using two neurons for that same 
+          concept, one neuron detecting 90-135, and another neuron detecting 135-180. Togethor those two neurons in the larger 
+          network represent an equivalent feature to the one neuron in the smaller network. I would argue that the single 
+          neuron version is not only more efficient, but more robust. It is unlikely to be repurposed to detect something else. 
+          Wheras either of those two neurons in the "combo feature" could be easily accidentally repurposed to detect something else.</p>
+          <p>
+            That <strong>repurposing</strong> event is vital to the learning ability of neural networks, but it is potentially really good 
+            or really bad:
+          </p>
+          <lu>
+            <li><strong>Bad</strong>
+              because the neurons in the big network are so specific, the new feature will probably be really specific too, and as such will 
+                be easily grabbed by sudden sharp changes in the environments reward. An overly specific feature is way less useful than a more 
+                general feature. The fact that big networks have so many available neurons makes them susceptable to 
+                discovering overly specific features. <strong>Guess what overfitting is?
+              </strong>
+            </li>
+            <li><strong>Bad</strong> because when one of the neurons in the combo feature is yanked away to be used in another feature, the 
+              combo feature breaks. Performance suddenly drops as all the neurons that relied on that feature in subsequent layers would 
+              become useless, and you would have to wait for that "right side" detector to be remade elsewhere.
+            </li>
+            <li><strong>Good</strong> because
+              those two neurons ability to repurpose provides flexibility. Neither neuron is as tied down to that specific feature, 
+              and so maybe you get lucky and one of them becomes a detector of something much more useful. 
+              The more neurons available, the more chances there are to stumble onto useful features. It's just going to 
+              take more data to find those useful features, and refine the current good ones.
+            </li>
+          </lu>
+          <br>
+          Again, again, again, for cartpole... we shouldn't need that many features. A "Pole-Falling-Left" detector and 
+          a "Pole-Falling-Right" detector should be good enough to balance the pole. It should require very few neurons to pull that off. Our network is 
+          probably more than big enough to hold every necessary feature to win consistently, and has enough neurons 
+          available to have a decent change of "getting lucky" and falling into the good features.
+        </p>
+
+      </div>
+    </div>
+    <h5 class="u-align-center">Data</h5>
+    <p>So if we don't need to change the network, that just leaves data.<br>
+    Wait... Data? What am i saying data? We dont get to control our data. The environment provides us 
+  with states and we are just stuck with that.</p>
+
+
+  <!-- so how are these features chosen? which features will appear? while the network is training, do many features appear, but 
+                        only the strongest survive? are we incentivising the creation of good features, or cheap trick features? -->
+                        <!-- bad features vs good features -->
+    <h4>Not A Spectrum</h4>
+    <p>An agent's internal reasoning falls somewhere between the following two places:</p>
+    <div class="grid-container halves u-align-left">
+      <div class="left">
+        <h5>Memorization</h5>
+        <p>
+          If a student memorizes answers to test questions, and the test has questions he knows, he will get a good
+          score.
+          If the test has none of the questions he memorized he will get a zero. Not so different from what we see in
+          our episode rewards, right?
+        </p>
+        <p>What if we made a giant table full of all of the states the pole could be in, and the correct action at each
+          state?
+          (You can totally do this btw, It's the <a
+            href="https://people.csail.mit.edu/brooks/idocs/matchbox.pdf">original QLearning</a>.)
+          Now let's say you start simulating cartpole episodes to populate that table to find out which action is the
+          "best" action in each position.
+          Choose an action. Take a step. If that action resulted in the pole falling, then go back and put the opposite
+          action into that spot in the table.
+          Your table would start filling up with actions. States that are revisted frequently will store better and
+          better actions.
+          States that had never been seen before would not. The table can never generalize to states that it either has
+          not seen
+          or has infrequently seen. The table is just memorizing the good answers. </p>
+        <p>
+          Neural networks have the capacity to memorize, and will do so unless coerced not to with good data.
+          Our instability could just be a manifestation of typical overfitting.
+        </p>
+      </div>
+      <div class="right">
+        <h5>Generalization</h5>
+        <p>This isn't quite where humans are. Think of this as an ideal brain.</p>
+        <p>
+          The complete opposite of memorization would be some bank of general concepts that could be used to understand
+          or
+          reason about any system or task. Concepts like accelerations, velocities, boundaries of objects, waves,
+          teams, periodicity, balance, symmetry, etc...
+        </p>
+        <p>
+          It is unlikely your cartpole agent will learn to develope all these general concepts. Internally it may not
+          even
+          have a notion of acceleration and velocity that is general enough to apply to objects that arent carts or
+          poles.
+          However, we can hope that there are sets of neurons inside the network tracking the tip velocity, angle,
+          angular velocity,
+          chance of falling, and whatever else is convenient to maximizing the reward. We don't need to explicitly
+          design the
+          network architecture to understand these things. It will likely learn many of the ones that are useful
+          anyways.
+        </p>
+        <p>
+          These general features are really important.
+          The more general the features the network can detect and reason about, the more robust the agent will be to
+          dealing
+          with circumstances it has never seen before.
+        </p>
+      </div>
+    </div>
+    <p>You might think that the memorization side sounds bad, and the generalization side sounds good.
+      But actually you want a combination of both.
+    </p>
+    <p>Our agent is either having a hard time <strong>discovering</strong> general features that are useful for the
+      task.
+      Or it is not being incentivised to do so. Or both (probably both). In reinforcement learning, unintuitively,
+      it almost always seems to be an issue of "bad" data.</p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h5>Size Isnt Everything</h5>
+    <p>If our agent is memorizing, and memorizing is causing the poor performance, then it would be reasonable to think
+      that
+      you want the agent to be as general as possible, right? What tools are available to increase the networks ability
+      to find patterns?<br>
+      How about making the network bigger? You aren't going to be able to support tracking that many general features
+      with a network that has
+      only a few layers and not that many neurons per layer.
+      So, you could try to explode your network to some enourmous size, running on the latest super computer, and using
+      all the latest in fancy neural network architectures.
+      If you did that your agent would have the capacity for tons of general features and patterns.<br>
+      There tons of problems with that way of thinking.:
+      While it is true that a larger network can track larger and
+      more complicated patterns, even if you had all that computer hardware, and a nuclear powerplant, you have to train
+      it on the right data or
+      else it will just memorize the best actions. In fact, <strong>the larger the neural network is, the more likely it
+        is to
+        just memorize.</strong>
+    </p>
+    <h5>It's How You Use It</h5>
+    <p>Sometimes the issue isnt caused by the network size, or the architecture. Sometimes the data is just bad.
+      In a supervised training circumstance, such as identifying cats in images, you can choose where the data comes
+      from
+      and what order you show the data to the network. But in our case the environment is the one dictating what data
+      and in
+      what order the data is presented.
+    </p>
+  </div>
+  <div class="grid-container full">
+    <h4>Replay Buffer</h4>
+    <!-- lets consider more why this even works, and go back to why you dont just want to grow your network -->
+    <!-- Secondly, you probably dont need all that power to complete your task anyway. -->
+    <!-- Are there really any options to change that? And is it a crutch? -->
+    <!-- memorization is bad. " its not that simple, you want memorization at the other end of your features! The features 
+        are just that, features. They dont instigate ACTION. Ideally you want the network to detect the minimum necessary 
+        features it needs to complete the task, and then a small set of memorized actions at the end of that. 
+        Example: feature, detect pole is falling left. trigger memorized action: move the cart left. 
+        That is different from the case where the feature is "detect cart at x position -2.3 and pole at angle -23 degrees, 
+        trigger action: move cart left.
+        Differentiating between memorization and generalization extremely useful, but you must also not forget that the distinction 
+        is a human construct. Its just an abstract difference, and its not always as obvious as in the example given above.
+        
+        Is an agent that can beat sonic the hedgehog but cant beat mario memorizing sonic? Your response just depends on what your 
+        task is. If your task is to beat sonic, then you would say no. If your task is to beat any platformer game, then you would say 
+        yes.
+
+        What if the task was just to beat sonic, but the network could only beat 1 episode in sonic, and not the others.
+        You might consider that to be overfitting to that particular level.
+    
+    Now if we were really smart we would somehow go in and investigate what features certain groups of neurons are detecting specifically. 
+    Then we can determine if the feature is a general one that applies to lotss of circumstances, or a specific one that only applies 
+to one or a few specific circumstances. 
+
+    Some people have tried to do this, and rather succesfully. (pong example)
+
+    example is if there is a feature that detects a very specific set of tiles in the mario screen and triggers a jump. 
+    Sure that might be a useful feature, but it is completely useless for any other level, or any other platformer game. 
+    Also it wastes so many neurons!!! Wouldnt you rather have some sort of feature trigger for "avoid enemy coming at me"?
+    A General feature like that would only need to exist one time in the neural network, as opposed to a huge number of feature 
+triggers for specific positions and cases in known levels-->
+
+    <!-- goomba jump example
+    environment never gives a reason to learn general features, because jumping when you see a specific set of tiles works great. 
+the network is never coerced to do otherwise. 
+the analogous situation in cartpole is -->
+    <!-- replay buffer cant solve all of that, in some waay it must be solved by the environment design, just like how 
+meticulously picking data sources, designing shuffling and data augmenting your dataset for classification is so important. 
+However, it can solve some of this.  -->
+    <pre><code class="language-python">class Network(torch.nn.Module):
+    def __init__(self, lr, inputShape, numActions):
+        super().__init__()
+        self.inputShape = inputShape
+        self.numActions = numActions
+        self.fc1Dims = 1024
+        self.fc2Dims = 512
+
+        #   layers
+        self.fc1 = nn.Linear(*self.inputShape, self.fc1Dims)
+        self.fc2 = nn.Linear(self.fc1Dims, self.fc2Dims)
+        self.fc3 = nn.Linear(self.fc2Dims, numActions)  # output 1 outcome estimate per action
+
+        #   pytorch stuff
+        self.optimizer = optim.Adam(self.parameters(), lr=lr)
+        self.loss = nn.MSELoss()
+        # self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cpu")
+        self.to(self.device)
+
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+
+        return x</code></pre>
+  </div>
+
+  <!-- called q values because of probability theory or something. but its not quite the same -->
+  <!-- issues:
+      catastrophic forgetting. (experience replay)
+      overestimation  (link to dueling) (link to twin)
+      discrete values (a few options, branching, )
+      policy stability (link to double) (link to advantage)
+      time series (frame stacking)
+      exploration (espilon greedy/ noise)
+
+      why does reward go up over time?
+      if you are in a good position in life, you have good options.
+      if you are in a bad position in life, you have bad options.
+
+      by succesively choosing the best option at any given moment, we improve the future options available too us.
+      So the result is better and better reward.
+
+
+      - add epsilon greedy in the next tutorial
+      -->
+
+  <div class="grid-container halves u-align-left">
+    <div>
+      <h5>Network Inputs</h5>
+      <p>
+        InputShape should be a tuple. In the case of cartpole it's
+        <pre><code>... inputShape=(4,), numActions=2 ...</code></pre>
+        Input shape is of size 4, because the cartpole environment state consists of 4 numbers. Those 4 numbers
+        are the angle, and position of the cart and whatnot. Is it weird I don't really care what they are?
+        It works anyways. The agent is supposed to do my work for me.<br>
+        The numActions is just how many discrete actions you can choose from for the environment. In this
+        case the agent can pick to shift the cart left or right. So two actions, 0 or 1.
+      </p>
+    </div>
+    <div>
+      <h5>Network Outputs</h5>
+      <p>
+        See in the forward function we just pass in the environment state and out comes an array of
+        numbers, one for each action. Those are the <strong>Q Value</strong>s.
+      </p>
+      <pre><code>#  self.fc3 = nn.Linear(self.fc2Dims, numActions)
+def forward(self, x):
+    x = F.relu(self.fc1(x))
+    x = F.relu(self.fc2(x))
+    x = self.fc3(x)
+
+    return x</code></pre>
+      One outcome value prediction for each action.
+      </p>
+      <pre><code class="language-python">#  call forward by using the network name with ()
+predicted_outcomes = network(now_state)
+predicted_outcomes is array([100., -10., 200.])</code></pre>
+    </div>
+  </div>
+  <div class="grid-container full">
+    <p>That's it for the network code.</p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4>Choose Wisely (Greedily)</h4>
+    <p>Let's make the <strong>agent</strong> now.<br>
+      As I said before, the agent will pick the action with the highest value estimation.
+      Why? Well, if you wanted to make an agent that got progressively worse at things, you could pick the lowest. :^)
+    </p>
+    <pre><code class="language-python">def chooseAction(self, observation):
+    # your env state probably comes in as a numpy array of floats. So we have to put it in a tensor
+    state = torch.tensor(observation).float()
+    state = state.to(self.dqn.device) # and put it on the gpu/cpu
+    state = state.unsqueeze(0)  # pytorch likes inputs in a specific shape (1, 8) instead of just (8)
+
+    qValues = self.dqn(state) # pass it through the network to get your estimations
+    action = torch.argmax(qValues) # pick the highest
+    return action.item()  # return an int instead of a tensor containing the index of the best action</code></pre>
+    <p>This greedy selection might feel wrong to you. Sometimes we need to pick the action that
+      is worse in the short term but gives us better options in the long term, right?
+      Your intuition is good. However, although the QValues start off as short sighted,
+      if an action gives the agent better options in the long term, and the agent is
+      training well, then the <strong>QValue</strong> of the long-term action will slowly increase
+      throughout training until it beats out the greedy actions.<br>
+      An example of this might be in pacman, where the agent has to pick between two directions.
+      One direction might have lots of dots to eat, but lead to a dead end. The other direction might
+      have no dots, but lead to a new section of the maze full of even more dots to eat that the first direction.<br>
+      At first you can expect your agent to go with the easy reward. In fact... sometimes it might never figure out the
+      long
+      term best action. Anyways the point is the <strong>QValue</strong>s are not straightforward to interpret.
+      It can be really difficult to figure out if the agent is being nearsighted or thinking long term just
+      from the QValues alone. This greedy action selection, ends up being a lot less greedy than you would worry.
+    </p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4>Better Forecasting</h4>
+    <p>
+      Unlike in Actor-Critic, this network only has one error to minimize.
+      That one error is the difference between the reward the environment gave us,
+      and what the QValue guessed it would be.
+    </p>
+    <pre><code class="language-python">def learn(self, state, reward): 
+    self.network.optimizer.zero_grad()  #   pytorch stuff: resets all the tensor derivatives
+
+    # put our states in tensors and such
+    state = torch.tensor(state).float().detach()  # detach it so we dont backprop through it
+    state = state.to(self.dqn.device) # and put it on the gpu/cpu
+    state = state.unsqueeze(0)
+
+    reward = torch.tensor(reward).float().detach()  # have to put the reward in tensor form too
+    reward = reward.to(self.network.device) # and on the proper device
+
+    qValues = self.network(state) # predict what reward each action will get
+    valueOfBestAction = qValues.max() # assume it took the best action
+
+    # did we accurately predict how much reward the best action would give us?
+    loss = self.network.loss(valueOfBestAction, reward) 
+
+    loss.backward() # calculate the influence environment state and action choice had on the reward
+    self.network.optimizer.step()   # tweak the weights to reduce the error</code></pre>
+  </div>
+  <div class="grid-container halves u-align-left">
+    <div>
+      <h5>Loss</h5>
+      <p>The network takes the difference between the actual <strong>reward</strong> and its predicted reward as its
+        loss.
+        The agent picks an action, gives that action to the environment. The environment gives a reward.
+        Then you get to see how wrong it was.
+
+        The action QValue is the reward prediction right? You want it to be correct.<br><br>
+        If the difference between reward and prediction is zero, it means the network perfectly predicted the
+        reward it would get. That means it "understands reality". <br><br>
+        If the difference is high, it means the network really over/under valued its action. <br>
+        If the difference is low, it means the network only kinda under/over valued its action. <br><br>
+
+        The error being positive means it was an overvalued action.<br>
+        The error being negative means it was an undervalued action.<br>
+
+        Anyways, both of those are bad things.
+      </p>
+    </div>
+    <div>
+      <h5>.detach()</h5>
+      <p>
+        Remember when we called <code>.detach()</code> on the state?
+        We do that every time before we pass it into the network.
+        Well that's important. While the environment is responsible for what reward the agent predicts it will get,
+        it would be wrong to modify the state according to the loss.<br>
+        If we don't detach it, when we backprop the error, the state tensor will absorb a portion of the loss.<br>
+        So why is that bad? Well, the state is just state. It's life. <br>
+        You can't change the laws of physics, you can only change your interpretation of the state, and your
+        choices.<br>
+        So the loss should be accounted for in the change to the network weights, not the state.
+      </p>
+    </div>
+  </div>
+  <div class="grid-container full">
+    <h5>This Isn't How They Do It In My Textbook</h5>
+    <p>
+      You were expecting a bunch of nonsense about temporal difference,<br>
+      compounding reward probabilities and whatnot
+      weren't you? <br>
+      Don't worry. We will get there.
+    </p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4>The Whole Agent</h4>
+    <p>
+      The <strong>agent</strong> class holds the network and functions as a nice place to put utilities needed
+      for decision making. You've already seen all this code. It's just in one place now.
+      I'm not a huge fan of unnecessary classes but this Agent will be convenient later when we add stuff to it.
+      Also it is a pretty standard way of doing it.
+    </p>
+    <pre><code class="language-python">class Agent():
+    def __init__(self, lr, inputShape, numActions=2):
+        self.network = Network(lr, inputShape, numActions)
+
+    def chooseAction(self, observation):  # you've seen this code
+        state = torch.tensor(observation).float()
+        state = state.to(self.dqn.device) 
+        state = state.unsqueeze(0)
+    
+        qValues = self.dqn(state)
+        action = torch.argmax(qValues)  # there are a few ways to get the max value and its index (google)
+        return action.item()  # .item() grabs the number out of the tensor (also worth a google)
+
+    def learn(self, state, reward): # youve seen this before too
+        self.network.optimizer.zero_grad()  #   pytorch stuff: resets all the tensor derivatives
+    
+        state = torch.tensor(state).float().detach()  # detach it so we dont backprop through it
+        state = state.to(self.dqn.device) # and put it on the gpu/cpu
+        state = state.unsqueeze(0)
+    
+        qValues = self.network(state)
+        valueOfBestAction = qValues.max()
+        loss = self.network.loss(valueOfBestAction, reward) 
+    
+        loss.backward()
+        self.network.optimizer.step()</code></pre>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4>The Main Loop</h4>
+    <p>
+      All the hard parts are done now. Put the <strong>agent</strong>, into the environment, and trap it in an
+      infinite loop so it can learn the futility of life and give up. <br>
+    </p>
+    <pre><code class="language-python">agent = Agent(lr=0.001, inputShape=(8,), numActions=2)
+env = gym.make('CartPole-v1') # this is how you pick the env from ai gym
+
+highScore = -math.inf
+while True:                     <strong>#   keep starting new episodes forever</strong>
+    observation = env.reset()   <strong>#   observation is just a commonly used term for the environment state</strong>
+    score, frame, done = 0, 1, False
+    while not done:             <strong>#   keep going until the env reports the episode is done</strong>
+        env.render()            <strong>#   draw it on your screen so you can watch</strong>
+        action = agent.chooseAction(observation)
+        nextObservation, reward, done, info = env.step(action)  <strong>#   make the environment go one time step</strong>
+        agent.learn(observation, reward, nextObservation, done)  <strong>#   make your network more accuracte</strong>
+        observation = nextObservation
+        score += reward
+        frame += 1
+
+    highScore = max(highScore, score)
+    print(( "ep {}: high-score {:12.3f}, "
+            "score {:12.3f}, last-episode-time {:4d}").format(
+        episode, highScore, score, frame))</code></pre>
+  </div>
+  <div class="grid-container full">
+    <h4>Full Code</h4>
+    <p>You have the basic <strong>DQN</strong> framework now. There isnt that much to it.</p>
+    <div class="grid-container full u-align-left">
+      <pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+import gym       
+import math
+import numpy as np
+
+class Network(torch.nn.Module):
+    def __init__(self, alpha, inputShape, numActions):
+        super().__init__()
+        self.inputShape = inputShape
+        self.numActions = numActions
+        self.fc1Dims = 1024
+        self.fc2Dims = 512
+
+        self.fc1 = nn.Linear(*self.inputShape, self.fc1Dims)
+        self.fc2 = nn.Linear(self.fc1Dims, self.fc2Dims)
+        self.fc3 = nn.Linear(self.fc2Dims, numActions)
+
+        self.optimizer = optim.Adam(self.parameters(), lr=alpha)
+        self.loss = nn.MSELoss()
+        # self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cpu")
+        self.to(self.device)
+
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+
+        return x
+
+class Agent():
+    def __init__(self, lr, inputShape, numActions):
+        self.network = Network(lr, inputShape, numActions)
+
+    def chooseAction(self, observation):
+        state = torch.tensor(observation).float().detach()
+        state = state.to(self.network.device)
+        state = state.unsqueeze(0)
+
+        qValues = self.network(state)
+        action = torch.argmax(qValues).item()
+        return action
+
+    def learn(self, state, reward):
+        self.network.optimizer.zero_grad()
+
+        state = torch.tensor(state).float().detach()
+        state = state.to(self.network.device)
+        state = state.unsqueeze(0)
+
+        reward = torch.tensor(reward).float().detach()
+        reward = reward.to(self.network.device)
+
+        qValues = self.network(state)
+        valueOfBestAction = qValues.max()
+
+        loss = self.network.loss(valueOfBestAction, reward)
+
+        loss.backward()
+        self.network.optimizer.step()
+
+if __name__ == '__main__':
+    env = gym.make('CartPole-v1').unwrapped
+    agent = Agent(lr=0.001, inputShape=(4,), numActions=2)
+
+    highScore = -math.inf
+    episode = 0
+    while True:
+        done = False
+        state = env.reset()
+
+        score, frame = 0, 1
+        while not done:
+            env.render()
+
+            action = agent.chooseAction(state)
+            state_, reward, done, info = env.step(action)
+            agent.learn(state, reward)
+
+            state = state_
+
+            score += reward
+            frame += 1
+
+        highScore = max(highScore, score)
+
+        print(( "ep {}: high-score {:12.3f}, "
+                "score {:12.3f}, last-episode-time {:4d}").format(
+            episode, highScore, score,frame))
+
+        episode += 1</code></pre>
+    </div>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4>Did It Work?</h4>
+    <p>It didn't did it? Do you have any guesses why?<br>
+      Go scour the code a bit, and verify each line makes sense to you. Maybe do some printing.<br>
+      Don't come back until you atleast tried. <br> <br>
+      Hey. I said stop reading this. Go try.
+    </p>
+  </div>
+  <div class="grid-container full">
+    <h4>. . .</h4>
+  </div>
+  <div class="grid-container full">
+    <h4>. . I . . Gi . .</h4>
+  </div>
+  <div class="grid-container full">
+    <h4>I Give Up</h4>
+    <p>I hope you didn't spend more than 30 minutes trying to figure out why
+      it doesn't work. That would be hilarious.<br>
+      If you did though, don't worry, stress
+      induced hair-loss is temporary.<br>
+      I set you up. You were doomed to fail from the begining. <br>
+    </p>
+    <p>Let's investigate why you are such a failure in the <a
+        href="/tutorials/rl/deepqlearning2/deepqlearning2.html">next tutorial</a>.
+    </p>
+    <p></p>
+    <p></p>
+  </div>
+</body>
+
+</html>
+
+
+<!-- 
+
+
+
+
+
+        YOU AARE HERE NOW
+
+
+
+
+ -->
+
+
+<!-- <div class="grid-container halves u-align-left">
+   </div>
+   <h4>Settings</h4>
+   <div class="grid-container halves u-align-left">
+       <div>
+           <h5>Layer Sizes</h5>
+           <pre><code>self.fc1Dims = 1024
+ self.fc2Dims = 512</code></pre>
+           <p>If it runs too slowly shrink these down in the network. I've seen the cartpole environment beaten with layer sizes around 32.<br>
+             However, the peak performance of the agent is limited by the network size.
+             The complexity of the agent's strategy will be limited by the network size. 
+             The complexity of the environments the agent can handle will be limited by the small network size.
+             The chance the agent's network gets stuck in a local minima goes down the larger the network is too.<br>
+ 
+             Basically theres a lot of reasons to use a bigger network than you might immediatly think is necessary.
+           </p>
+       </div>
+       <div>
+           <h5>Learning Rate</h5>
+           <pre><code>lr=0.001, </code></pre>
+           <p>The learning rate heavily effects the stability of a deep reinforcement learning agent.<br>
+             If it is too small, your agent will either take way too long to train, or the errors will be so small that it may actually never train.
+             If it is too large, your weights will either go to 0.0 or go to infinity, and youll start getting NAN (not a number) warnings, 
+             and the agent performance will tank to minimum and never recover.<br>
+             If you want to see it happen just set the LR to 100.0 and look at a graph of reward over time.
+           </p>
+       </div>
+   </div>
+ </div> -->

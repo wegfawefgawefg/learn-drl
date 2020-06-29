@@ -60,10 +60,10 @@ There is no moore's law for the human attention span.
 
 "fine, you tactless brute. how do i fetch all the rewards in an array"
 memories = np.stack(randomMemories)
-rewards = memory[:, 2]  #   numpy indexing magic.     equivalent to:
+rewards = memories[:, 2]  #   numpy indexing magic.     equivalent to:
                             #   rewards = []
-                            #   for i in len(memory):
-                            #           rewards.append(memory[i][2])
+                            #   for i in len(memories):
+                            #           rewards.append(memories[i][2])
 
 "Can you give me an example of using this memory in a learn function?"
 def learn():    #   incredibly clausterphobic learn function
@@ -138,6 +138,7 @@ from collections import deque
 memory = deque(maxlen=100)
 
 The deque will automatically drain the oldest entries as you keep adding new items.
+Otherwise, it functions as a normal list.
 
 Downsides:
     There is really no downside actually. Deques are great. 1 line change. No catch.
@@ -166,13 +167,13 @@ Downsides:
     There are a lot of downsides.
     The code will now be much more fickle. It will be easy to mess up the next_state fetching, and the memory would need 
     to be one larger than needed to hold the next. You wont know what the action or reward is until after you step 
-    the environment, so if an episode ends you will have to store partial transitions (state, None, None, None)... 
-    Basically room for bugs, that nobody asked for.
+    the environment, so if an episode ends you will have to store partial transitions (state, None, None)... 
+    Basically room for bugs that nobody asked for.
 
     Also PPO, TD3, A2C, A3C all commonly use either multiple worker agents or environments.
     It will be even more annoying to mix their memories togethor if the next_state's are detached.
 
-    I haven't seen anyone do this yet.
+    Maybe for good reasons, I haven't seen anyone do this yet.
 
 In conclusion, I hope i helped you to do it the baby way first. Convert it to the numpy way later.
 Your code should be tiny. Like 100 to 200 lines tiny.
