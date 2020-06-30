@@ -40,16 +40,18 @@
     <h2>Experience Replay Tutorial</h2>
     <h3>Your First Add-On</h3>
     <h4>❗❗❗Message For Impatient Noobs❗❗❗</h4>
-    <p class="u-align-left">This tutorial has a lot of explanation before it gets down to the code. 
-      The reason for that is that this is the begining of real reinforcement learning. Going forward from here, the 
-      changes to the agents get much more complex. If you dont understand "why" somebody invented some 
-      modification to an agent, then most likely you will just be copying 
-      other peoples code, and spending enourmous amounts of time debugging random errors at very little value to yourself, 
-      and your own understanding.<br> I have seen first hand, and have heard from more than a handful of beginners 
-      that got stuck doing that for months at a time, struggling endlessly with more and more complicated agents in hopes 
+    <p class="u-align-left">This tutorial has a lot of explanation before it gets down to the code.
+      The reason for that is that this is the begining of real reinforcement learning. Going forward from here, the
+      changes to the agents get much more complex. If you dont understand "why" somebody invented some
+      modification to an agent, then most likely you will just be copying
+      other peoples code, and spending enourmous amounts of time debugging random errors at very little value to
+      yourself,
+      and your own understanding.<br> I have seen first hand, and have heard from more than a handful of beginners
+      that got stuck doing that for months at a time, struggling endlessly with more and more complicated agents in
+      hopes
       of solving just one or two environments. <strong>I don't want that to be you.</strong>
-      For that reason, this tutorial takes a very scenic route. But I promise when you get there you will have some 
-      new perspectives, questions, and context for why the researchers are investigating the solutions that they are. 
+      For that reason, this tutorial takes a very scenic route. But I promise when you get there you will have some
+      new perspectives, questions, and context for why the researchers are investigating the solutions that they are.
       You will probably also have some ideas for how to improve your agents performance.
     </p>
     <h4>Prerequisites</h4>
@@ -282,7 +284,7 @@ state = [0.0, 0.0, 0.0, 10000.0] # helicopter</code></pre>
       </li>
       <hr>
       <li>
-        <p>"Fuck I Missed" neuron.     I bet this one is heavily weighted to the q values this state. :^)
+        <p>"Fuck I Missed" neuron. I bet this one is heavily weighted to the q values this state. :^)
         </p>
 
         <img src="/tutorials/rl/experiencereplay/8fuckIMissed.jpg" width=100%>
@@ -290,27 +292,27 @@ state = [0.0, 0.0, 0.0, 10000.0] # helicopter</code></pre>
       </li>
       <hr>
       <li>
-        <p>Epic wall bounce detecting neuron?            :()
+        <p>Epic wall bounce detecting neuron? :()
         </p>
         <img src="/tutorials/rl/experiencereplay/9epicWallBounce.jpg" width=100%>
         <p></p>
       </li>
     </lu>
     <p>These concepts are pretty human seeming right?
-      If you wanted to find out what they are for cartpole you could go manually position the cart in various states, 
+      If you wanted to find out what they are for cartpole you could go manually position the cart in various states,
       and see which neurons return a high activation. Could be fun.
     </p>
   </div>
-    <!-- its kind of random which feature appears. and depends on lucky starting values (thats why initialization is pretty important and 
+  <!-- its kind of random which feature appears. and depends on lucky starting values (thats why initialization is pretty important and 
       in some drl papers they are rather particular about it) -->
-    <!-- the more neurons you have the more likely you are going to have a lucky initialization of weights that discovers a 
+  <!-- the more neurons you have the more likely you are going to have a lucky initialization of weights that discovers a 
       useful feature. And the more neurons you have, the more unique features you can detect. make the network bigger then we can detect more patterns!!
       Basically bigger brain is better. HOWEVER. brain size isnt causing out stability issues.-->
   <div class="grid-container full u-align-left">
     <h4 class="u-align-center">Valuable Insight</h4>
-    <p>Now you really know what's really going on in the agent's neural networks. 
+    <p>Now you really know what's really going on in the agent's neural networks.
       But how does it help us solve our stability problem?
-      Well since learning that the agent is using feature detectors to anticipate low or high rewards for each action, 
+      Well since learning that the agent is using feature detectors to anticipate low or high rewards for each action,
       you might have formed some opinions about the value of some of these features.
       Some features are obviously much more useful than others.
       Maybe you can see where I'm going with this.<br>
@@ -328,39 +330,46 @@ state = [0.0, 0.0, 0.0, 10000.0] # helicopter</code></pre>
         change the data
       </li>
     </lu>
-    <p>It seems so obvious for other machine learning stuff, but for some reason in reinforcement learning 
+    <p>It seems so obvious for other machine learning stuff, but for some reason in reinforcement learning
       you just feel like it would be different.</p>
-      <h5 class="u-align-center">Network</h5>
-      <p class="u-align-center">Maybe we need to change the network to get more consistent performance.</p>
+    <h5 class="u-align-center">Network</h5>
+    <p class="u-align-center">Maybe we need to change the network to get more consistent performance.</p>
     <div class="grid-container halves u-align-left">
       <div class="left">
         <h5>Architecture</h5>
         <p>What influence does the neural network architecture have on the features?
-          Well, firstly, the same architectural biases apply in reinforcement learning as apply in all the other types 
-          of machine learning. Convolutional networks are biased towards detecting spatial features (or positional features 
-          if you are including convolving them through time). Recurrent networks are biased towards detecting data order, 
-          transformations or itteritive process features. And fully connected layers aren't biased and so that makes 
-          them good at discovering some features but bad at discovering others. You want to design the 
+          Well, firstly, the same architectural biases apply in reinforcement learning as apply in all the other types
+          of machine learning. Convolutional networks are biased towards detecting spatial features (or positional
+          features
+          if you are including convolving them through time). Recurrent networks are biased towards detecting data
+          order,
+          transformations or itteritive process features. And fully connected layers aren't biased and so that makes
+          them good at discovering some features but bad at discovering others. You want to design the
           architecture to be biased to discovering features you think are useful for the task.<br>
           A simple network should be good enough for cartpole.
         </p>
-        <p>You also have the question of the specific loss function. The temporal difference function 
-          biases the agent to assume time functions the way we describe. In our case our agent is designed 
-          to assume that there is always one best action to take, and that we can know it 
-          without knowing anything other than the current environment state. It has no notion of entire "plans" of actions 
-          or current goal. Maybe it is hard to imagine now, but there 
-          is a lot of black magic that can be done in the loss function that will bias the network to detecting different features. 
-          I think with some complicated future architectures we could see features that represent exploration strategies or maybe even predictions of 
+        <p>You also have the question of the specific loss function. The temporal difference function
+          biases the agent to assume time functions the way we describe. In our case our agent is designed
+          to assume that there is always one best action to take, and that we can know it
+          without knowing anything other than the current environment state. It has no notion of entire "plans" of
+          actions
+          or current goal. Maybe it is hard to imagine now, but there
+          is a lot of black magic that can be done in the loss function that will bias the network to detecting
+          different features.
+          I think with some complicated future architectures we could see features that represent exploration strategies
+          or maybe even predictions of
           what happens next in the world. The possibilities are kind of endless.<br>
-          I know for a fact we don't have to change our architecture to do well consistently in cartpole. 
+          I know for a fact we don't have to change our architecture to do well consistently in cartpole.
           Just from experience.
         </p>
         <h5>Network Depth</h5>
-        <p>The more layers the network has, the more complex the features can be. Each layer combines features 
-          from previous layers. So if your network isn't deep enough it might not be able to combine enough simple 
-          features to detect the good meta features. Again, in the case of cartpole, I don't think this really matters that much.
-          Once your network is beyond a few layers the environment just doesnt have any more complicated patterns to discover. <br>
-          Adding a bunch more layers shrinks the gradient, and most of those layers are just wasted anyways, randomly 
+        <p>The more layers the network has, the more complex the features can be. Each layer combines features
+          from previous layers. So if your network isn't deep enough it might not be able to combine enough simple
+          features to detect the good meta features. Again, in the case of cartpole, I don't think this really matters
+          that much.
+          Once your network is beyond a few layers the environment just doesnt have any more complicated patterns to
+          discover. <br>
+          Adding a bunch more layers shrinks the gradient, and most of those layers are just wasted anyways, randomly
           splitting and recombining into feature detectors that were already ready and formed many layers before.<br>
           Ours is more than deep enough as is.
         </p>
@@ -368,59 +377,679 @@ state = [0.0, 0.0, 0.0, 10000.0] # helicopter</code></pre>
       <div class="right">
         <h5>Layer Width</h5>
         <p>If the network has more neurons in a layer, then that layer can detect more features.
-          By more features I mean it has the capacity for detecting more unique patterns in total. 
-          That sounds like bigger would always be a good thing, but how many patterns do you really need to see 
+          By more features I mean it has the capacity for detecting more unique patterns in total.
+          That sounds like bigger would always be a good thing, but how many patterns do you really need to see
           to beat cartpole? Is it possible to have the capacity for too many features? The answer is complicated.
-          There shouldn't really be a limit to the number of possible networks that can beat cartpole, but 
+          There shouldn't really be a limit to the number of possible networks that can beat cartpole, but
           I suspect all the good networks have basically the same features within.<br>
-          Consider a smaller network with a neuron that detects pole angles between 90 degrees, straight up, 
-          and 180 degrees, horizontal pointing right. Compare that to a larger network that is using two neurons for that same 
-          concept, one neuron detecting 90-135, and another neuron detecting 135-180. Togethor those two neurons in the larger 
-          network represent an equivalent feature to the one neuron in the smaller network. I would argue that the single 
-          neuron version is not only more efficient, but more robust. It is unlikely to be repurposed to detect something else. 
-          Wheras either of those two neurons in the "combo feature" could be easily accidentally repurposed to detect something else.</p>
-          <p>
-            That <strong>repurposing</strong> event is vital to the learning ability of neural networks, but it is potentially really good 
-            or really bad:
-          </p>
-          <lu>
-            <li><strong>Bad</strong>
-              because the neurons in the big network are so specific, the new feature will probably be really specific too, and as such will 
-                be easily grabbed by sudden sharp changes in the environments reward. An overly specific feature is way less useful than a more 
-                general feature. The fact that big networks have so many available neurons makes them susceptable to 
-                discovering overly specific features. <strong>Guess what overfitting is?
-              </strong>
-            </li>
-            <li><strong>Bad</strong> because when one of the neurons in the combo feature is yanked away to be used in another feature, the 
-              combo feature breaks. Performance suddenly drops as all the neurons that relied on that feature in subsequent layers would 
-              become useless, and you would have to wait for that "right side" detector to be remade elsewhere.
-            </li>
-            <li><strong>Good</strong> because
-              those two neurons ability to repurpose provides flexibility. Neither neuron is as tied down to that specific feature, 
-              and so maybe you get lucky and one of them becomes a detector of something much more useful. 
-              The more neurons available, the more chances there are to stumble onto useful features. It's just going to 
-              take more data to find those useful features, and refine the current good ones.
-            </li>
-          </lu>
-          <br>
-          Again, again, again, for cartpole... we shouldn't need that many features. A "Pole-Falling-Left" detector and 
-          a "Pole-Falling-Right" detector should be good enough to balance the pole. It should require very few neurons to pull that off. Our network is 
-          probably more than big enough to hold every necessary feature to win consistently, and has enough neurons 
-          available to have a decent change of "getting lucky" and falling into the good features.
+          Consider a smaller network with a neuron that detects pole angles between 90 degrees, straight up,
+          and 180 degrees, horizontal pointing right. Compare that to a larger network that is using two neurons for
+          that same
+          concept, one neuron detecting 90-135, and another neuron detecting 135-180. Togethor those two neurons in the
+          larger
+          network represent an equivalent feature to the one neuron in the smaller network. I would argue that the
+          single
+          neuron version is not only more efficient, but more robust. It is unlikely to be repurposed to detect
+          something else.
+          Wheras either of those two neurons in the "combo feature" could be easily accidentally repurposed to detect
+          something else.</p>
+        <p>
+          That <strong>repurposing</strong> event is vital to the learning ability of neural networks, but it is
+          potentially really good
+          or really bad:
+        </p>
+        <lu>
+          <li><strong>Bad</strong>
+            because the neurons in the big network are so specific, the new feature will probably be really specific
+            too, and as such will
+            be easily grabbed by sudden sharp changes in the environments reward. An overly specific feature is way less
+            useful than a more
+            general feature. (I'll get more into that point later.) The fact that big networks have so many available
+            neurons makes them susceptable to
+            discovering overly specific features. <strong>Guess what overfitting is?
+            </strong>
+          </li>
+          <li><strong>Bad</strong> because when one of the neurons in the combo feature is yanked away to be used in
+            another feature, the
+            combo feature breaks. Performance suddenly drops as all the neurons that relied on that feature in
+            subsequent layers would
+            become useless, and you would have to wait for that "right side" detector to be remade elsewhere.
+          </li>
+          <li><strong>Good</strong> because
+            those two neurons ability to repurpose provides flexibility. Neither neuron is as tied down to that specific
+            feature,
+            and so maybe you get lucky and one of them becomes a detector of something much more useful.
+            The more neurons available, the more chances there are to stumble onto useful features. It's just going to
+            take more data to find those useful features, and refine the current good ones.
+          </li>
+        </lu>
+        <br>
+        Again, again, again, for cartpole... we shouldn't need that many features. A "Pole-Falling-Left" detector and
+        a "Pole-Falling-Right" detector should be good enough to balance the pole. It should require very few neurons to
+        pull that off.
+        I bet it is so few neurons that you can beat cartpole by manually setting the weights of a tiny network with
+        less neurons than you have fingers.
+        (Please, someone out there needs to try this.)
+        Our network is probably more than big enough to hold every necessary feature to win consistently, and has enough
+        neurons
+        available to have a decent change of "getting lucky" and falling into the good features.
         </p>
 
       </div>
     </div>
     <h5 class="u-align-center">Data</h5>
     <p>So if we don't need to change the network, that just leaves data.<br>
-    Wait... Data? What am i saying data? We dont get to control our data. The environment provides us 
-  with states and we are just stuck with that.</p>
+      Wait... Data? What am i saying data? We dont get to control our data. The environment provides us
+      with states and we are just stuck with that.</p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h1 class="u-align-center">Behold</h1>
+    <h4 class="u-align-center">The Experience Replay Buffer</h4>
+    <p>To liberate our agent from the shackles of the environment, we can collect a bunch of states and then
+      treat the big store of states like good old fashioned data. This enables us to do all the tricks you can
+      do in regular machine learning: batches of data, data shuffling, data augmentation, data analysis, and whatever
+      else you
+      can think of.
+      How does this help our agent discover and develop good general feature detectors?
+      I will explain in a bit. Now is time for some code.
+    </p>
+    <h5>Review</h5>
+    <p>Let's skim back over the code from before to see what our starting point is.</p>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+import gym       
+import math
+import numpy as np
+import random
 
+"""Here is our neural network used by the agent:
+    It takes in a state from the environment
+    passes it through 3 layers
+    and then spits out a qvalue for each available action"""
+class Network(torch.nn.Module):
+    def __init__(self, alpha, inputShape, numActions):
+        super().__init__()
+        self.inputShape = inputShape
+        self.numActions = numActions
+        self.fc1Dims = 1024
+        self.fc2Dims = 512
 
+        self.fc1 = nn.Linear(*self.inputShape, self.fc1Dims)
+        self.fc2 = nn.Linear(self.fc1Dims, self.fc2Dims)
+        self.fc3 = nn.Linear(self.fc2Dims, numActions)
+
+        self.optimizer = optim.Adam(self.parameters(), lr=alpha)
+        self.loss = nn.MSELoss()
+        # self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cpu")
+        self.to(self.device)
+
+    """this is where the state comes in as x"""
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+
+        return x  """out come the q values ex: [0.4, 0.6]"""
+
+"""Here is our agent:
+    It holds an instance of a neural network,
+    and it has some handy functions for choosing an action
+    and for training its neural network from an input state"""
+class Agent():
+    def __init__(self, lr, inputShape, numActions):
+        self.network = Network(lr, inputShape, numActions)
+
+    """Observation is an incoming state from the environment.
+        Asparagus is our exploration strategy.
+        And the action is just an integer, 1 or 2, the index of the highest q value (the agents choice)"""
+    def chooseAction(self, observation):
+        state = torch.tensor(observation).float().detach()
+        state = state.to(self.network.device)
+        state = state.unsqueeze(0)
+
+        qValues = self.network(state)
+        action = torch.argmax(qValues).item()
+
+        # 10% of the time the agent picks an action at random, and ignores its own q values
+        chanceOfAsparagus = random.randint(1, 10)
+        if chanceOfAsparagus == 1:  #   10% chance
+            action = random.randint(0, 1)
+
+        # print("qValues: {}, action {}".format(qValues.detach(), action))  # for your convenience, lol
+        return action
+
+    """The temporal difference function is in here. 
+        This is where the agent predicts qvalues, and then is corrected on what they should have been."""
+    def learn(self, state, action, reward, state_, done): # input is a SARS "transition"
+        self.network.optimizer.zero_grad()
+
+        state = torch.tensor(state).float().detach().to(self.network.device).unsqueeze(0)
+        state_ = torch.tensor(state_).float().detach().to(self.network.device).unsqueeze(0)
+        reward = torch.tensor(reward).float().detach().to(self.network.device)
+
+        qValues = self.network(state)
+        nextQValues = self.network(state_)
+
+        predictedValueOfNow = qValues[0][action]    #   interpret the past
+        futureActionValue = nextQValues[0].max()    #   interpret the future
+
+        trueValueOfNow = reward + futureActionValue * (1 - done)  # td function
+
+        loss = self.network.loss(trueValueOfNow, predictedValueOfNow)
+
+        loss.backward()
+        self.network.optimizer.step()
+
+"""This is where we launch our code from.
+      We make an agent and an environment, 
+      and trap the agent in a loop of 'step'ing the environment.
+      Training Camp"""
+if __name__ == '__main__':
+    env = gym.make('CartPole-v1').unwrapped
+    agent = Agent(lr=0.0001, inputShape=(4,), numActions=2)
+
+    highScore = -math.inf
+    episode = 0
+    while True:
+        done = False
+        state = env.reset()
+
+        score, frame = 0, 1
+        while not done:
+            env.render()
+
+            action = agent.chooseAction(state)
+            state_, reward, done, info = env.step(action)
+            
+            agent.learn(state, action, reward, state_, done)
+            state = state_
+
+            score += reward
+            frame += 1
+            # print("reward {}".format(reward))
+
+        highScore = max(highScore, score)
+
+        print(( "ep {}: high-score {:12.3f}, "
+                "score {:12.3f}, last-episode-time {:4d}").format(
+            episode, highScore, score,frame))
+
+        episode += 1</code></pre>
+        
+    <h5>Replay Buffer</h5>
+    <p>Good review. Okay.<br>
+      See in our main function we are passing the <strong>SARS</strong>
+      (<strong>s</strong>tate, <strong>a</strong>ction, <strong>r</strong>eward, next-<strong>s</strong>tate)
+      transition directly from the environment into the agent.</p>
+    <pre><code class="language-python">action = agent.chooseAction(state)  # agent picks an action
+state_, reward, done, info = env.step(action) # pass action to env, it returns the "RS" of the SARS transition
+                                              # (we still have the state from last step) "S"ARS
+agent.learn(state, action, reward, state_, done)  # and we naively dump it straight into the agent to learn from</code></pre>
+    <p>Instead of dumping it straight into the agent, lets just collect all the transitions into a list.</p>
+
+    <pre><code class="language-python">state_, reward, done, info = env.step(action)
+transition = (state, action, reward, state_)  # create the transition
+memory.append(transition) # add to a list</code></pre>
+    <p>You can create the list up at the top of main with the environment and the agent.<br>
+      Also go ahead and put a batch size constant up there too.</p>
+    <pre><code class="language-python">if __name__ == '__main__':
+    env = gym.make('CartPole-v1').unwrapped
+    agent = Agent(lr=0.0001, inputShape=(4,), numActions=2)
+    BATCH_SIZE = 64 # you will see why we need this in a bit
+    memory = []</code></pre>
+    <p>All togethor it looks like this.</p>
+        <pre><code class="language-python">if __name__ == '__main__':
+    env = gym.make('CartPole-v1').unwrapped
+    agent = Agent(lr=0.0001, inputShape=(4,), numActions=2)
+    BATCH_SIZE = 64       # constant
+    memory = []           # replay buffer
+
+    highScore = -math.inf
+    episode = 0
+    while True:
+        done = False
+        state = env.reset()
+
+        score, frame = 0, 1
+        while not done:
+            env.render()
+
+            action = agent.chooseAction(state)
+            state_, reward, done, info = env.step(action)
+            transition = [state, action, reward, state_, done]  # make transition
+            memory.append(transition) # put it into the memory
+            
+            agent.learn(memory, BATCH_SIZE) # pass in the memory instead of a single transition
+            state = state_
+
+            score += reward
+            frame += 1
+            # print("reward {}".format(reward))
+
+        highScore = max(highScore, score)
+
+        print(( "ep {}: high-score {:12.3f}, "
+                "score {:12.3f}, last-episode-time {:4d}").format(
+            episode, highScore, score,frame))
+
+        episode += 1</code></pre>
+    <h5>Rewrite Learn Function Again</h5>
+    <p>Now we are creating a real dataset. That memory will fill up nicely. <br>
+      But, the agent is not still receiving single transitions to learn from.
+      If we want to make it learn from the <strong>replay buffer</strong> instead, we have to rewrite the agents learn
+      function
+      so it can handle batches of transitions instead of just single transitions.
+    </p>
+    <pre><code class="language-python">def learn(self, memory, batchSize):
+    if len(memory) < batchSize: # dont even bother learning if you cant make a batch
+        return 
+
+    self.network.optimizer.zero_grad()
+
+    randomMemories = random.choices(memory, k=batchSize)  # randomly choose some memories
+    
+    # this bullshit just puts all the memories into their own seperate numpy arrays
+    # # I encourage you to print out each line to see what's going on
+    memories = np.stack(randomMemories) 
+    states, actions, rewards, states_, dones = memories.T
+    states, actions, rewards, states_, dones = \
+        np.stack(states), np.stack(actions), np.stack(rewards), np.stack(states_), np.stack(dones)
+
+    # then we have to convert the numpy arrays into tensors for pytorch
+    # # (also convert the types to floats so pytorch doesn't complain)
+    # # and also put them on the gpu device
+    states  =   torch.tensor( states    ).float().to(self.network.device)
+    actions =   torch.tensor( actions   ).to(self.network.device)
+    rewards =   torch.tensor( rewards   ).float().to(self.network.device)
+    states_ =   torch.tensor( states_   ).float().to(self.network.device)
+    dones   =   torch.tensor( dones     ).to(self.network.device)
+
+    qValues = self.network(states)  # compute an entire batch of q values
+    nextQValues = self.network(states_) # same as above, but for the "next state"
+                                        # instead of the current state
+    batchIndecies = np.arange(batchSize, dtype=np.int64)  # more numpy bullshit
+
+    nowValues = qValues[batchIndecies, actions]    #   interpret the past
+    futureValues = torch.max(nextQValues, dim=1)[0]    #   interpret the future
+    futureValues[dones] = 0.0   #   ignore future actions if there will 
+                                #   be no future actions anyways
+    trueValuesOfNow = rewards + futureValues    #   same temporal difference but batched
+    loss = self.network.loss(trueValuesOfNow, nowValues)  # same error but along a batch
+
+    loss.backward()
+    self.network.optimizer.step()</code></pre>
+  </div>
+  <div class="grid-container halves u-align-left">
+    <div>
+      <h5>Learn Function Inputs</h5>
+      <p>
+        The new learn function takes in the replay buffer and the batch size.
+        The agent randomly chooses transitions from the replay buffer.
+      </p>
+      <pre><code class="language-python">randomMemories = random.choices(memory, k=batchSize)</code></pre>
+      <p>You don't have to worry about the replay buffer having enough transitions.
+        Even if k >= len(memory), the random.choices() function still works. You just might
+        get some repeats.
+      </p>
+
+    </div>
+    <div>
+      <h5>Batched Temporal Difference</h5>
+      <p>The temporal difference section works exactly the same way as before.
+        It just uses "vectorized" code on arrays of transitions to run a lot faster.
+        You could have done all this stuff in a for loop, calculating temporal difference
+        for each transition and then summing/averaging the results togethor before you put
+        them into the loss function. But python is slow, and so that will be super super slow.
+      </p>
+      <pre><code class="language-python">trueValuesOfNow = rewards + futureValues
+
+# its numpy magic for:
+  trueValuesOfNow = [] 
+  for transition in memoryBatch:
+    qValue = network(transition.state)
+    trueValuesOfNow.append(transition.reward + max(qValue))</code></pre>
+      <p>Notice vectorized code is much shorter. It expresses a lot more in much less code.
+        Some people find it hard to read at first, and it can be even more fickle to write.
+        That fickleness usually comes in the form of "pipe-alignment"
+        work. Thats why theres the whole <code>np.stack()</code>
+        block <code>np.arange()</code>, and <code>.float()</code> stuff up in the learn function.<br>
+        Don't feel bad if it often takes you a substantial amount of time to "align your pipes" in numpy.
+      </p>
+    </div>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h5>Fickle Nonsense</h5>
+    <p>Numpy and pytorch can be really particular about everything.
+      They love to complain about shapes, and pytorch especially loves to complain about types.
+      <strong>State</strong>s and <strong>reward</strong>s should be float type. Thats because your gpu won't like
+      if they are doubles. I don't know if most gpu's don't have double precision
+      floating point processing units, or if the torch devs just never implemented
+      the required infrastructure to use it.<br>
+      <strong>Action</strong>s need to be int64 type. That's because you are using them to index tensors.</p>
+      <pre><code class="language-python">#   batchIndecies is a tensor used to index another tensor
+batchIndecies = np.arange(batchSize, dtype=np.int64)  # [0, 1, 2, ..., batchSize]
+nowValues = qValues[batchIndecies, actions] # actions is a tensor of indecies also
+# batchIndecies is indexing the first dimension of qValues
+# while the values of actions are being used to index the second dimension of qValues</code></pre>
+      <p>Indexing tensors with other tensors is something you will have to do all the time.<br>
+        Anyways, notice how <code>batchIndecies.dtype == np.int64</code>. This kind of stuff is easy to miss. <strong>Pytorch cares.</strong><br>
+         It works just fine to index numpy arrays with either int32 or int64's. It won't work in pytorch.
+    </p>
+    <pre><code class="language-python">#  in numpy this shit works fine
+>>> a = np.arange(10)
+>>> a
+array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+>>> b = np.arange(5)
+>>> b
+array([0, 1, 2, 3, 4])
+
+# check the types
+>>> a.dtype
+dtype('int64')
+>>> b.dtype
+dtype('int64')
+
+# try indexing as int64
+>>> a[b]
+array([0, 1, 2, 3, 4])
+
+# try indexing as int32
+>>> b = np.arange(5, dtype=np.int32)
+>>> b
+array([0, 1, 2, 3, 4], dtype=int32)
+>>> a[b]
+array([0, 1, 2, 3, 4])
+# wow it worked</code></pre>
+<p>Now try it in pytorch... watch...</p>
+<pre><code class="language-python">>>> a = torch.arange(10)
+>>> a
+tensor([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+>>> b = torch.arange(5)
+>>> b
+tensor([0, 1, 2, 3, 4])
+>>> a.dtype
+torch.int64
+>>> b.dtype
+torch.int64
+>>> a[b]                # int64 works just fine
+tensor([0, 1, 2, 3, 4])
+
+>>> b = b.int()
+>>> b.dtype
+torch.int32
+>>> a[b]
+Traceback (most recent call last):
+File "<stdin>", line 1, in <module>
+IndexError: tensors used as indices must be long, byte or bool tensors
+# thanks pytorch for the very clear error message</code></pre>
+<p>I know you are probably thinking "wow this is crazy specific, why are you telling me this? It's information overload.
+  I will never remember this."
+I'm telling you this because a lot of the time this is what working with numpy and tensors is actually like. 
+Behind every happy face in a deep q learning tutorial on youtube that takes 5 minutes to watch is a cold 
+broken soul that spent 100 hours googling something like this:</p> 
+<pre><code class="language-python">RuntimeError: cuda runtime error (59) : device-side assert triggered at ...</code></pre>
+<h5>Impending Dooooom</h5>
+<p>From here on out all of the 
+code is going to be working with vectorized notation. Vectorized states, vectorized state processing, 
+vectorized experience replay, vectorized loss, vectorized temporal difference functions, vectorized vectorization, 
+vectorized sleeping, vectorized eating, vectorized pooping, vectorized stack overflowing. <br>
+You are probably going to have to do a bunch of "pipe-aligning" of your own. If i just show you the code, you won't realize this type of thinking is going on underneath when i'm writing 
+this vectorized numpy/tensor stuff. I had to google a whole lot of errors to figure out pipe-alignment at first. 
+You reading this section may have just saved you 10 hours of time.</p>
+<h5>Really Good Advice. Seriously, Actually Do This:</h5>
+<p>
+So far the best strategy I have for writing vectorized stuff is line by line deliberate programming. 
+Don't just try random changes to code to fix the numpy/pytorch 
+pipe-alignment errors. Plan out your data pipeline first. Carefully print each line as your transform the data to 
+make sure each operation does exactly what you thought it did. If you do it that way you can be sure it will work on the first try. 
+And you can avoid days or weeks of the most will-breaking bug searching you can imagine.
+</p>
+<h5>Fetching And Formatting Our Memories</h5>
+<p>Now that you know a little more, check out how it's done in the learn function again..</p>
+    <pre><code class="language-python">randomMemories = random.choices(memory, k=batchSize)  # randomly choose some memories
+
+memories = np.stack(randomMemories) 
+states, actions, rewards, states_, dones = memories.T
+states, actions, rewards, states_, dones = \
+    np.stack(states), np.stack(actions), np.stack(rewards), np.stack(states_), np.stack(dones)
+          
+states  =   torch.tensor( states    ).float().to(self.network.device) # dtype float32
+actions =   torch.tensor( actions   ).to(self.network.device)         # dtype int64
+rewards =   torch.tensor( rewards   ).float().to(self.network.device) # dtype float32
+states_ =   torch.tensor( states_   ).float().to(self.network.device) # dtype float32
+dones   =   torch.tensor( dones     ).to(self.network.device)         # dtype bool</code></pre>
+    <p>Notice the deliberate types now? See we cast state, reward and states_ to float. 
+      This code is actually getting lucky and the actions end up as <code>dtype=int64</code> automatically.
+      The <code>dones</code> array is of type <code>bool</code>. Yes you can do that.
+      You can use bool arrays to mask out other arrays for operations.<br>
+      Check this out:
+    </p>
+    <pre><code class="language-python">>>> a = np.ones(4)
+>>> a
+array([1., 1., 1., 1.])
+>>> b = np.array([True, False, True, False], dtype=np.bool)
+>>> b
+array([ True, False,  True, False])
+>>> a[b] = 2
+>>> a
+array([2., 1., 2., 1.])
+</code></pre>
+<p>Look familiar? It should.</p>
+<pre><code class="language-python">nowValues = qValues[batchIndecies, actions]    #   interpret the past
+futureValues = torch.max(nextQValues, dim=1)[0]    #   interpret the future
+
+'''WE DID IT HERE: 
+  it sets predicted q values to zero if the done is true at that index'''
+futureValues[dones] = 0.0   #   ignore future actions if there will 
+                            #   be no future actions anyways</code></pre>
+  <h5>Last Pipe Alignment</h5>
+  <p>If you already know how this part works you can skip this section.</p>
+  <pre><code class="language-python">memories = np.stack(randomMemories) 
+states, actions, rewards, states_, dones = memories.T
+states, actions, rewards, states_, dones = \
+    np.stack(states), np.stack(actions), np.stack(rewards), np.stack(states_), np.stack(dones)</code></pre>
+  <p>Code does a good job of explaining what this does.</p>
+  <pre><code class="language-python">#  make fake memories
+>>> a = np.arange(25)
+>>> a
+array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16,
+        17, 18, 19, 20, 21, 22, 23, 24])
+>>> a = a.reshape((5,5))
+>>> a
+array([[ 0,  1,  2,  3,  4],
+        [ 5,  6,  7,  8,  9],
+        [10, 11, 12, 13, 14],
+        [15, 16, 17, 18, 19],
+        [20, 21, 22, 23, 24]])
+
+# demonstrate stack
+>>> pprint(a.tolist())
+[[0, 1, 2, 3, 4],
+ [5, 6, 7, 8, 9],
+ [10, 11, 12, 13, 14],
+ [15, 16, 17, 18, 19],
+ [20, 21, 22, 23, 24]]
+>>> a = np.stack(a)     # converts a list of lists into a numpy array
+>>> a
+array([[ 0,  1,  2,  3,  4],
+       [ 5,  6,  7,  8,  9],
+       [10, 11, 12, 13, 14],
+       [15, 16, 17, 18, 19],
+       [20, 21, 22, 23, 24]])
+
+# demonstrate tuple assignment and Transpose
+
+# # transpose
+>>> a
+array([[ 0,  1,  2,  3,  4],
+       [ 5,  6,  7,  8,  9],
+       [10, 11, 12, 13, 14],
+       [15, 16, 17, 18, 19],
+       [20, 21, 22, 23, 24]])
+>>> a.T
+array([[ 0,  5, 10, 15, 20],
+       [ 1,  6, 11, 16, 21],
+       [ 2,  7, 12, 17, 22],
+       [ 3,  8, 13, 18, 23],
+       [ 4,  9, 14, 19, 24]])
+
+# # tuple unpacking
+>>> sliceOne, sliceTwo = ([[1, 2], [3, 4]])
+>>> sliceOne
+[1, 2]
+>>> sliceTwo
+[3, 4]
+
+# # all togethor now 
+>>> states, actions, rewards, states_, dones = a.T
+>>> a.T
+array([[ 0,  5, 10, 15, 20],
+       [ 1,  6, 11, 16, 21],
+       [ 2,  7, 12, 17, 22],
+       [ 3,  8, 13, 18, 23],
+       [ 4,  9, 14, 19, 24]])
+>>> states
+array([ 0,  5, 10, 15, 20])
+>>> actions
+array([ 1,  6, 11, 16, 21])
+>>> rewards
+array([ 2,  7, 12, 17, 22])
+>>> states_
+array([ 3,  8, 13, 18, 23])
+>>> dones
+array([ 4,  9, 14, 19, 24])</code></pre>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4 class="u-align-center">Full Code</h4>
+    <p>Good job if you made it through last section and you understand each line of the learn function.<br>
+      Here is the full code.</p>
+      <pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+import gym       
+import math
+import numpy as np
+import random
+
+class Network(torch.nn.Module):
+    def __init__(self, alpha, inputShape, numActions):
+        super().__init__()
+        self.inputShape = inputShape
+        self.numActions = numActions
+        self.fc1Dims = 1024
+        self.fc2Dims = 512
+
+        self.fc1 = nn.Linear(*self.inputShape, self.fc1Dims)
+        self.fc2 = nn.Linear(self.fc1Dims, self.fc2Dims)
+        self.fc3 = nn.Linear(self.fc2Dims, numActions)
+
+        self.optimizer = optim.Adam(self.parameters(), lr=alpha)
+        self.loss = nn.MSELoss()
+        # self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cpu")
+        self.to(self.device)
+
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+
+        return x
+
+class Agent():
+    def __init__(self, lr, inputShape, numActions):
+        self.network = Network(lr, inputShape, numActions)
+
+    def chooseAction(self, observation):
+        state = torch.tensor(observation).float().detach()
+        state = state.to(self.network.device)
+        state = state.unsqueeze(0)
+
+        qValues = self.network(state)
+        action = torch.argmax(qValues).item()
+
+        chanceOfAsparagus = random.randint(1, 10)
+        if chanceOfAsparagus == 1:  #   10% chance
+            action = random.randint(0, 1)
+
+        return action
+
+    def learn(self, memory, batchSize):
+        if len(memory) < batchSize:
+            return 
+
+        self.network.optimizer.zero_grad()
+
+        randomMemories = random.choices(memory, k=batchSize)
+        memories = np.stack(randomMemories)
+        states, actions, rewards, states_, dones = memories.T
+        states, actions, rewards, states_, dones = \
+            np.stack(states), np.stack(actions), np.stack(rewards), np.stack(states_), np.stack(dones)
+        
+        states  =   torch.tensor( states    ).float().to(self.network.device)
+        actions =   torch.tensor( actions   ).to(self.network.device)
+        rewards =   torch.tensor( rewards   ).float().to(self.network.device)
+        states_ =   torch.tensor( states_   ).float().to(self.network.device)
+        dones   =   torch.tensor( dones     ).to(self.network.device)
+
+        qValues = self.network(states)
+        nextQValues = self.network(states_)
+
+        batchIndecies = np.arange(batchSize, dtype=np.int64)
+
+        nowValues = qValues[batchIndecies, actions]       #   interpret the past
+        futureValues = torch.max(nextQValues, dim=1)[0]   #   interpret the future
+        futureValues[dones] = 0.0 
+                                  
+        trueValuesOfNow = rewards + futureValues    # temporal difference
+        loss = self.network.loss(trueValuesOfNow, nowValues)
+
+        loss.backward()
+        self.network.optimizer.step()
+
+if __name__ == '__main__':
+    env = gym.make('CartPole-v1').unwrapped
+    agent = Agent(lr=0.0001, inputShape=(4,), numActions=2)
+    BATCH_SIZE = 64
+    memory = []
+
+    highScore = -math.inf
+    episode = 0
+    while True:
+        done = False
+        state = env.reset()
+
+        score, frame = 0, 1
+        while not done:
+            # env.render()
+
+            action = agent.chooseAction(state)
+            state_, reward, done, info = env.step(action)
+            transition = [state, action, reward, state_, done]
+            memory.append(transition)
+            
+            agent.learn(memory, BATCH_SIZE)
+            state = state_
+
+            score += reward
+            frame += 1
+
+        highScore = max(highScore, score)
+
+        print(( "ep {}: high-score {:12.3f}, "
+                "score {:12.3f}, last-episode-time {:4d}").format(
+            episode, highScore, score,frame))
+
+        episode += 1</code></pre>
+  </div>
   <!-- so how are these features chosen? which features will appear? while the network is training, do many features appear, but 
                         only the strongest survive? are we incentivising the creation of good features, or cheap trick features? -->
-                        <!-- bad features vs good features -->
-    <h4>Not A Spectrum</h4>
+  <!-- bad features vs good features -->
+  <!-- <h4>Not A Spectrum</h4>
     <p>An agent's internal reasoning falls somewhere between the following two places:</p>
     <div class="grid-container halves u-align-left">
       <div class="left">
@@ -477,15 +1106,14 @@ state = [0.0, 0.0, 0.0, 10000.0] # helicopter</code></pre>
           with circumstances it has never seen before.
         </p>
       </div>
-    </div>
-    <p>You might think that the memorization side sounds bad, and the generalization side sounds good.
+    </div> -->
+  <!-- <p>You might think that the memorization side sounds bad, and the generalization side sounds good.
       But actually you want a combination of both.
     </p>
     <p>Our agent is either having a hard time <strong>discovering</strong> general features that are useful for the
       task.
       Or it is not being incentivised to do so. Or both (probably both). In reinforcement learning, unintuitively,
-      it almost always seems to be an issue of "bad" data.</p>
-  </div>
+      it almost always seems to be an issue of "bad" data.</p> -->
   <div class="grid-container full u-align-left">
     <h5>Size Isnt Everything</h5>
     <p>If our agent is memorizing, and memorizing is causing the poor performance, then it would be reasonable to think
