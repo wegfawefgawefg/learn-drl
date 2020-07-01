@@ -52,7 +52,7 @@
       of solving just one or two environments. <strong>I don't want that to be you.</strong>
       For that reason, this tutorial takes a very scenic route. But I promise when you get there you will have some
       new perspectives, questions, and context for why the researchers are investigating the solutions that they are.
-      You will probably also have some ideas for how to improve your agents performance.
+      You will probably also have some ideas for how to improve your own agents performance.
     </p>
     <h4>Prerequisites</h4>
     <p class="u-align-left">This tutorial builds onto the naive Deep Q Learning agent from the
@@ -105,7 +105,7 @@
     <h4>Instability</h4>
     <p>
       By stability issues I am referring to the huge variation in the scores the dqn agent got.
-      Let's look at those total episodic reward's again that the Deep Q agent gave us in cartpole from the last
+      Let's take another look at those total episodic reward's the cartpole Deep Q agent gave us in the last
       tutorial.
     </p>
     <pre><code class="language-python">...
@@ -147,13 +147,13 @@ ep 20377: high-score     2762.000, score      213.000, last-episode-time  214   
       How can the agent be so good sometimes,
       and so terrible other times? Is it fair to say the agent knows how to play cartpole at all?
       How many retorical questions am i going to ask?
-      What is even going on.
     </p>
   </div>
   <div class="grid-container full u-align-left">
     <h4 class="u-align-center">Feature Detectors</h4>
     <p>To understand sources of instability, it helps to know what is really going on inside the neural network.
-      "It's making a function that estimates qvalues." Okay, duh, you know that. How? Do you know what the network
+      "It's making a function that estimates qvalues." Okay, duh, you know that. How does that function look?
+      What are the pieces of that function responsible for? Do you know what the network
       is actually doing? It is surprisingly a lot more simple than you might think. <br>
       If you look at the neurons a bit more thoroughly you can find collections of neurons that function as
       detectors of patterns. In image classification these <strong>feature detectors</strong> trigger on patterns of
@@ -168,12 +168,13 @@ ep 20377: high-score     2762.000, score      213.000, last-episode-time  214   
       <img src="/tutorials/rl/experiencereplay/2.jpg" width=80%>
       <div class="right">
         <p>In reinforcement learning it works exactly the same way.
-          Early layers detect edges and simple patterns. And later layers detect combinations of simpler patterns,
+          Early layers detect simple patterns. And later layers detect combinations of simpler patterns,
           <strong>meta patterns</strong>.
           How does the network pick which pattern to detect? Any pattern in the environment that
           influences reward could show up in the network somewhere. In computer vision these patterns are called
           <strong>features</strong>.
-          If i was an RL (reinforcement learning) agent, I can think of a few <strong>feature detectors</strong>
+          If i was an RL (reinforcement learning) agent playing cartpole, I can think of a few <strong>feature
+            detectors</strong>
           I might want to have:
           <lu>
             <li>"Dangerously-low-pole-angle" is a sign of incoming low reward. So its a good pattern to look for.
@@ -188,12 +189,13 @@ ep 20377: high-score     2762.000, score      213.000, last-episode-time  214   
         </p>
       </div>
     </div>
-    <p>It actually works that way. In the case of cartpole there are no pixels, but you can
-      detect these patters by looking at relationships and ranges of the inputs.
+    <p>In the case of cartpole there are no pixels, but the network
+      detect these patterns by looking at relationships and ranges of the 4 inputs, just the same.
       Lets try it ourselves.</p>
     <h5>Be The Network</h5>
     <p>The state in cartpole is 4 values. They represent 4 aspects of the cartpole: cart position, cart velocity,
-      pole angle, and pole angular velocity. </p>
+      pole angle, and pole angular velocity. <br>
+      Given a cartpole state, try to describe its behaviour:</p>
     <pre><code class="language-python">state = [0.0, 0.0, 0.0, 0.0]     # cart is centered, not moving, pole is centered, not moving
 state = [0.0, 5.0, -0.1, -0.1]   # cart is centered, cart is moving right, pole is angled to the left, pole is falling left
 state = [9.0, 20.0, 0.0, 0.0]    # oh shit the cart is going off the right of the screen, qvalues = [1.0, 0.0], GO LEFT
@@ -212,7 +214,8 @@ state = [0.0, 0.0, 0.0, 10000.0] # helicopter</code></pre>
       layers.
       A neuron in the later layers might take a bunch of different detected features and scale the outputs of them and
       send them
-      to the correct output neuron, the action q value neurons.
+      to the correct output neuron, the action q value neurons. (I know that's an inverted way of thinking about it, but
+      metaphorically it is sound.)
       Something the last layer might say: "Oh hey the low-pole-angle-neuron and high-tip-velocity-neuron are
       active... multiply those outputs by a negative
       sign and make them BIG so we output a big low qvalue of -1000 for both the actions, because we are about to lose
@@ -224,12 +227,12 @@ state = [0.0, 0.0, 0.0, 10000.0] # helicopter</code></pre>
       You can blindly take other people's. There have been a few papers where some people have
       investigated specific neurons to try and figure out what makes them activate. The way they do this is they show
       the agent a set of states, and then check which neuron activates. Eventually for each neuron you can figure out
-      what
-      kind of thing that neuron detects.
+      what kind of thing that neuron detects.
     </p>
-    <p>Here are some examples of individual neurons found in one of their pong agents:<br>
+    <p>Here are some examples of individual neurons found in an agent that was tasked with learning pong:<br>
       I cant show you the actual neuron obviously so im showing you pictures of states that make that neuron output a
-      high number.
+      high number. These states were selected randomly. They arent from the same episode, and didn't necessarily
+      happen nearby to eachother in time.
       Keep in mind smaller features are in neurons in earlier layers, while bigger features are detected by neurons in
       later layers.
     </p>
@@ -253,7 +256,7 @@ state = [0.0, 0.0, 0.0, 10000.0] # helicopter</code></pre>
       </li>
       <hr>
       <li>
-        <p>This neuron seems to be detectinng the ball coming at the agent's paddle down and to the right.</p>
+        <p>This neuron seems to be detecting the ball coming at the agent's paddle down and to the right.</p>
         <img src="/tutorials/rl/experiencereplay/4ballComingAtPaddleDownToRight.jpg" width=100%>
       </li>
       <hr>
@@ -299,7 +302,8 @@ state = [0.0, 0.0, 0.0, 10000.0] # helicopter</code></pre>
       </li>
     </lu>
     <p>These concepts are pretty human seeming right?
-      If you wanted to find out what they are for cartpole you could go manually position the cart in various states,
+      If you wanted to find out what feature detectors are in your cartpole agent you could go manually position the
+      cart in various states,
       and see which neurons return a high activation. Could be fun.
     </p>
   </div>
@@ -343,11 +347,13 @@ state = [0.0, 0.0, 0.0, 10000.0] # helicopter</code></pre>
           features
           if you are including convolving them through time). Recurrent networks are biased towards detecting data
           order,
-          transformations or itteritive process features. And fully connected layers aren't biased and so that makes
-          them good at discovering some features but bad at discovering others. You want to design the
+          transformations or iterative process features. And fully connected layers aren't biased and so that makes
+          them good at discovering some types of features but bad at discovering the same feature that just appears
+          in a different place. You want to design the
           architecture to be biased to discovering features you think are useful for the task.<br>
-          A simple network should be good enough for cartpole.
+          But... a simple fully connected network should be good enough for cartpole.
         </p>
+        <h5>Loss</h5>
         <p>You also have the question of the specific loss function. The temporal difference function
           biases the agent to assume time functions the way we describe. In our case our agent is designed
           to assume that there is always one best action to take, and that we can know it
@@ -365,12 +371,15 @@ state = [0.0, 0.0, 0.0, 10000.0] # helicopter</code></pre>
         <h5>Network Depth</h5>
         <p>The more layers the network has, the more complex the features can be. Each layer combines features
           from previous layers. So if your network isn't deep enough it might not be able to combine enough simple
-          features to detect the good meta features. Again, in the case of cartpole, I don't think this really matters
+          features to detect the good meta features. <br>
+          Again, in the case of cartpole, I don't think this really matters
           that much.
           Once your network is beyond a few layers the environment just doesnt have any more complicated patterns to
-          discover. <br>
-          Adding a bunch more layers shrinks the gradient, and most of those layers are just wasted anyways, randomly
-          splitting and recombining into feature detectors that were already ready and formed many layers before.<br>
+          discover.
+          For a simple environment adding a bunch more layers can have negative effects.
+          It shrinks the gradient, and most of those layers end up as wasted computation, randomly
+          splitting features and recombining into feature detectors that were already fully formed and ready to use many
+          layers before.<br>
           Ours is more than deep enough as is.
         </p>
       </div>
@@ -451,8 +460,10 @@ state = [0.0, 0.0, 0.0, 10000.0] # helicopter</code></pre>
       else you
       can think of.
       How does this help our agent discover and develop good general feature detectors?
-      I will explain in a bit. Now is time for some code.
+      I will explain in a bit. Now is finally time for some code.
     </p>
+    <!-- All the effects that proper data usage techniques have on normal machine learning model's feature detectors apply 
+      for our agents feature detectors as well.  -->
     <h5>Review</h5>
     <p>Let's skim back over the code from before to see what our starting point is.</p>
     <pre><code class="language-python">import torch
@@ -578,7 +589,7 @@ if __name__ == '__main__':
             episode, highScore, score,frame))
 
         episode += 1</code></pre>
-        
+
     <h5>Replay Buffer</h5>
     <p>Good review. Okay.<br>
       See in our main function we are passing the <strong>SARS</strong>
@@ -601,7 +612,7 @@ memory.append(transition) # add to a list</code></pre>
     BATCH_SIZE = 64 # you will see why we need this in a bit
     memory = []</code></pre>
     <p>All togethor it looks like this.</p>
-        <pre><code class="language-python">if __name__ == '__main__':
+    <pre><code class="language-python">if __name__ == '__main__':
     env = gym.make('CartPole-v1').unwrapped
     agent = Agent(lr=0.0001, inputShape=(4,), numActions=2)
     BATCH_SIZE = 64       # constant
@@ -638,13 +649,13 @@ memory.append(transition) # add to a list</code></pre>
         episode += 1</code></pre>
     <h5>Rewrite Learn Function Again</h5>
     <p>Now we are creating a real dataset. That memory will fill up nicely. <br>
-      But, the agent is not still receiving single transitions to learn from.
+      But, the agent not receiving single transitions to learn from anymore.
       If we want to make it learn from the <strong>replay buffer</strong> instead, we have to rewrite the agents learn
       function
       so it can handle batches of transitions instead of just single transitions.
     </p>
     <pre><code class="language-python">def learn(self, memory, batchSize):
-    if len(memory) < batchSize: # dont even bother learning if you cant make a batch
+    if len(memory) < batchSize: # dont even bother learning if you cant make a decent batch
         return 
 
     self.network.optimizer.zero_grad()
@@ -670,7 +681,7 @@ memory.append(transition) # add to a list</code></pre>
     qValues = self.network(states)  # compute an entire batch of q values
     nextQValues = self.network(states_) # same as above, but for the "next state"
                                         # instead of the current state
-    batchIndecies = np.arange(batchSize, dtype=np.int64)  # more numpy bullshit
+    batchIndecies = np.arange(batchSize, dtype=np.int64)  # an indexing array (will explain later)
 
     nowValues = qValues[batchIndecies, actions]    #   interpret the past
     futureValues = torch.max(nextQValues, dim=1)[0]    #   interpret the future
@@ -694,7 +705,13 @@ memory.append(transition) # add to a list</code></pre>
         Even if k >= len(memory), the random.choices() function still works. You just might
         get some repeats.
       </p>
-
+      <h5>Minimum Data</h5>
+      <p>If you only have a few transitions stored the batch is not going to be a very good batch.
+        It's okay to just exit the function until the replay buffer has enough data.
+      </p>
+      <pre><code class="language-python">if len(memory) < batchSize:
+    return </code></pre>
+      <p>The minimum memory size has important agent performance implications actually. More on that later.</p>
     </div>
     <div>
       <h5>Batched Temporal Difference</h5>
@@ -706,37 +723,47 @@ memory.append(transition) # add to a list</code></pre>
       </p>
       <pre><code class="language-python">trueValuesOfNow = rewards + futureValues
 
-# its numpy magic for:
-  trueValuesOfNow = [] 
-  for transition in memoryBatch:
-    qValue = network(transition.state)
-    trueValuesOfNow.append(transition.reward + max(qValue))</code></pre>
+# that's numpy magic for:
+trueValuesOfNow = [] 
+for transition in memoryBatch:
+  qValues = network(transition.state)
+  trueValuesOfNow.append(transition.reward + max(qValues))</code></pre>
       <p>Notice vectorized code is much shorter. It expresses a lot more in much less code.
         Some people find it hard to read at first, and it can be even more fickle to write.
         That fickleness usually comes in the form of "pipe-alignment"
         work. Thats why theres the whole <code>np.stack()</code>
         block <code>np.arange()</code>, and <code>.float()</code> stuff up in the learn function.<br>
         Don't feel bad if it often takes you a substantial amount of time to "align your pipes" in numpy.
+        I'm going to explain each bit of numpy magic used above.
       </p>
     </div>
   </div>
   <div class="grid-container full u-align-left">
     <h5>Fickle Nonsense</h5>
     <p>Numpy and pytorch can be really particular about everything.
-      They love to complain about shapes, and pytorch especially loves to complain about types.
+      They love to complain about array shapes, such as square, triangle, and circle.
+      And Pytorch especially loves to complain about datatypes.</p>
+    <pre><code class="language-python">>>> me = torch.tensor([1,2,3], dtype=torch.Gemini)
+>>> her = torch.tensor([4,5,6], dtype=torch.Scorpio)
+>>> me + her
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: unsupported operand type(s) for +: 'Gemini' and 'Scorpio'</code></pre>
+    <p>Pytorch expects your stars to be aligned. Luckily you are god and you have very long arms.<br>
       <strong>State</strong>s and <strong>reward</strong>s should be float type. Thats because your gpu won't like
       if they are doubles. I don't know if most gpu's don't have double precision
       floating point processing units, or if the torch devs just never implemented
       the required infrastructure to use it.<br>
       <strong>Action</strong>s need to be int64 type. That's because you are using them to index tensors.</p>
-      <pre><code class="language-python">#   batchIndecies is a tensor used to index another tensor
+    <pre><code class="language-python">#   batchIndecies is a tensor used to index another tensor
 batchIndecies = np.arange(batchSize, dtype=np.int64)  # [0, 1, 2, ..., batchSize]
 nowValues = qValues[batchIndecies, actions] # actions is a tensor of indecies also
 # batchIndecies is indexing the first dimension of qValues
 # while the values of actions are being used to index the second dimension of qValues</code></pre>
-      <p>Indexing tensors with other tensors is something you will have to do all the time.<br>
-        Anyways, notice how <code>batchIndecies.dtype == np.int64</code>. This kind of stuff is easy to miss. <strong>Pytorch cares.</strong><br>
-         It works just fine to index numpy arrays with either int32 or int64's. It won't work in pytorch.
+    <p>Indexing tensors with other tensors is something you will have to do all the time.<br>
+      Anyways, notice how <code>batchIndecies.dtype == np.int64</code>. This kind of stuff is easy to miss.
+      <strong>Pytorch cares.</strong><br>
+      It works just fine to index numpy arrays with either int32 or int64's. It won't work in pytorch.
     </p>
     <pre><code class="language-python">#  in numpy this shit works fine
 >>> a = np.arange(10)
@@ -763,8 +790,8 @@ array([0, 1, 2, 3, 4], dtype=int32)
 >>> a[b]
 array([0, 1, 2, 3, 4])
 # wow it worked</code></pre>
-<p>Now try it in pytorch... watch...</p>
-<pre><code class="language-python">>>> a = torch.arange(10)
+    <p>Now try it in pytorch... watch...</p>
+    <pre><code class="language-python">>>> a = torch.arange(10)
 >>> a
 tensor([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 >>> b = torch.arange(5)
@@ -785,30 +812,37 @@ Traceback (most recent call last):
 File "<stdin>", line 1, in <module>
 IndexError: tensors used as indices must be long, byte or bool tensors
 # thanks pytorch for the very clear error message</code></pre>
-<p>I know you are probably thinking "wow this is crazy specific, why are you telling me this? It's information overload.
-  I will never remember this."
-I'm telling you this because a lot of the time this is what working with numpy and tensors is actually like. 
-Behind every happy face in a deep q learning tutorial on youtube that takes 5 minutes to watch is a cold 
-broken soul that spent 100 hours googling something like this:</p> 
-<pre><code class="language-python">RuntimeError: cuda runtime error (59) : device-side assert triggered at ...</code></pre>
-<h5>Impending Dooooom</h5>
-<p>From here on out all of the 
-code is going to be working with vectorized notation. Vectorized states, vectorized state processing, 
-vectorized experience replay, vectorized loss, vectorized temporal difference functions, vectorized vectorization, 
-vectorized sleeping, vectorized eating, vectorized pooping, vectorized stack overflowing. <br>
-You are probably going to have to do a bunch of "pipe-aligning" of your own. If i just show you the code, you won't realize this type of thinking is going on underneath when i'm writing 
-this vectorized numpy/tensor stuff. I had to google a whole lot of errors to figure out pipe-alignment at first. 
-You reading this section may have just saved you 10 hours of time.</p>
-<h5>Really Good Advice. Seriously, Actually Do This:</h5>
-<p>
-So far the best strategy I have for writing vectorized stuff is line by line deliberate programming. 
-Don't just try random changes to code to fix the numpy/pytorch 
-pipe-alignment errors. Plan out your data pipeline first. Carefully print each line as your transform the data to 
-make sure each operation does exactly what you thought it did. If you do it that way you can be sure it will work on the first try. 
-And you can avoid days or weeks of the most will-breaking bug searching you can imagine.
-</p>
-<h5>Fetching And Formatting Our Memories</h5>
-<p>Now that you know a little more, check out how it's done in the learn function again..</p>
+    <p>I know you are probably thinking "wow this is crazy specific, why are you telling me this? It's information
+      overload.
+      I will never remember this."
+      I'm telling you this because a lot of the time this is what working with numpy and tensors is actually like.
+      Behind every happy face in a deep q learning tutorial on youtube that takes 5 minutes to watch is a cold
+      broken husk of a man that spent 100 hours googling something like this:</p>
+    <pre><code class="language-python">RuntimeError: cuda runtime error (59) : device-side assert triggered at ...</code></pre>
+    <h5>Impending Dooooom</h5>
+    <p>From here on out all of the
+      code is going to be working with vectorized notation. Vectorized states, vectorized state processing,
+      vectorized experience replay, vectorized loss, vectorized temporal difference functions, vectorized vectorization,
+      vectorized sleeping, vectorized eating, vectorized pooping, vectorized stack overflowing. <br>
+      You are definitely going to have to do a bunch of "pipe-aligning" of your own. So I was
+      worried that if i just show you the code, you
+      won't realize this type of thinking is going on underneath when writing
+      this vectorized numpy/tensor stuff. I had to google a whole lot of errors to figure out pipe-alignment at first.
+      You reading this section may have just saved you 10 hours of time.</p>
+    <h5>Really Good Advice. Seriously, Actually Do This:</h5>
+    <p>
+      So far the best strategy I have for writing vectorized stuff is line by line deliberate programming.
+      Don't just try random changes to code to fix the numpy/pytorch
+      pipe-alignment errors. Plan out your data pipeline first. Carefully print each line as your transform the data to
+      make sure each operation does exactly what you thought it did. If you do it that way you can be sure it will work
+      on the first try.
+      And you can avoid days or weeks of the most will-breaking bug searching you can imagine.<br>
+      After a while you end up seeing way less errors like these anyway.
+      Probably because you got good at planning your pipes.<br>
+      But that might never happen if you are just <strong>googling random errors</strong>. Be deliberate.
+    </p>
+    <h5>Fetching And Formatting Our Memories</h5>
+    <p>Now that you know a little more, check out how it's done in the learn function again.</p>
     <pre><code class="language-python">randomMemories = random.choices(memory, k=batchSize)  # randomly choose some memories
 
 memories = np.stack(randomMemories) 
@@ -821,10 +855,11 @@ actions =   torch.tensor( actions   ).to(self.network.device)         # dtype in
 rewards =   torch.tensor( rewards   ).float().to(self.network.device) # dtype float32
 states_ =   torch.tensor( states_   ).float().to(self.network.device) # dtype float32
 dones   =   torch.tensor( dones     ).to(self.network.device)         # dtype bool</code></pre>
-    <p>Notice the deliberate types now? See we cast state, reward and states_ to float. 
+    <p>I bet you didn't pay much attention to it before, but do you notice the deliberate types now?
+      See we cast state, reward and states_ to float.
       This code is actually getting lucky and the actions end up as <code>dtype=int64</code> automatically.
-      The <code>dones</code> array is of type <code>bool</code>. Yes you can do that.
-      You can use bool arrays to mask out other arrays for operations.<br>
+      The <code>dones</code> array is of type <code>bool</code>. Bool arrays are pretty useful.
+      You can use them to mask out other arrays for operations.<br>
       Check this out:
     </p>
     <pre><code class="language-python">>>> a = np.ones(4)
@@ -837,22 +872,22 @@ array([ True, False,  True, False])
 >>> a
 array([2., 1., 2., 1.])
 </code></pre>
-<p>Look familiar? It should.</p>
-<pre><code class="language-python">nowValues = qValues[batchIndecies, actions]    #   interpret the past
+    <p>Look familiar? It should.</p>
+    <pre><code class="language-python">nowValues = qValues[batchIndecies, actions]    #   interpret the past
 futureValues = torch.max(nextQValues, dim=1)[0]    #   interpret the future
 
 '''WE DID IT HERE: 
   it sets predicted q values to zero if the done is true at that index'''
 futureValues[dones] = 0.0   #   ignore future actions if there will 
                             #   be no future actions anyways</code></pre>
-  <h5>Last Pipe Alignment</h5>
-  <p>If you already know how this part works you can skip this section.</p>
-  <pre><code class="language-python">memories = np.stack(randomMemories) 
+    <h5>Last Pipe Alignment</h5>
+    <p>If you already know how this part works you can skip this section.</p>
+    <pre><code class="language-python">memories = np.stack(randomMemories) 
 states, actions, rewards, states_, dones = memories.T
 states, actions, rewards, states_, dones = \
     np.stack(states), np.stack(actions), np.stack(rewards), np.stack(states_), np.stack(dones)</code></pre>
-  <p>Code does a good job of explaining what this does.</p>
-  <pre><code class="language-python">#  make fake memories
+    <p>Code does a good job of explaining what this does.</p>
+    <pre><code class="language-python">#  make fake memories
 >>> a = np.arange(25)
 >>> a
 array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16,
@@ -897,7 +932,7 @@ array([[ 0,  5, 10, 15, 20],
        [ 4,  9, 14, 19, 24]])
 
 # # tuple unpacking
->>> sliceOne, sliceTwo = ([[1, 2], [3, 4]])
+>>> sliceOne, sliceTwo = [[1, 2], [3, 4]]
 >>> sliceOne
 [1, 2]
 >>> sliceTwo
@@ -926,7 +961,7 @@ array([ 4,  9, 14, 19, 24])</code></pre>
     <h4 class="u-align-center">Full Code</h4>
     <p>Good job if you made it through last section and you understand each line of the learn function.<br>
       Here is the full code.</p>
-      <pre><code class="language-python">import torch
+    <pre><code class="language-python">import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -1045,11 +1080,275 @@ if __name__ == '__main__':
             episode, highScore, score,frame))
 
         episode += 1</code></pre>
+    <p>Most of the code in creating the actual experience replay buffer didn't involve the actual
+      experience replay buffer. The replay buffer was just an array. Almost
+      everything we coded was just aligning the pipes. FUN.
+    </p>
   </div>
-  <!-- so how are these features chosen? which features will appear? while the network is training, do many features appear, but 
+  <div class="grid-container full u-align-left">
+    <h5>Did We Really Change Anything?</h4>
+      <p>The neural network gets batches now. Great. Let's see if it had any impact on performance.</p>
+      <pre><code class="language-python">...
+ep 632: high-score     2275.000, score     1340.000, last-episode-time 1341
+ep 633: high-score     2275.000, score      479.000, last-episode-time  480
+ep 634: high-score     2275.000, score      389.000, last-episode-time  390
+ep 635: high-score     2275.000, score      581.000, last-episode-time  582
+ep 636: high-score     2275.000, score      319.000, last-episode-time  320
+ep 637: high-score     2275.000, score      256.000, last-episode-time  257
+ep 638: high-score     2275.000, score      518.000, last-episode-time  519
+ep 639: high-score     2275.000, score      354.000, last-episode-time  355
+ep 640: high-score     2275.000, score      423.000, last-episode-time  424
+ep 641: high-score     2275.000, score      704.000, last-episode-time  705
+ep 642: high-score     2275.000, score      648.000, last-episode-time  649
+ep 643: high-score     2275.000, score      612.000, last-episode-time  613
+ep 644: high-score     2275.000, score      342.000, last-episode-time  343
+ep 645: high-score     2275.000, score      630.000, last-episode-time  631
+ep 646: high-score     2275.000, score      730.000, last-episode-time  731
+ep 647: high-score     2275.000, score      952.000, last-episode-time  953
+ep 648: high-score     2275.000, score      349.000, last-episode-time  350
+...</code></pre>
+      <p>Holy shit look at those scores. Not only are they high, but not a single one is below 200.
+        We <strong>may</strong> have addressed the network stability somewhat.
+      </p>
+      <h4 class="u-align-center">Making Fair Comparisons</h4>
+      <p class="u-align-center">Is it really better? We are basically using the same transitions as before.<br>
+        All we did was just batch the learning. Does this really work or are we being fooled?</p>
+      <h5>Episodic Reward Problems</h5>
+      <p>
+        First we should sanity check ourselves. Is it fair to compare the performance of this agent
+        at episode 500 to the version with no replay buffer at episode 500? Yes, and no.
+        In the old version the network only learned from one transition each step.
+        So on episode 500, if each episode was an average of 80 steps, the agent went through
+        500 * 80 = 40,000 transitions in total. Compare that to the new agent with memory.
+        The new version of the agent is calculating error for 64 transitions per step.
+        So at episode 500, if it had an average of 80 steps per episode, that would be 500 * 80 * 64 = 2,560,000
+        transitions.
+        The new agent has done way <strong>WAY</strong> more processing by episode 500.
+        In fact, the new agent processes so many transitions per step that it already hits the 40,000 transition mark
+        <strong>by episode 8</strong>.<br>
+        Additionaly, we are assuming that every episode is exactly 80 steps long. That never happens. Every episode
+        could be drastically
+        different in duration.<br>
+        This is a problem. How are we supposed to compare the performance of different agents if
+        the concept of an episode and the concept of a step is not the same across agents?
+        To make this even worse, in the agent with no memory, when it has done 40,000 steps it has seen
+        40,000 unique new transitions. It never reuses even one of them. For an agent with a replay buffer, by the time
+        it has processed 40,000 steps, the memory
+        has only collected about 600 transitions. That means some of those transitions could have been reused
+        <strong>over a hundred times</strong>.
+      </p>
+      <h5>Sample Efficiency</h5>
+      <p>Instead of using episodes or learn steps, a great way to measure agent performance is with "<strong>sample
+          efficiency</strong>".
+        The <strong>sample efficiency</strong> of an agent is simple. What performance did that agent achieve by the
+        time it has seen
+        x number of <strong>unique</strong> transitions. The better the performance gained per transition collected, the
+        better the sample efficiency is.
+        If you give two different agents 1,000,000 samples, the one that gets better, more reliable performance is the
+        better agent.<br>
+        So let's be fair and compare the old agent to the new agent on a per sample basis.</p>
+      <p>Here I modified the old agent without a replay buffer to print out the number of samples:</p>
+      <pre><code class="language-python">"""OLD AGENT CODE"""
+if __name__ == '__main__':
+    env = gym.make('CartPole-v1').unwrapped
+    agent = Agent(lr=0.0001, inputShape=(4,), numActions=2)
+
+    highScore = -math.inf
+    episode = 0
+    numSamples = 0            # LOOK HERE
+    while True:
+        done = False
+        state = env.reset()
+
+        score, frame = 0, 1
+        while not done:
+            env.render()
+
+            action = agent.chooseAction(state)
+            state_, reward, done, info = env.step(action)
+            
+            agent.learn(state, action, reward, state_, done)
+            state = state_
+
+            numSamples += 1     # increment it every time the agent gets one sample
+
+            score += reward
+            frame += 1
+
+        highScore = max(highScore, score)
+
+        print(( "total samples: {}, ep {}: high-score {:12.3f}, " # print it out now too
+                "score {:12.3f}").format(
+            numSamples, episode, highScore, score,frame))
+
+        episode += 1</code></pre>
+      <p>After running it for a few minutes, here are the results at 50,000 transitions.</p>
+      <pre><code class="language-python">...
+total samples: 49212, ep 1145: high-score     1094.000, score      198.000
+total samples: 49536, ep 1146: high-score     1094.000, score      324.000
+total samples: 49828, ep 1147: high-score     1094.000, score      292.000
+total samples: 49837, ep 1148: high-score     1094.000, score        9.000
+total samples: 49847, ep 1149: high-score     1094.000, score       10.000
+total samples: 49856, ep 1150: high-score     1094.000, score        9.000
+total samples: 49864, ep 1151: high-score     1094.000, score        8.000
+total samples: 49876, ep 1152: high-score     1094.000, score       12.000
+total samples: 49885, ep 1153: high-score     1094.000, score        9.000
+total samples: 49895, ep 1154: high-score     1094.000, score       10.000
+total samples: 49905, ep 1155: high-score     1094.000, score       10.000
+total samples: 49915, ep 1156: high-score     1094.000, score       10.000
+total samples: 50050, ep 1157: high-score     1094.000, score      135.000
+...</code></pre>
+      <p>Now lets modify the new agent code to print out the number of unique samples collected.</p>
+      <pre><code class="language-python">"""NEW AGENT CODE"""
+if __name__ == '__main__':
+    env = gym.make('CartPole-v1').unwrapped
+    agent = Agent(lr=0.0001, inputShape=(4,), numActions=2)
+    BATCH_SIZE = 64
+    memory = []
+
+    highScore = -math.inf
+    episode = 0
+    numSamples = 0        # LOOK HERE AGAIN
+    while True:
+        done = False
+        state = env.reset()
+
+        score, frame = 0, 1
+        while not done:
+            env.render()
+
+            action = agent.chooseAction(state)
+            state_, reward, done, info = env.step(action)
+            transition = [state, action, reward, state_, done]
+            memory.append(transition)
+            
+            agent.learn(memory, BATCH_SIZE)
+            state = state_
+
+            numSamples += 1 # still only one sample collected per transition
+
+            score += reward
+            frame += 1
+
+        highScore = max(highScore, score)
+
+        print(( "total samples: {}, ep {}: high-score {:12.3f}, "   # and same printing
+                "score {:12.3f}").format( 
+            numSamples, episode, highScore, score,frame)) 
+
+        episode += 1</code></pre>
+      <p>And the results at 50,000 samples:</p>
+      <pre><code class="language-python">total samples: 45658, ep 227: high-score     1063.000, score      180.000
+total samples: 45941, ep 228: high-score     1063.000, score      283.000
+total samples: 46332, ep 229: high-score     1063.000, score      391.000
+total samples: 46477, ep 230: high-score     1063.000, score      145.000
+total samples: 46762, ep 231: high-score     1063.000, score      285.000
+total samples: 46955, ep 232: high-score     1063.000, score      193.000
+total samples: 47430, ep 233: high-score     1063.000, score      475.000
+total samples: 47929, ep 234: high-score     1063.000, score      499.000
+total samples: 48512, ep 235: high-score     1063.000, score      583.000
+total samples: 48835, ep 236: high-score     1063.000, score      323.000
+total samples: 49019, ep 237: high-score     1063.000, score      184.000
+total samples: 49897, ep 238: high-score     1063.000, score      878.000
+total samples: 50092, ep 239: high-score     1063.000, score      195.000</code></pre>
+      <p>Look at that stability.<br>
+        Notice, it has only played 239 episodes whereas the other one was on episode 1157.
+        And even though the stability has changed, the high score is similar. Perhaps that has to do with us having a
+        very similar distribution of transitions collected.
+        After all, what is in the data matters a lot, not just how much of it there is. The cartpole environment should
+        be providing
+        very similar transitions to both agents. <br>
+        Now, if we were really good scientists we would use the same set of transitions on both agents, and identical
+        starting weights
+        and frozen random seeds for the environment. I think that is overkill and if you run these 2 agents 100 times
+        each
+        you won't become any less confident about the following conclusion:<br>
+        An Experience Replay Buffer can increase the sample efficiency of a deep q agent.</p>
+      <h5>Wall Clock Time</h5>
+      <p>Something else to consider is runtime.<br>
+        Both agents can be considered on a per sample basis, however, the version with the replay buffer takes
+        substantially longer
+        to run each update step. Running on cpu it should take somewhere between 1 and 80ish times as long to process
+        one step of a network update. I had to wait quite a bit longer for the memory agent to hit the 50,000 samples
+        mark.
+        Whereas the agent without a replay buffer hit 50,000 samples in less than a minute. I didn't even have enough
+        time to make a
+        sandwhich.<br>
+        Part of this slowness has to do with our naive implementation of the replay buffer, which we will fix another
+        time.
+        But, we did legitimately increase the amount of computation necessary to train the agent on an equivalent amount
+        of experience.<br><br>
+        This difference in training clock time doesn't matter once you deploy the agent. Once the
+        agents are trained up to your satisfaction you can disable the learn function and just let the agents play
+        "offline".
+        Both agents take equally long to pick actions if they arent learning. (But the agent trained with the memory
+        will get much better scores. :^)</p>
+      <h5>Do All Three</h5>
+      For these reasons, when you see RL papers comparing agents, often times they will contain graphs of "reward per
+      episode",
+      "reward per sample", and "reward per time". Having all three methods of comparison ensures you are getting a
+      more fair assessment of performance between agents.</p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4 class="u-align-center">It Is Also Just Plain Better Though</h4>
+    <p>The new agent is way better in general. The features in the old agent would decay so fast from the poor dataset
+      that
+      they never got a chance to get refined. You can think of it like a persistant force of chaos always pressing down
+      on the
+      weights of the neural network at each step. The old agent's feature detectors were always taking one step forward,
+      two steps back.
+      It's highly likely you could train the old agent for days and it would never get as good as the new one with the
+      replay buffer.
+    </p>
+    <h4>What's Next</h4>
+    <p>Before you go off looking for the next upgrade to your agent, you should
+      assure that you really understand why adding the replay buffer improves performance so drastically.
+      I know you are probably wondering why it works at all given that we didn't really change much.
+      It is the same amount of transitions as before, just in a different order...
+      I want you to think about it for yourself first as I will go deeply into this in the next tutorial.</p>
+    <lu>For now I will leave you with some questions...
+      <li>How come in classification tasks in typical machine learning you should always shuffle your data?</li>
+      <li>Why in both computer vision and NLP is data usually batched or minibatched? Does it improve performance?
+        Or is it only done for compute speed?
+      </li>
+      <li>Why in typical machine learning is it important to have balanced data? Ex:
+        If it is a classification task, why do you want equally as many images of cats as of dogs?
+        Is it okay to have 10,000 pictures of dogs, but only 100 pictures of cats?
+      </li>
+      <li>
+        What does it mean for an agent to generalize instead of memorize?
+      </li>
+      <li>
+        Why is my wife spending the weekend at her mothers house?
+      </li>
+    </lu>
+    <p>If you can answer these questions, there's a good chance that you just might know how to read english.</p>
+    <a class="u-align-center" href="/index.html">Tutorial Hub</a>
+    <p></p>
+    <p></p>
+  </div>
+</body>
+
+</html>
+
+<!-- 
+
+
+    CONGRATS YOU FOUND MY BONUS NOTES AND DRAFT
+    HERE IS A COOKIE :^)
+
+
+
+ -->
+ 
+<!-- also compare compute efficiency -->
+<!-- <h5>Too Many Problems</h5>
+  Here is a li -->
+
+<!-- so how are these features chosen? which features will appear? while the network is training, do many features appear, but 
                         only the strongest survive? are we incentivising the creation of good features, or cheap trick features? -->
-  <!-- bad features vs good features -->
-  <!-- <h4>Not A Spectrum</h4>
+<!-- bad features vs good features -->
+<!-- <h4>Not A Spectrum</h4>
     <p>An agent's internal reasoning falls somewhere between the following two places:</p>
     <div class="grid-container halves u-align-left">
       <div class="left">
@@ -1107,14 +1406,14 @@ if __name__ == '__main__':
         </p>
       </div>
     </div> -->
-  <!-- <p>You might think that the memorization side sounds bad, and the generalization side sounds good.
+<!-- <p>You might think that the memorization side sounds bad, and the generalization side sounds good.
       But actually you want a combination of both.
     </p>
     <p>Our agent is either having a hard time <strong>discovering</strong> general features that are useful for the
       task.
       Or it is not being incentivised to do so. Or both (probably both). In reinforcement learning, unintuitively,
       it almost always seems to be an issue of "bad" data.</p> -->
-  <div class="grid-container full u-align-left">
+<!-- <div class="grid-container full u-align-left">
     <h5>Size Isnt Everything</h5>
     <p>If our agent is memorizing, and memorizing is causing the poor performance, then it would be reasonable to think
       that
@@ -1144,11 +1443,11 @@ if __name__ == '__main__':
     </p>
   </div>
   <div class="grid-container full">
-    <h4>Replay Buffer</h4>
-    <!-- lets consider more why this even works, and go back to why you dont just want to grow your network -->
-    <!-- Secondly, you probably dont need all that power to complete your task anyway. -->
-    <!-- Are there really any options to change that? And is it a crutch? -->
-    <!-- memorization is bad. " its not that simple, you want memorization at the other end of your features! The features 
+    <h4>Replay Buffer</h4> -->
+<!-- lets consider more why this even works, and go back to why you dont just want to grow your network -->
+<!-- Secondly, you probably dont need all that power to complete your task anyway. -->
+<!-- Are there really any options to change that? And is it a crutch? -->
+<!-- memorization is bad. " its not that simple, you want memorization at the other end of your features! The features 
         are just that, features. They dont instigate ACTION. Ideally you want the network to detect the minimum necessary 
         features it needs to complete the task, and then a small set of memorized actions at the end of that. 
         Example: feature, detect pole is falling left. trigger memorized action: move the cart left. 
@@ -1176,43 +1475,16 @@ to one or a few specific circumstances.
     A General feature like that would only need to exist one time in the neural network, as opposed to a huge number of feature 
 triggers for specific positions and cases in known levels-->
 
-    <!-- goomba jump example
+<!-- goomba jump example
     environment never gives a reason to learn general features, because jumping when you see a specific set of tiles works great. 
 the network is never coerced to do otherwise. 
 the analogous situation in cartpole is -->
-    <!-- replay buffer cant solve all of that, in some waay it must be solved by the environment design, just like how 
+<!-- replay buffer cant solve all of that, in some waay it must be solved by the environment design, just like how 
 meticulously picking data sources, designing shuffling and data augmenting your dataset for classification is so important. 
 However, it can solve some of this.  -->
-    <pre><code class="language-python">class Network(torch.nn.Module):
-    def __init__(self, lr, inputShape, numActions):
-        super().__init__()
-        self.inputShape = inputShape
-        self.numActions = numActions
-        self.fc1Dims = 1024
-        self.fc2Dims = 512
 
-        #   layers
-        self.fc1 = nn.Linear(*self.inputShape, self.fc1Dims)
-        self.fc2 = nn.Linear(self.fc1Dims, self.fc2Dims)
-        self.fc3 = nn.Linear(self.fc2Dims, numActions)  # output 1 outcome estimate per action
-
-        #   pytorch stuff
-        self.optimizer = optim.Adam(self.parameters(), lr=lr)
-        self.loss = nn.MSELoss()
-        # self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.device = torch.device("cpu")
-        self.to(self.device)
-
-    def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-
-        return x</code></pre>
-  </div>
-
-  <!-- called q values because of probability theory or something. but its not quite the same -->
-  <!-- issues:
+<!-- called q values because of probability theory or something. but its not quite the same -->
+<!-- issues:
       catastrophic forgetting. (experience replay)
       overestimation  (link to dueling) (link to twin)
       discrete values (a few options, branching, )
@@ -1230,354 +1502,6 @@ However, it can solve some of this.  -->
 
       - add epsilon greedy in the next tutorial
       -->
-
-  <div class="grid-container halves u-align-left">
-    <div>
-      <h5>Network Inputs</h5>
-      <p>
-        InputShape should be a tuple. In the case of cartpole it's
-        <pre><code>... inputShape=(4,), numActions=2 ...</code></pre>
-        Input shape is of size 4, because the cartpole environment state consists of 4 numbers. Those 4 numbers
-        are the angle, and position of the cart and whatnot. Is it weird I don't really care what they are?
-        It works anyways. The agent is supposed to do my work for me.<br>
-        The numActions is just how many discrete actions you can choose from for the environment. In this
-        case the agent can pick to shift the cart left or right. So two actions, 0 or 1.
-      </p>
-    </div>
-    <div>
-      <h5>Network Outputs</h5>
-      <p>
-        See in the forward function we just pass in the environment state and out comes an array of
-        numbers, one for each action. Those are the <strong>Q Value</strong>s.
-      </p>
-      <pre><code>#  self.fc3 = nn.Linear(self.fc2Dims, numActions)
-def forward(self, x):
-    x = F.relu(self.fc1(x))
-    x = F.relu(self.fc2(x))
-    x = self.fc3(x)
-
-    return x</code></pre>
-      One outcome value prediction for each action.
-      </p>
-      <pre><code class="language-python">#  call forward by using the network name with ()
-predicted_outcomes = network(now_state)
-predicted_outcomes is array([100., -10., 200.])</code></pre>
-    </div>
-  </div>
-  <div class="grid-container full">
-    <p>That's it for the network code.</p>
-  </div>
-  <div class="grid-container full u-align-left">
-    <h4>Choose Wisely (Greedily)</h4>
-    <p>Let's make the <strong>agent</strong> now.<br>
-      As I said before, the agent will pick the action with the highest value estimation.
-      Why? Well, if you wanted to make an agent that got progressively worse at things, you could pick the lowest. :^)
-    </p>
-    <pre><code class="language-python">def chooseAction(self, observation):
-    # your env state probably comes in as a numpy array of floats. So we have to put it in a tensor
-    state = torch.tensor(observation).float()
-    state = state.to(self.dqn.device) # and put it on the gpu/cpu
-    state = state.unsqueeze(0)  # pytorch likes inputs in a specific shape (1, 8) instead of just (8)
-
-    qValues = self.dqn(state) # pass it through the network to get your estimations
-    action = torch.argmax(qValues) # pick the highest
-    return action.item()  # return an int instead of a tensor containing the index of the best action</code></pre>
-    <p>This greedy selection might feel wrong to you. Sometimes we need to pick the action that
-      is worse in the short term but gives us better options in the long term, right?
-      Your intuition is good. However, although the QValues start off as short sighted,
-      if an action gives the agent better options in the long term, and the agent is
-      training well, then the <strong>QValue</strong> of the long-term action will slowly increase
-      throughout training until it beats out the greedy actions.<br>
-      An example of this might be in pacman, where the agent has to pick between two directions.
-      One direction might have lots of dots to eat, but lead to a dead end. The other direction might
-      have no dots, but lead to a new section of the maze full of even more dots to eat that the first direction.<br>
-      At first you can expect your agent to go with the easy reward. In fact... sometimes it might never figure out the
-      long
-      term best action. Anyways the point is the <strong>QValue</strong>s are not straightforward to interpret.
-      It can be really difficult to figure out if the agent is being nearsighted or thinking long term just
-      from the QValues alone. This greedy action selection, ends up being a lot less greedy than you would worry.
-    </p>
-  </div>
-  <div class="grid-container full u-align-left">
-    <h4>Better Forecasting</h4>
-    <p>
-      Unlike in Actor-Critic, this network only has one error to minimize.
-      That one error is the difference between the reward the environment gave us,
-      and what the QValue guessed it would be.
-    </p>
-    <pre><code class="language-python">def learn(self, state, reward): 
-    self.network.optimizer.zero_grad()  #   pytorch stuff: resets all the tensor derivatives
-
-    # put our states in tensors and such
-    state = torch.tensor(state).float().detach()  # detach it so we dont backprop through it
-    state = state.to(self.dqn.device) # and put it on the gpu/cpu
-    state = state.unsqueeze(0)
-
-    reward = torch.tensor(reward).float().detach()  # have to put the reward in tensor form too
-    reward = reward.to(self.network.device) # and on the proper device
-
-    qValues = self.network(state) # predict what reward each action will get
-    valueOfBestAction = qValues.max() # assume it took the best action
-
-    # did we accurately predict how much reward the best action would give us?
-    loss = self.network.loss(valueOfBestAction, reward) 
-
-    loss.backward() # calculate the influence environment state and action choice had on the reward
-    self.network.optimizer.step()   # tweak the weights to reduce the error</code></pre>
-  </div>
-  <div class="grid-container halves u-align-left">
-    <div>
-      <h5>Loss</h5>
-      <p>The network takes the difference between the actual <strong>reward</strong> and its predicted reward as its
-        loss.
-        The agent picks an action, gives that action to the environment. The environment gives a reward.
-        Then you get to see how wrong it was.
-
-        The action QValue is the reward prediction right? You want it to be correct.<br><br>
-        If the difference between reward and prediction is zero, it means the network perfectly predicted the
-        reward it would get. That means it "understands reality". <br><br>
-        If the difference is high, it means the network really over/under valued its action. <br>
-        If the difference is low, it means the network only kinda under/over valued its action. <br><br>
-
-        The error being positive means it was an overvalued action.<br>
-        The error being negative means it was an undervalued action.<br>
-
-        Anyways, both of those are bad things.
-      </p>
-    </div>
-    <div>
-      <h5>.detach()</h5>
-      <p>
-        Remember when we called <code>.detach()</code> on the state?
-        We do that every time before we pass it into the network.
-        Well that's important. While the environment is responsible for what reward the agent predicts it will get,
-        it would be wrong to modify the state according to the loss.<br>
-        If we don't detach it, when we backprop the error, the state tensor will absorb a portion of the loss.<br>
-        So why is that bad? Well, the state is just state. It's life. <br>
-        You can't change the laws of physics, you can only change your interpretation of the state, and your
-        choices.<br>
-        So the loss should be accounted for in the change to the network weights, not the state.
-      </p>
-    </div>
-  </div>
-  <div class="grid-container full">
-    <h5>This Isn't How They Do It In My Textbook</h5>
-    <p>
-      You were expecting a bunch of nonsense about temporal difference,<br>
-      compounding reward probabilities and whatnot
-      weren't you? <br>
-      Don't worry. We will get there.
-    </p>
-  </div>
-  <div class="grid-container full u-align-left">
-    <h4>The Whole Agent</h4>
-    <p>
-      The <strong>agent</strong> class holds the network and functions as a nice place to put utilities needed
-      for decision making. You've already seen all this code. It's just in one place now.
-      I'm not a huge fan of unnecessary classes but this Agent will be convenient later when we add stuff to it.
-      Also it is a pretty standard way of doing it.
-    </p>
-    <pre><code class="language-python">class Agent():
-    def __init__(self, lr, inputShape, numActions=2):
-        self.network = Network(lr, inputShape, numActions)
-
-    def chooseAction(self, observation):  # you've seen this code
-        state = torch.tensor(observation).float()
-        state = state.to(self.dqn.device) 
-        state = state.unsqueeze(0)
-    
-        qValues = self.dqn(state)
-        action = torch.argmax(qValues)  # there are a few ways to get the max value and its index (google)
-        return action.item()  # .item() grabs the number out of the tensor (also worth a google)
-
-    def learn(self, state, reward): # youve seen this before too
-        self.network.optimizer.zero_grad()  #   pytorch stuff: resets all the tensor derivatives
-    
-        state = torch.tensor(state).float().detach()  # detach it so we dont backprop through it
-        state = state.to(self.dqn.device) # and put it on the gpu/cpu
-        state = state.unsqueeze(0)
-    
-        qValues = self.network(state)
-        valueOfBestAction = qValues.max()
-        loss = self.network.loss(valueOfBestAction, reward) 
-    
-        loss.backward()
-        self.network.optimizer.step()</code></pre>
-  </div>
-  <div class="grid-container full u-align-left">
-    <h4>The Main Loop</h4>
-    <p>
-      All the hard parts are done now. Put the <strong>agent</strong>, into the environment, and trap it in an
-      infinite loop so it can learn the futility of life and give up. <br>
-    </p>
-    <pre><code class="language-python">agent = Agent(lr=0.001, inputShape=(8,), numActions=2)
-env = gym.make('CartPole-v1') # this is how you pick the env from ai gym
-
-highScore = -math.inf
-while True:                     <strong>#   keep starting new episodes forever</strong>
-    observation = env.reset()   <strong>#   observation is just a commonly used term for the environment state</strong>
-    score, frame, done = 0, 1, False
-    while not done:             <strong>#   keep going until the env reports the episode is done</strong>
-        env.render()            <strong>#   draw it on your screen so you can watch</strong>
-        action = agent.chooseAction(observation)
-        nextObservation, reward, done, info = env.step(action)  <strong>#   make the environment go one time step</strong>
-        agent.learn(observation, reward, nextObservation, done)  <strong>#   make your network more accuracte</strong>
-        observation = nextObservation
-        score += reward
-        frame += 1
-
-    highScore = max(highScore, score)
-    print(( "ep {}: high-score {:12.3f}, "
-            "score {:12.3f}, last-episode-time {:4d}").format(
-        episode, highScore, score, frame))</code></pre>
-  </div>
-  <div class="grid-container full">
-    <h4>Full Code</h4>
-    <p>You have the basic <strong>DQN</strong> framework now. There isnt that much to it.</p>
-    <div class="grid-container full u-align-left">
-      <pre><code class="language-python">import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-import gym       
-import math
-import numpy as np
-
-class Network(torch.nn.Module):
-    def __init__(self, alpha, inputShape, numActions):
-        super().__init__()
-        self.inputShape = inputShape
-        self.numActions = numActions
-        self.fc1Dims = 1024
-        self.fc2Dims = 512
-
-        self.fc1 = nn.Linear(*self.inputShape, self.fc1Dims)
-        self.fc2 = nn.Linear(self.fc1Dims, self.fc2Dims)
-        self.fc3 = nn.Linear(self.fc2Dims, numActions)
-
-        self.optimizer = optim.Adam(self.parameters(), lr=alpha)
-        self.loss = nn.MSELoss()
-        # self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.device = torch.device("cpu")
-        self.to(self.device)
-
-    def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-
-        return x
-
-class Agent():
-    def __init__(self, lr, inputShape, numActions):
-        self.network = Network(lr, inputShape, numActions)
-
-    def chooseAction(self, observation):
-        state = torch.tensor(observation).float().detach()
-        state = state.to(self.network.device)
-        state = state.unsqueeze(0)
-
-        qValues = self.network(state)
-        action = torch.argmax(qValues).item()
-        return action
-
-    def learn(self, state, reward):
-        self.network.optimizer.zero_grad()
-
-        state = torch.tensor(state).float().detach()
-        state = state.to(self.network.device)
-        state = state.unsqueeze(0)
-
-        reward = torch.tensor(reward).float().detach()
-        reward = reward.to(self.network.device)
-
-        qValues = self.network(state)
-        valueOfBestAction = qValues.max()
-
-        loss = self.network.loss(valueOfBestAction, reward)
-
-        loss.backward()
-        self.network.optimizer.step()
-
-if __name__ == '__main__':
-    env = gym.make('CartPole-v1').unwrapped
-    agent = Agent(lr=0.001, inputShape=(4,), numActions=2)
-
-    highScore = -math.inf
-    episode = 0
-    while True:
-        done = False
-        state = env.reset()
-
-        score, frame = 0, 1
-        while not done:
-            env.render()
-
-            action = agent.chooseAction(state)
-            state_, reward, done, info = env.step(action)
-            agent.learn(state, reward)
-
-            state = state_
-
-            score += reward
-            frame += 1
-
-        highScore = max(highScore, score)
-
-        print(( "ep {}: high-score {:12.3f}, "
-                "score {:12.3f}, last-episode-time {:4d}").format(
-            episode, highScore, score,frame))
-
-        episode += 1</code></pre>
-    </div>
-  </div>
-  <div class="grid-container full u-align-left">
-    <h4>Did It Work?</h4>
-    <p>It didn't did it? Do you have any guesses why?<br>
-      Go scour the code a bit, and verify each line makes sense to you. Maybe do some printing.<br>
-      Don't come back until you atleast tried. <br> <br>
-      Hey. I said stop reading this. Go try.
-    </p>
-  </div>
-  <div class="grid-container full">
-    <h4>. . .</h4>
-  </div>
-  <div class="grid-container full">
-    <h4>. . I . . Gi . .</h4>
-  </div>
-  <div class="grid-container full">
-    <h4>I Give Up</h4>
-    <p>I hope you didn't spend more than 30 minutes trying to figure out why
-      it doesn't work. That would be hilarious.<br>
-      If you did though, don't worry, stress
-      induced hair-loss is temporary.<br>
-      I set you up. You were doomed to fail from the begining. <br>
-    </p>
-    <p>Let's investigate why you are such a failure in the <a
-        href="/tutorials/rl/deepqlearning2/deepqlearning2.html">next tutorial</a>.
-    </p>
-    <p></p>
-    <p></p>
-  </div>
-</body>
-
-</html>
-
-
-<!-- 
-
-
-
-
-
-        YOU AARE HERE NOW
-
-
-
-
- -->
-
-
 <!-- <div class="grid-container halves u-align-left">
    </div>
    <h4>Settings</h4>
