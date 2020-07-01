@@ -41,12 +41,12 @@
     <h3>Your First Add-On</h3>
     <h4>❗❗❗Message For Impatient Noobs❗❗❗</h4>
     <p class="u-align-left">This tutorial has a lot of explanation before it gets down to the code.
-      The reason for that is that this is the begining of real reinforcement learning. Going forward from here, the
+      The reason is this the begining of real reinforcement learning. Going forward from here, the
       changes to the agents get much more complex. If you dont understand "why" somebody invented some
       modification to an agent, then most likely you will just be copying
       other peoples code, and spending enourmous amounts of time debugging random errors at very little value to
       yourself,
-      and your own understanding.<br> I have seen first hand, and have heard from more than a handful of beginners
+      and your own understanding.<br> I have heard from more than a handful of beginners
       that got stuck doing that for months at a time, struggling endlessly with more and more complicated agents in
       hopes
       of solving just one or two environments. <strong>I don't want that to be you.</strong>
@@ -87,11 +87,11 @@
       trying to fix. For example, if you smell bad during the day you could start
       showering every morning. But it doesn't just fix your smell, it clears up your acne too, and your car smells
       better,
-      and then the next thing you know you are married and have ten kids. <br>
+      and then the next thing you know you are the president of the united states. <br>
       In <strong>deep reinforcement learning</strong> it is the same. Solutions to foundational problems usually come in
       the form of just
-      tweaks and additions to the base algorithms, as opposed to changing them
-      in some fundamental way. And then you get magical performance improvements in other areas for free.
+      tweaks and additions to the base algorithms as opposed to changing them
+      in some fundamental way. Then you get magical performance improvements in other areas for free.
       In fact, almost all the advancements you will see in reinforcement learning are just additions to the basic
       algorithms that you are already familiar with: <strong>Actor-Critic</strong> and <strong>DQN</strong>.
       There are additions that limit how much the qvalues can change at each update step.
@@ -151,10 +151,17 @@ ep 20377: high-score     2762.000, score      213.000, last-episode-time  214   
   </div>
   <div class="grid-container full u-align-left">
     <h4 class="u-align-center">Feature Detectors</h4>
-    <p>To understand sources of instability, it helps to know what is really going on inside the neural network.
-      "It's making a function that estimates qvalues." Okay, duh, you know that. How does that function look?
+    <p>This issue where the network is amazing sometimes, but then suddenly terrible, is
+      often called <strong>catastrophic forgetting</strong>. To understand the sources of instability that cause
+      <strong>CATASTROPHIC FORGETTING</strong>,
+      it helps to know what is really going on inside the agent's neural network.<br><br>
+      <i>"The neural network is making a function that estimates the qvalues."</i> you might say.<br><br>
+      Okay, yes, <strong>duh</strong>, you know that. What does that function look like?
       What are the pieces of that function responsible for? Do you know what the network
-      is actually doing? It is surprisingly a lot more simple than you might think. <br>
+      is actually doing? Can you imagine it's computation in human terms?
+      Doing so is surprisingly a lot more simple than you might think.</p>
+    <h5>Pattern Finders</h5>
+    <p>
       If you look at the neurons a bit more thoroughly you can find collections of neurons that function as
       detectors of patterns. In image classification these <strong>feature detectors</strong> trigger on patterns of
       pixels.
@@ -176,7 +183,7 @@ ep 20377: high-score     2762.000, score      213.000, last-episode-time  214   
           If i was an RL (reinforcement learning) agent playing cartpole, I can think of a few <strong>feature
             detectors</strong>
           I might want to have:
-          <lu>
+          <ul>
             <li>"Dangerously-low-pole-angle" is a sign of incoming low reward. So its a good pattern to look for.
               I would want a neuron that activates if that happens.</li>
             <li>"Pole-pointing-straight-up" is a good sign of incoming good reward. I better have a neuron that detects
@@ -184,8 +191,8 @@ ep 20377: high-score     2762.000, score      213.000, last-episode-time  214   
             <li>"Pole-decelerating-while-moving-towards-pointing-up" is a very positive thinking neuron.</li>
             <li>"Pole-rotating-clockwise-while-cart-moving-left" is a sign that if i move the cart to the right, im
               gonna get a
-              low reward, but if i move it left i'll get a high reward.</li>
-          </lu>
+              low reward, but if i move it left i'll get a high reward. (See how the qvalues work now?)</li>
+          </ul>
         </p>
       </div>
     </div>
@@ -224,97 +231,88 @@ state = [0.0, 0.0, 0.0, 10000.0] # helicopter</code></pre>
     <h5>Real Examples</h5>
     <p>If you think it sounds too human to be true and you are skeptical of my philosophical sounding interpretation of
       the behaviours of these neurons, that is okay. It's okay because you don't have to blindly take my word for it.
-      You can blindly take other people's. There have been a few papers where some people have
+      You can blindly take other people's. There have been a few papers where <i><strong>some people</strong></i> have
       investigated specific neurons to try and figure out what makes them activate. The way they do this is they show
       the agent a set of states, and then check which neuron activates. Eventually for each neuron you can figure out
       what kind of thing that neuron detects.
     </p>
     <p>Here are some examples of individual neurons found in an agent that was tasked with learning pong:<br>
-      I cant show you the actual neuron obviously so im showing you pictures of states that make that neuron output a
-      high number. These states were selected randomly. They arent from the same episode, and didn't necessarily
+      I cant show you the actual neuron obviously because that would just be a huge list of weights, so i'm showing you
+      pictures of states that make that neuron output a
+      high number. These states represent the neuron in a way, as they represent the <strong>feature</strong> that
+      neuron
+      detects.<br>
+      Also each set of states were selected randomly. They arent from the same episode, and didn't necessarily
       happen nearby to eachother in time.
       Keep in mind smaller features are in neurons in earlier layers, while bigger features are detected by neurons in
-      later layers.
+      later layers. Bigger features are combinations of smaller features.
     </p>
-    <lu>
-      <li>
-        <p>This early layer neuron detects paddles. That's kind of it.</p>
+    <ul>
+      <li>This early layer neuron detects paddles. That's kind of it.
         <img src="/tutorials/rl/experiencereplay/1paddleDetectingNeuron.jpg" width=100%>
       </li>
       <hr>
       <li>
-        <p>This early layer neuron detects the ball.</p>
+        This early layer neuron detects the ball.
         <img src="/tutorials/rl/experiencereplay/2balldetector.jpg" width=100%>
         <p></p>
       </li>
       <hr>
       <li>
-        <p>This neuron combines the paddle detecting neuron and the ball detecting one to detect "enemy will hit the
-          ball".
-        </p>
+        This neuron combines the paddle detecting neuron and the ball detecting one to detect "enemy will hit the
+        ball".
+
         <img src="/tutorials/rl/experiencereplay/3enemywillhitball.jpg" width=100%>
       </li>
       <hr>
       <li>
-        <p>This neuron seems to be detecting the ball coming at the agent's paddle down and to the right.</p>
+        This neuron seems to be detecting the ball coming at the agent's paddle down and to the right.
         <img src="/tutorials/rl/experiencereplay/4ballComingAtPaddleDownToRight.jpg" width=100%>
       </li>
       <hr>
       <li>
-        <p>This later layer neuron is detecting something involving the enemy paddle and the ball. I'm not quite sure.
-          To figure out the exact circumstance would maybe require looking at the states leading up to this or following
-          this.
-        </p>
+        This later layer neuron is detecting something involving the enemy paddle and the ball. I'm not quite sure.
+        To figure out the exact circumstance would maybe require looking at the states leading up to this or following
+        this.
+
 
         <img src="/tutorials/rl/experiencereplay/5somethingRelatedToenemeyPaddleAndBall.jpg" width=100%>
-        <p></p>
       </li>
       <hr>
       <li>
-        <p>Your guess is as good as mine. Maybe its an apprehensive "Could Miss" neuron.
-        </p>
-
+        Your guess is as good as mine. Maybe its an apprehensive "Could Miss" neuron.
         <img src="/tutorials/rl/experiencereplay/6ballGoingToBounceOffWallFromThisAngleQuestionMark.jpg" width=100%>
         <p></p>
       </li>
       <hr>
       <li>
-        <p>"Aww yeah I bounced the ball" neuron
-        </p>
-
+        "Aww yeah I bounced the ball" neuron
         <img src="/tutorials/rl/experiencereplay/7ibouncedTheBall.jpg" width=100%>
         <p></p>
       </li>
       <hr>
       <li>
-        <p>"Fuck I Missed" neuron. I bet this one is heavily weighted to the q values this state. :^)
-        </p>
-
+        "Fuck I Missed" neuron. I bet this one is heavily weighted to the q values this state. :^)
         <img src="/tutorials/rl/experiencereplay/8fuckIMissed.jpg" width=100%>
         <p></p>
       </li>
       <hr>
       <li>
-        <p>Epic wall bounce detecting neuron? :()
-        </p>
+        Epic wall bounce detecting neuron? :()
         <img src="/tutorials/rl/experiencereplay/9epicWallBounce.jpg" width=100%>
         <p></p>
       </li>
-    </lu>
+    </ul>
     <p>These concepts are pretty human seeming right?
       If you wanted to find out what feature detectors are in your cartpole agent you could go manually position the
       cart in various states,
       and see which neurons return a high activation. Could be fun.
     </p>
   </div>
-  <!-- its kind of random which feature appears. and depends on lucky starting values (thats why initialization is pretty important and 
-      in some drl papers they are rather particular about it) -->
-  <!-- the more neurons you have the more likely you are going to have a lucky initialization of weights that discovers a 
-      useful feature. And the more neurons you have, the more unique features you can detect. make the network bigger then we can detect more patterns!!
-      Basically bigger brain is better. HOWEVER. brain size isnt causing out stability issues.-->
+
   <div class="grid-container full u-align-left">
     <h4 class="u-align-center">Valuable Insight</h4>
-    <p>Now you really know what's really going on in the agent's neural networks.
+    <p>Now you know what's really going on in the agent's neural networks.
       But how does it help us solve our stability problem?
       Well since learning that the agent is using feature detectors to anticipate low or high rewards for each action,
       you might have formed some opinions about the value of some of these features.
@@ -325,15 +323,15 @@ state = [0.0, 0.0, 0.0, 10000.0] # helicopter</code></pre>
       Why is our agent not making/discovering those features?
     </p>
     <p>Now you are thinking like a researcher.</p>
-    <h5>You Got Options</h5>
-    <lu>When a neural network isn't doing what you want, you have two options:
+    <h5>You've Got Options</h5>
+    <ul>When a neural network isn't doing what you want, you have two options:
       <li>
         change the neural network
       </li>
       <li>
         change the data
       </li>
-    </lu>
+    </ul>
     <p>It seems so obvious for other machine learning stuff, but for some reason in reinforcement learning
       you just feel like it would be different.</p>
     <h5 class="u-align-center">Network</h5>
@@ -407,7 +405,7 @@ state = [0.0, 0.0, 0.0, 10000.0] # helicopter</code></pre>
           potentially really good
           or really bad:
         </p>
-        <lu>
+        <ul>
           <li><strong>Bad</strong>
             because the neurons in the big network are so specific, the new feature will probably be really specific
             too, and as such will
@@ -431,7 +429,7 @@ state = [0.0, 0.0, 0.0, 10000.0] # helicopter</code></pre>
             The more neurons available, the more chances there are to stumble onto useful features. It's just going to
             take more data to find those useful features, and refine the current good ones.
           </li>
-        </lu>
+        </ul>
         <br>
         Again, again, again, for cartpole... we shouldn't need that many features. A "Pole-Falling-Left" detector and
         a "Pole-Falling-Right" detector should be good enough to balance the pole. It should require very few neurons to
@@ -487,7 +485,8 @@ class Network(torch.nn.Module):
         self.fc1Dims = 1024
         self.fc2Dims = 512
 
-        self.fc1 = nn.Linear(*self.inputShape, self.fc1Dims)
+        """the feature detectors are all in these"""
+        self.fc1 = nn.Linear(*self.inputShape, self.fc1Dims)    
         self.fc2 = nn.Linear(self.fc1Dims, self.fc2Dims)
         self.fc3 = nn.Linear(self.fc2Dims, numActions)
 
@@ -760,7 +759,9 @@ batchIndecies = np.arange(batchSize, dtype=np.int64)  # [0, 1, 2, ..., batchSize
 nowValues = qValues[batchIndecies, actions] # actions is a tensor of indecies also
 # batchIndecies is indexing the first dimension of qValues
 # while the values of actions are being used to index the second dimension of qValues</code></pre>
-    <p>Indexing tensors with other tensors is something you will have to do all the time.<br>
+    <p>The first dimension is which transition. The second dimension is selecting either the first or second
+      qvalue we generated for each transition in the batch.<br>
+      Indexing tensors with other tensors is something you will have to do all the time.<br>
       Anyways, notice how <code>batchIndecies.dtype == np.int64</code>. This kind of stuff is easy to miss.
       <strong>Pytorch cares.</strong><br>
       It works just fine to index numpy arrays with either int32 or int64's. It won't work in pytorch.
@@ -1198,7 +1199,8 @@ total samples: 49905, ep 1155: high-score     1094.000, score       10.000
 total samples: 49915, ep 1156: high-score     1094.000, score       10.000
 total samples: 50050, ep 1157: high-score     1094.000, score      135.000
 ...</code></pre>
-      <p>Now lets modify the new agent code to print out the number of unique samples collected.</p>
+      <p>That looks like a bad case of <strong>CATASTROPHIC FORGETTING</strong>.<br>
+        Now lets modify the new agent code to print out the number of unique samples collected.</p>
       <pre><code class="language-python">"""NEW AGENT CODE"""
 if __name__ == '__main__':
     env = gym.make('CartPole-v1').unwrapped
@@ -1304,9 +1306,9 @@ total samples: 50092, ep 239: high-score     1063.000, score      195.000</code>
     <p>Before you go off looking for the next upgrade to your agent, you should
       assure that you really understand why adding the replay buffer improves performance so drastically.
       I know you are probably wondering why it works at all given that we didn't really change much.
-      It is the same amount of transitions as before, just in a different order...
+      It is the same amount of transitions as before, after all... just in a different order...
       I want you to think about it for yourself first as I will go deeply into this in the next tutorial.</p>
-    <lu>For now I will leave you with some questions...
+    <ul>For now I will leave you with some questions...
       <li>How come in classification tasks in typical machine learning you should always shuffle your data?</li>
       <li>Why in both computer vision and NLP is data usually batched or minibatched? Does it improve performance?
         Or is it only done for compute speed?
@@ -1321,7 +1323,7 @@ total samples: 50092, ep 239: high-score     1063.000, score      195.000</code>
       <li>
         Why is my wife spending the weekend at her mothers house?
       </li>
-    </lu>
+    </ul>
     <p>If you can answer these questions, there's a good chance that you just might know how to read english.</p>
     <a class="u-align-center" href="/index.html">Tutorial Hub</a>
     <p></p>
@@ -1340,7 +1342,7 @@ total samples: 50092, ep 239: high-score     1063.000, score      195.000</code>
 
 
  -->
- 
+
 <!-- also compare compute efficiency -->
 <!-- <h5>Too Many Problems</h5>
   Here is a li -->
@@ -1531,3 +1533,11 @@ However, it can solve some of this.  -->
        </div>
    </div>
  </div> -->
+<!-- its kind of random which feature appears. and depends on lucky starting values (thats why initialization is pretty important and 
+      in some drl papers they are rather particular about it) -->
+<!-- the more neurons you have the more likely you are going to have a lucky initialization of weights that discovers a 
+      useful feature. And the more neurons you have, the more unique features you can detect. make the network bigger then we can detect more patterns!!
+      Basically bigger brain is better. HOWEVER. brain size isnt causing out stability issues.-->
+<!-- YOU NEVER FIXED THE EXPLORATION SHIT , YOU NEED EPSILON GREEDY-->
+<!-- YOU ALSO NEED TO MENTION BATCH SIZE -->
+<!-- ALSO MENTION MINIMUM BATCH SIZE AND STUFF -->
