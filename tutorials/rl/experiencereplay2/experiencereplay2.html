@@ -37,37 +37,115 @@
 <body>
   <div class="grid-container full">
     <h1>Wegfawefgawefg's Tutorials</h1>
-    <h2>Experience Replay Tutorial</h2>
-    <h3>Your First Add-On</h3>
-    <h4>❗❗❗Message For Impatient Noobs❗❗❗</h4>
-    <p class="u-align-left">This tutorial has a lot of explanation before it gets down to the code.
-      The reason is this the beginning of real reinforcement learning. Going forward from here, the
-      changes to the agents get much more complex. If you dont understand "why" somebody invented some
-      modification to an agent, then most likely you will just be copying
-      other peoples code, and spending enourmous amounts of time debugging random errors at very little value to
-      yourself,
-      and your own understanding.<br> I have heard from more than a handful of beginners
-      that got stuck doing that for months at a time, struggling endlessly with more and more complicated agents in
-      hopes
-      of solving just one or two environments. <strong>I don't want that to be you.</strong>
-      For that reason, this tutorial takes a very scenic route. But I promise when you get there you will have some
-      new perspectives, questions, and context for why the researchers are investigating the solutions that they are.
-      You will probably also have some ideas for how to improve your own agents performance.
-    </p>
+    <h2>Experience Replay 2</h2>
+    <h3>Your First Add-On Sucked</h3>
+    <h3>Let's Make It Better</h3>
     <h4>Prerequisites</h4>
-    <p class="u-align-left">This tutorial builds onto the naive Deep Q Learning agent from the
-      <a href="/tutorials/rl/deepqlearning/deepqlearning.html">DQN Tutorial</a>. It would be very helpful for
-      understanding
-      this one if you read that one. You wont need any additional tools or software that you did not need in
-      <strong>that</strong> tutorial.
+    <p class="u-align-left">This tutorial follows the first 
+      <a href="/tutorials/rl/experiencereplay/experiencereplay.html">Experience Replay Tutorial</a>. 
+      If you haven't read that one you might want to go give it a read.<br>
+      Also get a snack, relax. Make yourself comfy. You've got all day.
     </p>
   </div>
   <div class="grid-container full">
     <h4>Getting Started</h4>
     <p class="u-align-left">
-      Deep Q Learning works okay on its own, but it has some fundamental problems that make it not that practical by
-      itself.
-      Interestingly, almost all the base drl algorithms have the same fundamental issues:
+      In the last tutorial we made a replay buffer to fix some of the stability issues of our agent. 
+      Consequently, It ended up turning a reinforcement learning problem into more classic machine learning, 
+      complete with an actual dataset and some data management. The beneficial effects of shuffled 
+      and balanced data batches are basically the same for reinforcement learning as they are for computer vision 
+      and NLP. However, the metaphor is a bit different and so how it helps might not be so obvious.
+    </p>
+    
+  </div>
+  <div class="grid-container full u-align-left">
+    <h5 class="u-align-center">Data Quality<br>In Classic Machine Learning</h5>
+    <p>Two import things we did in the last tutorial were shuffle and balance the data.
+      By addding a replay buffer we changed the order that the agent was exposed to the transitions. 
+      <strong>Order and Balance</strong> have huge impacts on the results. For example: I used to wipe <strong>after</strong> I took a shit. Now I know the proper way 
+      to do it is in stages. Shit some. Wipe some. Shit some more. Wipe some more. This iterative alternating 
+      strategy prevents my bum from being too dirty or too clean at any one time. 
+      The agent is experiencing something very similar to this.
+    </p>
+    <div class="grid-container halves u-align-left">
+      <div class="left">
+        <h5>Data Order</h5>
+        <p>The order the network is presented the data has a huge impact 
+          on learning. Imagine you are making a typical machine 
+          learning dog vs. cat image classifier. Let's say you have 
+          10,000 images of dogs and 10,000 images of cats. Instead of shuffling 
+          the data you present the data of each class one at a time. 
+          First you train the network on all 10,000 images of 
+          dogs, and then when that is done you train it on all 
+          10,000 images of cats.</p>
+          <p>
+          Obviously you know this isn't going to work very well. The network 
+          will learn to guess dog 100% of the time after the first 100 images or 
+          so, and then it will have 100% accuracy for the next 9,900 images of dogs. 
+          Since it guesses correctly it will have 0 error, and that means no learning.
+          Then when it finally gets to the cat images, it will have 100% error as it 
+          figures out it is supposed to not guess dog every time. Hopefully all the 
+          neurons that would have been used for cats don't have weights at 0.000001 by this point
+           (which basically means they are dead and can't be revived). But if it does manage 
+           to revive those neurons, then they will take over and the network will just learn 
+           to guess cat 100% of the time. Lets assume it does this by image 200 of the cat 
+           section. Then for the rest of the 9800 cat images, it will always guess cat, have an 
+           error of 0, and never learn anything else about either cat's or dogs. At this point 
+           the network is trash. Unusable trash.
+        </p>
+        <p>The lesson to learn from this is that the network learns not from data, 
+          but when the data switches from one concept to another concept. The whole task is to 
+          learn by comparing things. You can't learn 
+          from comparing something to itself. The solution is to shuffle the data. Cat, dog, 
+          cat, dog. Every new data should be a change in concept.
+        </p>
+        <p>To really drive this concept home, think back to practicing multiplication tables or foreign language 
+          class in school. When you use flashcards, do you drill yourself on one card 10,000 times, expect to have learned it, 
+          and then move on to the next card in the stack? No. Obviously it wouldn't work. So you shuffle the cards.
+        </p>
+      </div>
+      <div class="right">
+        <h5>Data Balance</h5>
+        <p>In addition to the issue of data order you also have to be concerned with data balance.
+          Consider the case of classifying images of cats vs. dogs again. If you have 10,000 pictures of dogs, 
+          and only 100 pictures of cats, you have a huge <strong>data imbalance</strong> issue.</p>
+          <p>Even if you were to shuffle the pictures, such that the 100 cat images are spaced evenly throughout 
+            the data, the network has no reason to learn to identify cats at all, or even to learn dogs for that matter. 
+            All it has to do is guess dog 100% of the time, and it will end up with about 99% success rate.
+          </p>
+          <p>You would be fooled of course to see the 99% and think the network is great at differentiation between 
+            cats and dogs. It isn't.
+          </p>
+          <p>You might object to this and say:<br>
+            <i>"What are the odds that i have 10,000 images of dogs, and only 100 images of 
+            cats? You are exaggerating. Maybe it would be more reasonable that I have 1000 images of 
+            dogs and 500 images of cats."</i><br>
+            Guess what. Even in that scenario, if i guessed dog 100% of the time I would get a 67% accuracy. 
+            Does that mean I understood 67% of the difference between cat and dog? No.<br>
+            Does it mean I understood even 17% <code>(67% - 50%)</code> of the difference between cat and dog? No.<br>
+            I applied zero knowledge about cats and dogs. I just said dog every time. The only correct conclusion 
+            you can come to is that I very well could know absolutely nothing about cats and dogs. I just know you have more pictures of one 
+            class than the other.
+          </p>
+          <p>Hopefully now you see why having <strong>balanced data</strong> is so important. And how easy it is 
+          to wrongly assume the network learned anything useful at all.</p>
+        </p>
+      </div>
+    </div>
+    <p>being too good. the agent can actually unbalance and unsort its own data. by being good, it will put itself 
+      into the same circumstance over and over, repeatedly training on only very similar ideal, nearly balanced pole 
+      data. This prevents it from practicing cases where the pole is angled low. But the replay buffer constantly
+      throws old transitions from shitty runs back at it, assuring it trains from them. That is also a bad thing though, 
+      because many of those circumstances might be totally irrelevant at this point. Why should the agent be practicing 
+      something that it will never use? that could lower its performance on the type of circumstance that it is more 
+      typically presented with now that it is fairly good at the game.
+
+      This is why its important to establish a decent minimum set of memories before you start training from the data. 
+      If you dont get a good base of memories from a diverse set of circumstances, you may just end up feeding the agent 
+      what is essentially "unshuffled" data.
+      Also, 
+      To prevent this you could do use one of the techniques from typical machine learning used to fight overfitting: early stopping.
+      You could also try to determine which memories are relevant and which are not, and then dump the unimportant ones:
     </p>
     <ul class="u-align-left">
       <li>The agent can take way too many episodes to learn a task</li>
