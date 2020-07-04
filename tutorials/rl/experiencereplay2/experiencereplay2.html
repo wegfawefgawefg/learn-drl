@@ -38,21 +38,20 @@
   <div class="grid-container full">
     <h1>Wegfawefgawefg's Tutorials</h1>
     <h2>Experience Replay 2</h2>
-    <h3>Your First Add-On Sucked</h3>
-    <h3>Let's Make It Better</h3>
+    <h3>The Floodgates Have Opened</h3>
     <h4>Prerequisites</h4>
     <p class="u-align-left">This tutorial follows the first
       <a href="/tutorials/rl/experiencereplay/experiencereplay.html">Experience Replay Tutorial</a>.
       If you haven't read that one you might want to go give it a read.<br>
-      Also get a snack, relax. Make yourself comfy. You've got all day.
+      Also get a snack, relax. Make yourself comfy. You've got two weeks to live.
     </p>
   </div>
   <div class="grid-container full">
     <h4>Getting Started</h4>
     <p class="u-align-left">
-      In the last tutorial we made a replay buffer to fix some of the stability issues of our agent.
-      Consequently, It ended up turning a reinforcement learning problem into more classic machine learning,
-      complete with an actual dataset and some data management. The beneficial effects of shuffled
+      In the last tutorial we made a replay buffer to fix some of our agent's stability issues.
+      Our strategy turned the reinforcement learning problem into more classic machine learning,
+      complete with an actual dataset and opportunity for some data management. The beneficial effects of shuffled
       and balanced data batches are basically the same for reinforcement learning as they are for computer vision
       and NLP. However, the metaphor is a bit different and so how it helps might not be so obvious.
     </p>
@@ -60,30 +59,26 @@
   </div>
   <div class="grid-container full u-align-left">
     <h5 class="u-align-center">Data Quality<br>In Classic Machine Learning</h5>
-    <p>Two import things we did in the last tutorial were shuffle and balance the data.
+    <p>Two import things we did were shuffle and balance the data.
       By adding a replay buffer we changed the order that the agent was exposed to the transitions.
-      <strong>Order and Balance</strong> have huge impacts on the results. For example: I used to wipe
-      <strong>after</strong> I took a shit. Now I know the proper way
-      to do it is in stages. Shit some. Wipe some. Shit some more. Wipe some more. This iterative alternating
-      strategy prevents my bum from being too dirty or too clean at any one time.
-      The agent is experiencing something very similar to this.
+      <strong>Order and Balance</strong> have huge impacts on the agent's score.
     </p>
     <div class="grid-container halves u-align-left">
       <div class="left">
         <h5>Data Order</h5>
-        <p>The order the network is presented the data has a huge impact
-          on learning. Imagine you are making a typical machine
-          learning dog vs. cat image classifier. Let's say you have
+        <p>Imagine you are making a typical machine
+          learning dog vs. cat image classifier. You have
           10,000 images of dogs and 10,000 images of cats. Instead of shuffling
-          the data you present the data of each class one at a time.
-          First you train the network on all 10,000 images of
+          the data, you present the data of each class one after another.
+          So first you train the network on all 10,000 images of
           dogs, and then when that is done you train it on all
           10,000 images of cats.</p>
         <p>
-          Obviously you know this isn't going to work very well. The network
+          You probably already know this isn't going to work very well. The network
           will learn to guess dog 100% of the time after the first 100 images or
           so, and then it will have 100% accuracy for the next 9,900 images of dogs.
-          Since it guesses correctly it will have 0 error, and that means no learning.
+          Since it guesses correctly it will have near zero error, and that means
+          near zero learning.
           Then when it finally gets to the cat images, it will have 100% error as it
           figures out it is supposed to not guess dog every time. Hopefully all the
           neurons that would have been used for cats don't have weights at 0.000001 by this point
@@ -91,9 +86,9 @@
           to revive those neurons, then they will take over and the network will just learn
           to guess cat 100% of the time. Lets assume it does this by image 200 of the cat
           section. Then for the rest of the 9800 cat images, it will always guess cat, have an
-          error of 0, and never learn anything else about either cat's or dogs. At this point
-          the network is trash. Unusable trash. It didn't matter if the data was clean or how much of
-          it there was. All that training time, and almost all the data was wasted.
+          error near zero, and never learn anything else about either cat's or dogs. At this point
+          the network is unusable. It didn't matter if the data was clean or how much of
+          it there was. All that training time, and almost all the data wasn't used.
         </p>
         <p>The lesson to learn from this is that the network learns not from data,
           but when the data switches from one concept to another concept. The whole task is to
@@ -101,77 +96,82 @@
           from comparing something to itself. The solution is to shuffle the data. Cat, dog,
           cat, dog. Every new data should be a change in concept.
         </p>
-        <p>To really drive this concept home, think back to practicing multiplication tables or memorizing new
-          vocabulary in foreign language
-          class in school. When you use flashcards, do you drill yourself on one card 10,000 times, expect to have
-          learned it,
-          and then move on to the next card in the stack? No. Obviously it wouldn't work. So you shuffle the cards.
-        </p>
       </div>
       <div class="right">
         <h5>Data Balance</h5>
-        <p>In addition to the issue of data order you also have to be concerned with data balance.
-          Consider the case of classifying images of cats vs. dogs again. If you have 10,000 pictures of dogs,
+        <p> Consider the case of classifying images of cats vs. dogs again. If you have 10,000 pictures of dogs,
           and only 100 pictures of cats, you have a huge <strong>data imbalance</strong> issue.</p>
         <p>Even if you were to shuffle the pictures, such that the 100 cat images are spaced evenly throughout
           the data, the network has no reason to learn to identify cats at all, or even to learn dogs for that matter.
           All it has to do is guess dog 100% of the time, and it will end up with about 99% success rate.
         </p>
-        <p>You would be fooled of course to see the 99% and think the network is great at differentiation between
-          cats and dogs. It isn't.
+        <p>You might be tricked, see the 99% and think the network is great at differentiation between
+          cats and dogs. It's not. It's terrible at it.
         </p>
-        <p>You might object to this and say:<br>
+        <p>Maybe you think i'm just exaggerating:<br>
           <i>"What are the odds that i have 10,000 images of dogs, and only 100 images of
-            cats? You are exaggerating. Maybe it would be more reasonable that I have 1000 images of
-            dogs and 500 images of cats."</i><br>
-          Guess what. Even in that scenario, if i guessed dog 100% of the time I would get a 67% accuracy.
-          Does that mean I understood 67% of the difference between cat and dog? No.<br>
-          Does it mean I understood even 17% <code>(67% - 50%)</code> of the difference between cat and dog? No.<br>
-          I applied zero knowledge about cats and dogs. I just said dog every time. The only correct conclusion
-          you can come to is that I very well could know absolutely nothing about cats and dogs. I just know you have
-          more pictures of one
-          class than the other.
-        </p>
-        <p>Hopefully now you see why having <strong>balanced data</strong> is so important. And how easy it is
-          to wrongly assume the network learned anything useful at all.</p>
+            cats? Maybe it would be more reasonable that I have 1000 images of
+            dogs and 500 images of cats."</i><br><br>
+          Well, even in that scenario, if the network guessed dog 100% of the time it would get a 67% accuracy.
+          Does that mean it understands 67% of the difference between cat and dog? No.<br>
+          Does it mean it understands even 17% <code>(67% - 50%)</code> of the difference between cat and dog? No.<br>
+          It applied zero knowledge about cats and dogs. It just chose dog every time. The only correct conclusion
+          you can come to is that it knows you have more pictures of one class than the other.
+          You could swap the 1000 images of dogs out for pictures of asparagus and it would still get the high accuracy.
         </p>
       </div>
     </div>
+    <p>These aren't just abstract aspects of working in data science by the way. You probably shuffle and balance
+      data naturally when you try to teach yourself things. Think back to practicing multiplication tables or
+      memorizing new
+      vocabulary in foreign language
+      class in school. When you use flashcards, do you drill yourself on one card 10,000 times, expect to have
+      learned it,
+      and then move on to the next card in the stack? No. Obviously it wouldn't work. So you shuffle the cards,
+      and make sure you practice a diverse set of concepts. Boredom might be a way of mechanically forcing you to
+      do this by the way. :^)
+    </p>
   </div>
   <div class="grid-container full u-align-left">
     <h5 class="u-align-center">Data Quality<br>In Deep Reinforcement Learning</h5>
     <p>Given how drastic the effects of bad data quality are on classic machine learning, you might be surprised to
-      hear the situation is much much worse in reinforcement learning.
+      hear the situation is much worse in reinforcement learning.
     </p>
     <div class="grid-container halves u-align-left">
       <div class="left">
         <h5>Data Order</h5>
-        <p>You might be wondering... How can you consider the order of the data in cartpole? All the data comes
-          from the same source. It's provided by the environment. Every transition is just 4 numbers about a pole,
-          so they are all the same right?
-          It's not like in classification where it is so obvious what distinguishes one sample from another, cat vs.
-          dog. However,
+        <p>You might be wondering... How can someone consider the order of data in cartpole? All the data comes
+          from the same source. It's provided by the environment, and so each sample is ordered in time.
+          Doesn't scrambling them break the agents notion of time? Plus, every transition is just 4 numbers about a
+          pole.
+          It isn't as diverse as images, so aren't the samples basically almost the same anyways?<br>
+          RL is not like in classification where it is so obvious what distinguishes one sample from another, cat vs.
+          dog. You don't even know what the classes are beforehand. However,
           from the perspective of an agent that already knows how to solve cartpole each transition represents
-          a distinct concept, a distinct "classification" even.
+          a distinct concept, a distinct "classification" even. For the expert agent, it is like a fuzzy classification
+          problem.
         </p>
         <p>
           Consider you had printed out 1000 screenshots of the cartpole game, and cut them out into flashcards.
           If i asked you to divide the stack of cards into categories, you probably could. And I bet you would
           be pretty good at it too. First, you would divide the cards up into obvious categories such as "falling-left"
           and "falling-right", and then you would find additional categories like "doomed to loose", and
-          "balanced great".
+          "balanced great". (Notice that some categories are mutually exclusive. You might have to cut pieces out of
+          old categories, or dissolve them entirely, to make new ones when you see a new pattern.)
         </p>
         <p>Now consider that you try this task again with the same cards,
           but the first 200 cards you pull out of the stack all look like this:</p>
         <div class="grid-container halves u-align-left">
           <img src="/tutorials/rl/experiencereplay2/badorder.jpg" width=100%>
-          <p>What categories are there to make?? They all look the same.<br><br>
-            :^) hehe that's because I used the same picture over and over.</p>
+          <div>
+            <p>What categories are there to make?? They all look the same.<br><br></p>
+            <h6>:^) hehe that's because I used the same picture over and over.</h6>
+          </div>
         </div>
         <p>This is not unrealistic for an rl agent. Before we added the
           replay buffer, it is incredibly likely that the agent would receive 9 to 20 frames in a row of the pole
-          falling on
-          the same side. Then when the next episode starts, there is a 50% chance it gets another 9-20 nearly identical
+          falling on the same side. The episode terminates when the pole is barely tipping over.
+          Then when the next episode starts, there is a 50% chance it gets another 9-20 nearly identical
           frames...
           This happens over and over and over.
         </p>
@@ -179,10 +179,13 @@
       <div class="right">
         <h5>Data Balance</h5>
         <p>Now, let's assume you didnt know about replay buffers, but you wanted to fix
-          data order problems. So you decide to collect 10 transitions at a time into a minibuffer, shuffle them,
-          give them to the agent, then discard them. Wouldn't you still have the same problem?
-          A set of transitions representing the same, or very similar, concepts are given to the agent.
-          The order has changed, but the class balance is still messed up.
+          data order problems. So you decide to collect 10 transitions at a time into a minibuffer.
+          The sample are shuffled and then given to the agent. Then they are discarded.
+          This might seem to fix data order problems... but wouldn't you still have the same content issues?
+          The set of transitions collected represent the same, or very similar, concepts.
+          The order has changed, but the class balance is still messed up.</p>
+        <p>Maybe you could fix that by making the mini buffer bigger. That way it could
+          catch some samples from different episodes.
           How long does this mini buffer need to be? Is 50 frames enough?<br>
           What if you try a different environment
           where the physics run at half the speed? Do you make the mini buffer twice as large?
@@ -192,17 +195,18 @@
           much.
           Is it right to waste that time learning nothing? Or worse, all those similar frames can push the network
           weights into a stale spot
-          where they will never recover from. Feature detectors it grew in other scenarios will be lost in time.
+          where they will never recover from.<br>
+          All the great feature detectors it grew in other scenarios could be lost in time.
         </p>
       </div>
     </div>
-    <p>The experience replay buffer manages to improve the data a lot. The agent is forced to review different
-      "classes" of scenarios, and the agent will continue to have diverse data from old transitions to learn from even
-      when it
-      is stuck in an environment scenario that is pretty stale on its own.
+    <p>The experience replay buffer manages to improve the data a lot by giving the chance to address both
+      order and balance simultaniously. The agent is forced to review different
+      "classes" of scenarios, and the agent will continue to review old transitions even
+      when it is stuck in an environment scenario that is pretty stale on its own.
     </p>
     <h4 class="u-align-center">Feedback Loop</h4>
-    <p>But why did I say these data order and data balance effects are even worse in reinforcement learning than in
+    <p>But why did I say these order and balance effects are even worse in reinforcement learning than in
       other machine learning? So far it seems like the same effects right?
       The reason these effects are much worse in rl is that the agent is designing its own dataset.
       If you are training a network to identify cats vs. dogs that network doesn't get a chance to screw up the data.
@@ -211,48 +215,77 @@
     </p>
     <p>There is no such guarantee for an RL agent.<br>
       Consider our replay buffer as it is. Our agent picks 64 random transitions from the entire pool of transitions it
-      has experienced. Shouldn't that mean they are gonna have random classes? No.<br>
+      has experienced. Shouldn't that mean they are gonna have random classes? No.
       While it might seem likely that the data is going to end up diverse given enough episodes, I would actually argue
-      the opposite is much more likely. Those 64 random samples are not being drawn from a balanced pool. Sure you will have about 50% of them of a pole-falling-left, and 50% of a
-      pole-falling-right.
+      the opposite is much more likely. Those 64 random samples are not being drawn from a balanced pool. Sure, about
+      50%
+      of the samples will be a pole-falling-left, and 50% of a pole-falling-right.
       But once the agent gets good... 90% of the transitions in the memory are going to be of a pole pointing almost
       exactly straight up.
-      Which means 90% of the 64 random transitions... are going to be almost entirely just poles pointing straight up.
+      Which means 90% of the 64 random memories samples from the replay buffer... are going to be almost entirely just
+      poles pointing straight up.</p>
+    <p>That means the agent won't be practicing scenarios where the cart is near the edge of the play area. And
+      it wont be practicing scenarios where the pole is at a more extreme angle or velocity.
+      The result? It likely will not be effective in those scenarios anymore.
+      <strong>CATASTROPHIC FORGETTING</strong>. When you go try the lunar lander
+      environment you can witness this firsthand. The lander agent will seem to forget the old basic balancing
+      skills it had spend so much time practicing, as it refines the much more specific strategy it ended up converging
+      on. If you see the lander end up in a scenario that defies
+      its new specific strategy, it might just flip out and behave completely stupidly. I suspect that
+      wouldn't happen if it was getting a constant flow of samples from good old times to remind it.
     </p>
     <h5>Objection</h5>
-    <p><i>"Hey what's wrong with that? The agent doesn't need to practice balancing at extreme angles anymore. So 
-      it's not only okay that it is focusing on refining its balancing technique within a more specific scenario, 
-      but it is ideal."
-    </i><br>
-  Yes this is true. And it is a beneficial effect of a replay buffer. The agent specializes and focuses on 
-  what it should. How beneficial that is heavily depends on the environment though... You lose what you don't practice.<br>
-It is possible there is a fantastic feature detector that will work for both "very balanced poles" and 
-"barely balanced poles", 
-but it will never be discovered unless both circumstances are considered nearby to eachother.
-The nature of the agent is that its goal is to undiversify the data. It want's to see the same circumstance 
-over and over. As our agent is, it hates new scenarios. It is doing this on purpose. <br>
-Reinforcement learning makes your data "self-siloing", "self-unbalancing", and "self-ordering". 
-By getting good at the game, our current agent is also setting itself up to constantly fight being bad.</p>
+    <p><i>"Hey what's wrong with that? The agent doesn't need to practice balancing at extreme angles anymore. So
+        it's not only okay that it is focusing on refining its balancing technique within a more specific scenario,
+        but it is ideal."
+      </i><br>
+      Yes this is true. And it is a beneficial effect of a replay buffer. The agent specializes and focuses on
+      what it should. How beneficial that is heavily depends on the environment though... You lose what you don't
+      practice, to make room for what you do.<br>
+      It is possible there is a fantastic feature detector that will work for both "very balanced poles" and
+      "barely balanced poles",
+      but it will never be discovered unless both circumstances are considered frequently togethor.
+      The nature of the agent is that its goal is to undiversify the data. It want's to see the same circumstance
+      over and over. As our agent is, it hates new scenarios. It is doing this on purpose. <br>
+      Reinforcement learning makes your data "self-siloing", "self-unbalancing", and "self-ordering".
+      By getting good at the game, our current agent is also setting itself up to be more specialized.
+      To combat this you have to really force it to eat its vegetables.</p>
   </div>
   <div class="grid-container full u-align-left">
     <h4 class="u-align-center">Damned If You Do / Damned If You Don't</h4>
     <p>The bad news doesn't end there. :^(<br><br>
-      Let's run under the assumption that we want the agent to specialize on refining its pole balance. 
-      Let's assume that the agent needs to train on transitions that are similar to its current circumstance, 
-      and that reviewing old transitions from terrible episodes will just make it worse.
-      Assuming 90% of the transitions end up as "nearly-balanced-poles", the remaining 10% is pretty hard 
-    to get rid of. To convert that 10% to 5% will require twice as many steps as had been trained on up to this point. 
-  It's going to require exponentially more new samples to hide the old samples. That data isn't really going anywere.</p>
-
-
-    <p>being too good. the agent can actually unbalance and unsort its own data. by being good, it will put itself
-      into the same circumstance over and over, repeatedly training on only very similar ideal, nearly balanced pole
-      data. This prevents it from practicing cases where the pole is angled low. But the replay buffer constantly
-      throws old transitions from shitty runs back at it, assuring it trains from them. That is also a bad thing though,
-      because many of those circumstances might be totally irrelevant at this point. Why should the agent be practicing
-      something that it will never use? that could lower its performance on the type of circumstance that it is more
-      typically presented with now that it is fairly good at the game.
-
+      Let's run under the assumption that we want the agent to specialize on refining its pole balance.
+      Maybe you don't care if the agent is good at recovering from disastrous scenarios because it
+      shouldn't be in any of those scenarios in the first place.
+      So in order to specialize, the agent needs to train on transitions that are similar to the kind of transitions 
+      it will be likely to see.
+      Reviewing old disaster transitions from terrible early episodes might be necessary to prevent <strong>CATASTROPHIC FORGETTING</strong> 
+      but beyond a threshold amount it will actually make the agent worse. (worth investigating the threshold)<br><br>
+      Assuming 90% of the transitions end up as "nearly-balanced-poles", the remaining 10% are old "fire-drill samples".
+      And they are going to be pretty hard to get rid of. To convert that 10% to 5% will require twice as many steps as
+      up to this point.
+      So that is twice as much training time. Meaning, it's going to require exponentially more new samples to burry
+      those old samples.
+      Those fire drills aren't really going anywere unless you manually purge them.
+      And more importantly, you don't know which of those old samples is good or bad anyways.
+      Some of them are worth keeping around. (worth investigating)
+    </p>
+    <p>It's almost as if we need a second agent managing the replay buffer, choosing what memories to give
+      to the primary agent at what time, and what memories, if any, to dispose of. ;^) I suspect the memory will end up as 
+      part of the machine learning soon enough. If somebody hasn't done it already, I give it a few years. (or you could 
+      try doing it yourself)
+    </p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4 class="u-align-center">So Many Choices</h4>
+    <p>Life is complicated. You fix one thing, but break another. 
+      There are many addons waiting to be discovered that will improve the agent, some more 
+      complicated than others. But before you go off into research land, there is still some low hanging fruit 
+      available to reach for.
+    </p>
+    <p>PER, and minimum memory size, and better memory performance</p>
+  </div>
+  <p>
       This is why its important to establish a decent minimum set of memories before you start training from the data.
       If you dont get a good base of memories from a diverse set of circumstances, you may just end up feeding the agent
       what is essentially "unshuffled" data.
@@ -261,1231 +294,6 @@ By getting good at the game, our current agent is also setting itself up to cons
       early stopping.
       You could also try to determine which memories are relevant and which are not, and then dump the unimportant ones:
     </p>
-    <p>It's almost as if we need a second agent managing the replay buffer, choosing what memories to give 
-      to the primary agent at what time, and what memories, if any, to dispose of.
-    </p>
-    <ul class="u-align-left">
-      <li>The agent can take way too many episodes to learn a task</li>
-      <li>The agent can "forget" it's good solution and regress even after mastering a task</li>
-      <li>The agent can be too unreliable, having equally many terrible runs as great runs</li>
-      <li>The agent might have no real model of how it's environment works</li>
-      <li>The agent probably only has a naive notion of exploration, consisting generally of making random moves some of
-        the time...</li>
-      <li>The agent might feel cold and lonely inside, laying in bed all night unable to sleep, wondering if it is
-        somehow fundamentally incapable of love.</li>
-    </ul>
-    <p class="u-align-left">
-      There are a bunch of different factors that contribute to these big issues, but just like in real life you dont
-      need to fix every problem to see improvements in more than one place.
-      If you address any one cause of issue in drl, you probably end up solving portions of more than one of the
-      problems that you weren't
-      trying to fix. For example, if you smell bad during the day you could start
-      showering every morning. But it doesn't just fix your smell, it clears up your acne too, and your car smells
-      better,
-      and then the next thing you know you are the president of the united states. <br>
-      In <strong>deep reinforcement learning</strong> it is the same. Solutions to foundational problems usually come in
-      the form of just
-      tweaks and additions to the base algorithms as opposed to changing them
-      in some fundamental way. Then you get magical performance improvements in other areas for free.
-      In fact, almost all the advancements you will see in reinforcement learning are just additions to the basic
-      algorithms that you are already familiar with: <strong>Actor-Critic</strong> and <strong>DQN</strong>.
-      There are additions that limit how much the qvalues can change at each update step.
-      There are additions that vote in the qvalues from multiple networks.
-      There are even additions that add in artificial curiosity. (we are gonna do curiosity in a later tutorial >:)
-      But, in this tutorial, we are going to reach for the low hanging fruit.
-      We are going to address some of the stability issues and forgetting problems our DQN agent currently has.
-    </p>
-  </div>
-  <div class="grid-container full u-align-left">
-    <h4>Instability</h4>
-    <p>
-      By stability issues I am referring to the huge variation in the scores the dqn agent got.
-      Let's take another look at those total episodic reward's the cartpole Deep Q agent gave us in the last
-      tutorial.
-    </p>
-    <pre><code class="language-python">...
-ep 20372: high-score     2762.000, score      240.000, last-episode-time  241   #   good
-ep 20373: high-score     2762.000, score       48.000, last-episode-time   49   #   not good
-ep 20374: high-score     2762.000, score       96.000, last-episode-time   97   
-ep 20375: high-score     2762.000, score       74.000, last-episode-time   75
-ep 20376: high-score     2762.000, score       43.000, last-episode-time   44
-ep 20377: high-score     2762.000, score      213.000, last-episode-time  214   #   great
-ep 20378: high-score     2762.000, score       94.000, last-episode-time   95
-ep 20379: high-score     2762.000, score       78.000, last-episode-time   79
-ep 20380: high-score     2762.000, score       62.000, last-episode-time   63
-ep 20381: high-score     2762.000, score       12.000, last-episode-time   13
-ep 20382: high-score     2762.000, score        9.000, last-episode-time   10   #   terrible
-ep 20383: high-score     2762.000, score       12.000, last-episode-time   13
-ep 20384: high-score     2762.000, score       53.000, last-episode-time   54
-ep 20385: high-score     2762.000, score       60.000, last-episode-time   61
-...</code></pre>
-    <p>In cartpole 200 is actually passable. It is a sign there is a bunch of intentional pole balancing going on.
-      You can see our agent got scores around 200 a few times. </p>
-    <pre><code class="language-python">ep 20372: high-score     2762.000, score      240.000, last-episode-time  241   #   good
-ep 20377: high-score     2762.000, score      213.000, last-episode-time  214   #   great</code></pre>
-    <p>...and in those 20,000 episodes there were even some fantastic
-      scores up in the thousands.</p>
-    <pre><code class="language-python">high-score     2762.000   # holy shit</code></pre>
-    <p>
-      But it also got way more totally horrible scores like 12 and 9. Look at that huge streak of scores less than 100
-      up above.<br>
-      To give you an idea of how bad a 9 is,
-      if you take no action the pole falls in 9 steps. It is the minimum possible score. If you make random actions
-      you are almost guaranteed to get a better score than 9.<br>
-      Imagine one morning you get into your car to drive to work, but instead of putting the car into reverse to back
-      out of the driveway, you put it in drive. Then you drive it straight into your living room. But wait you dont
-      stop there. You hold the steering wheel perfectly straight, foot on the gas, and drive through 8 additional
-      houses.
-      The only thing that prevents you
-      from crashing more is the fact that the 9th house is made of brick. <code>done = True</code>
-      Would anyone who really knew how to drive do such a thing?
-      How can the agent be so good sometimes,
-      and so terrible other times? Is it fair to say the agent knows how to play cartpole at all?
-      How many retorical questions am i going to ask?
-    </p>
-  </div>
-  <div class="grid-container full u-align-left">
-    <h4 class="u-align-center">Feature Detectors</h4>
-    <p>This issue where the network is amazing sometimes, but then suddenly terrible, is
-      often called <strong>catastrophic forgetting</strong>. To understand the sources of instability that cause
-      <strong>CATASTROPHIC FORGETTING</strong>,
-      it helps to know what is really going on inside the agent's neural network.<br><br>
-      <i>"The neural network is making a function that estimates the qvalues."</i> you might say.<br><br>
-      Okay, yes, <strong>duh</strong>, you know that. What does that function look like?
-      What are the pieces of that function responsible for? Do you know what the network
-      is actually doing? Can you imagine it's computation in human terms?
-      Doing so is surprisingly a lot more simple than you might think.</p>
-    <h5>Pattern Finders</h5>
-    <p>
-      If you look at the neurons a bit more thoroughly you can find collections of neurons that function as
-      detectors of patterns. In image classification these <strong>feature detectors</strong> trigger on patterns of
-      pixels.
-      It starts from simpler patterns like edges and gradients, then the next layer is shapes and corners, and each
-      successive
-      layer moves up the ladder of complexity until you are detecting ear shape and position and eventually dog or cat.
-      If you don't know what im talking about you should go look up feature visualizations in convolutional neural
-      networks right now.
-    </p>
-    <div class="grid-container halves u-align-left">
-      <img src="/tutorials/rl/experiencereplay/2.jpg" width=80%>
-      <div class="right">
-        <p>In reinforcement learning it works exactly the same way.
-          Early layers detect simple patterns. And later layers detect combinations of simpler patterns,
-          <strong>meta patterns</strong>.
-          How does the network pick which pattern to detect? Any pattern in the environment that
-          influences reward could show up in the network somewhere. In computer vision these patterns are called
-          <strong>features</strong>.
-          If i was an RL (reinforcement learning) agent playing cartpole, I can think of a few <strong>feature
-            detectors</strong>
-          I might want to have:
-          <ul>
-            <li>"Dangerously-low-pole-angle" is a sign of incoming low reward. So its a good pattern to look for.
-              I would want a neuron that activates if that happens.</li>
-            <li>"Pole-pointing-straight-up" is a good sign of incoming good reward. I better have a neuron that detects
-              that.</li>
-            <li>"Pole-decelerating-while-moving-towards-pointing-up" is a very positive thinking neuron.</li>
-            <li>"Pole-rotating-clockwise-while-cart-moving-left" is a sign that if i move the cart to the right, im
-              gonna get a
-              low reward, but if i move it left i'll get a high reward. (See how the qvalues work now?)</li>
-          </ul>
-        </p>
-      </div>
-    </div>
-    <p>In the case of cartpole there are no pixels, but the network
-      detect these patterns by looking at relationships and ranges of the 4 inputs, just the same.
-      Lets try it ourselves.</p>
-    <h5>Be The Network</h5>
-    <p>The state in cartpole is 4 values. They represent 4 aspects of the cartpole: cart position, cart velocity,
-      pole angle, and pole angular velocity. <br>
-      Given a cartpole state, try to describe its behaviour:</p>
-    <pre><code class="language-python">state = [0.0, 0.0, 0.0, 0.0]     # cart is centered, not moving, pole is centered, not moving
-state = [0.0, 5.0, -0.1, -0.1]   # cart is centered, cart is moving right, pole is angled to the left, pole is falling left
-state = [9.0, 20.0, 0.0, 0.0]    # oh shit the cart is going off the right of the screen, qvalues = [1.0, 0.0], GO LEFT
-state = [0.0, 0.0, 0.0, 10000.0] # helicopter</code></pre>
-    <p>You can kind of guess how the network would build these detectors too.
-      One neuron might compare pole angular velocity to cart velocity, to assert that cart velocity is the greater of
-      the two.
-      (It's a good thing, because it means the cart is moving under the pole to catch it from falling)
-      A couple neurons might be used to detect the cart angle is within a specific range.
-      You can combine those two features by checking if both those neurons are active at the same time.
-      In that way you can make a feature detector on the next layer that detects "cart is actively counterbalancing
-      falling pole".
-      Weirdly specific specific features, that seem random and useless, can be combined to become more "human" like
-      patterns down the line.<br>
-      When you get to the last layers it is slightly different. The final layers might function more like manager
-      layers.
-      A neuron in the later layers might take a bunch of different detected features and scale the outputs of them and
-      send them
-      to the correct output neuron, the action q value neurons. (I know that's an inverted way of thinking about it, but
-      metaphorically it is sound.)
-      Something the last layer might say: "Oh hey the low-pole-angle-neuron and high-tip-velocity-neuron are
-      active... multiply those outputs by a negative
-      sign and make them BIG so we output a big low qvalue of -1000 for both the actions, because we are about to lose
-      the game no matter what!!"
-    </p>
-    <h5>Real Examples</h5>
-    <p>If you think it sounds too human to be true and you are skeptical of my philosophical sounding interpretation of
-      the behaviours of these neurons, that is okay. It's okay because you don't have to blindly take my word for it.
-      You can blindly take other people's. There have been a few papers where <i><strong>some people</strong></i> have
-      investigated specific neurons to try and figure out what makes them activate. The way they do this is they show
-      the agent a set of states, and then check which neuron activates. Eventually for each neuron you can figure out
-      what kind of thing that neuron detects.
-    </p>
-    <p>Here are some examples of individual neurons found in an agent that was tasked with learning pong:<br>
-      I cant show you the actual neuron obviously because that would just be a huge list of weights, so i'm showing you
-      pictures of states that make that neuron output a
-      high number. These states represent the neuron in a way, as they represent the <strong>feature</strong> that
-      neuron
-      detects.<br>
-      Also each set of states were selected randomly. They arent from the same episode, and didn't necessarily
-      happen nearby to eachother in time.
-      Keep in mind smaller features are in neurons in earlier layers, while bigger features are detected by neurons in
-      later layers. Bigger features are combinations of smaller features.
-    </p>
-    <ul>
-      <li>This early layer neuron detects paddles. That's kind of it.
-        <img src="/tutorials/rl/experiencereplay/1paddleDetectingNeuron.jpg" width=100%>
-      </li>
-      <hr>
-      <li>
-        This early layer neuron detects the ball.
-        <img src="/tutorials/rl/experiencereplay/2balldetector.jpg" width=100%>
-        <p></p>
-      </li>
-      <hr>
-      <li>
-        This neuron combines the paddle detecting neuron and the ball detecting one to detect "enemy will hit the
-        ball".
-
-        <img src="/tutorials/rl/experiencereplay/3enemywillhitball.jpg" width=100%>
-      </li>
-      <hr>
-      <li>
-        This neuron seems to be detecting the ball coming at the agent's paddle down and to the right.
-        <img src="/tutorials/rl/experiencereplay/4ballComingAtPaddleDownToRight.jpg" width=100%>
-      </li>
-      <hr>
-      <li>
-        This later layer neuron is detecting something involving the enemy paddle and the ball. I'm not quite sure.
-        To figure out the exact circumstance would maybe require looking at the states leading up to this or following
-        this.
-
-
-        <img src="/tutorials/rl/experiencereplay/5somethingRelatedToenemeyPaddleAndBall.jpg" width=100%>
-      </li>
-      <hr>
-      <li>
-        Your guess is as good as mine. Maybe its an apprehensive "Could Miss" neuron.
-        <img src="/tutorials/rl/experiencereplay/6ballGoingToBounceOffWallFromThisAngleQuestionMark.jpg" width=100%>
-        <p></p>
-      </li>
-      <hr>
-      <li>
-        "Aww yeah I bounced the ball" neuron
-        <img src="/tutorials/rl/experiencereplay/7ibouncedTheBall.jpg" width=100%>
-        <p></p>
-      </li>
-      <hr>
-      <li>
-        "Fuck I Missed" neuron. I bet this one is heavily weighted to the q values this state. :^)
-        <img src="/tutorials/rl/experiencereplay/8fuckIMissed.jpg" width=100%>
-        <p></p>
-      </li>
-      <hr>
-      <li>
-        Epic wall bounce detecting neuron? :()
-        <img src="/tutorials/rl/experiencereplay/9epicWallBounce.jpg" width=100%>
-        <p></p>
-      </li>
-    </ul>
-    <p>These concepts are pretty human seeming right?
-      If you wanted to find out what feature detectors are in your cartpole agent you could go manually position the
-      cart in various states,
-      and see which neurons return a high activation. Could be fun.
-    </p>
-  </div>
-
-  <div class="grid-container full u-align-left">
-    <h4 class="u-align-center">Valuable Insight</h4>
-    <p>Now you know what's really going on in the agent's neural networks.
-      But how does it help us solve our stability problem?
-      Well since learning that the agent is using feature detectors to anticipate low or high rewards for each action,
-      you might have formed some opinions about the value of some of these features.
-      Some features are obviously much more useful than others.
-      Maybe you can see where I'm going with this.<br>
-      What kind of features are showing up in our cartpole agent?<br>
-      What kind of features are "best" to solve cartpole?<br>
-      Why is our agent not making/discovering those features?
-    </p>
-    <p>Now you are thinking like a researcher.</p>
-    <h5>You've Got Options</h5>
-    <ul>When a neural network isn't doing what you want, you have two options:
-      <li>
-        change the neural network
-      </li>
-      <li>
-        change the data
-      </li>
-    </ul>
-    <p>It seems so obvious for other machine learning stuff, but for some reason in reinforcement learning
-      you just feel like it would be different.</p>
-    <h5 class="u-align-center">Network</h5>
-    <p class="u-align-center">Maybe we need to change the network to get more consistent performance.</p>
-    <div class="grid-container halves u-align-left">
-      <div class="left">
-        <h5>Architecture</h5>
-        <p>What influence does the neural network architecture have on the features?
-          Well, firstly, the same architectural biases apply in reinforcement learning as apply in all the other types
-          of machine learning. Convolutional networks are biased towards detecting spatial features (or positional
-          features
-          if you are including convolving them through time). Recurrent networks are biased towards detecting data
-          order,
-          transformations or iterative process features. And fully connected layers aren't biased and so that makes
-          them good at discovering some types of features but bad at discovering the same feature that just appears
-          in a different place. You want to design the
-          architecture to be biased to discovering features you think are useful for the task.<br>
-          But... a simple fully connected network should be good enough for cartpole.
-        </p>
-        <h5>Loss</h5>
-        <p>You also have the question of the specific loss function. The temporal difference function
-          biases the agent to assume time functions the way we describe. In our case our agent is designed
-          to assume that there is always one best action to take, and that we can know it
-          without knowing anything other than the current environment state. It has no notion of entire "plans" of
-          actions
-          or current goal. Maybe it is hard to imagine now, but there
-          is a lot of black magic that can be done in the loss function that will bias the network to detecting
-          different features.
-          I think with some complicated future architectures we could see features that represent exploration strategies
-          or maybe even predictions of
-          what happens next in the world. The possibilities are kind of endless.<br>
-          I know for a fact we don't have to change our architecture to do well consistently in cartpole.
-          Just from experience.
-        </p>
-        <h5>Network Depth</h5>
-        <p>The more layers the network has, the more complex the features can be. Each layer combines features
-          from previous layers. So if your network isn't deep enough it might not be able to combine enough simple
-          features to detect the good meta features. <br>
-          Again, in the case of cartpole, I don't think this really matters
-          that much.
-          Once your network is beyond a few layers the environment just doesnt have any more complicated patterns to
-          discover.
-          For a simple environment adding a bunch more layers can have negative effects.
-          It shrinks the gradient, and most of those layers end up as wasted computation, randomly
-          splitting features and recombining into feature detectors that were already fully formed and ready to use many
-          layers before.<br>
-          Ours is more than deep enough as is.
-        </p>
-      </div>
-      <div class="right">
-        <h5>Layer Width</h5>
-        <p>If the network has more neurons in a layer, then that layer can detect more features.
-          By more features I mean it has the capacity for detecting more unique patterns in total.
-          That sounds like bigger would always be a good thing, but how many patterns do you really need to see
-          to beat cartpole? Is it possible to have the capacity for too many features? The answer is complicated.
-          There shouldn't really be a limit to the number of possible networks that can beat cartpole, but
-          I suspect all the good networks have basically the same features within.<br>
-          Consider a smaller network with a neuron that detects pole angles between 90 degrees, straight up,
-          and 180 degrees, horizontal pointing right. Compare that to a larger network that is using two neurons for
-          that same
-          concept, one neuron detecting 90-135, and another neuron detecting 135-180. Togethor those two neurons in the
-          larger
-          network represent an equivalent feature to the one neuron in the smaller network. I would argue that the
-          single
-          neuron version is not only more efficient, but more robust. It is unlikely to be repurposed to detect
-          something else.
-          Wheras either of those two neurons in the "combo feature" could be easily accidentally repurposed to detect
-          something else.</p>
-        <p>
-          That <strong>repurposing</strong> event is vital to the learning ability of neural networks, but it is
-          potentially really good
-          or really bad:
-        </p>
-        <ul>
-          <li><strong>Bad</strong>
-            because the neurons in the big network are so specific, the new feature will probably be really specific
-            too, and as such will
-            be easily grabbed by sudden sharp changes in the environments reward. An overly specific feature is way less
-            useful than a more
-            general feature. (I'll get more into that point later.) The fact that big networks have so many available
-            neurons makes them susceptable to
-            discovering overly specific features. <strong>Guess what overfitting is?
-            </strong>
-          </li>
-          <li><strong>Bad</strong> because when one of the neurons in the combo feature is yanked away to be used in
-            another feature, the
-            combo feature breaks. Performance suddenly drops as all the neurons that relied on that feature in
-            subsequent layers would
-            become useless, and you would have to wait for that "right side" detector to be remade elsewhere.
-          </li>
-          <li><strong>Good</strong> because
-            those two neurons ability to repurpose provides flexibility. Neither neuron is as tied down to that specific
-            feature,
-            and so maybe you get lucky and one of them becomes a detector of something much more useful.
-            The more neurons available, the more chances there are to stumble onto useful features. It's just going to
-            take more data to find those useful features, and refine the current good ones.
-          </li>
-        </ul>
-        <br>
-        Again, again, again, for cartpole... we shouldn't need that many features. A "Pole-Falling-Left" detector and
-        a "Pole-Falling-Right" detector should be good enough to balance the pole. It should require very few neurons to
-        pull that off.
-        I bet it is so few neurons that you can beat cartpole by manually setting the weights of a tiny network with
-        less neurons than you have fingers.
-        (Please, someone out there needs to try this.)
-        Our network is probably more than big enough to hold every necessary feature to win consistently, and has enough
-        neurons
-        available to have a decent change of "getting lucky" and falling into the good features.
-        </p>
-
-      </div>
-    </div>
-    <h5 class="u-align-center">Data</h5>
-    <p>So if we don't need to change the network, that just leaves data.<br>
-      Wait... Data? What am i saying data? We dont get to control our data. The environment provides us
-      with states and we are just stuck with that.</p>
-  </div>
-  <div class="grid-container full u-align-left">
-    <h1 class="u-align-center">Behold</h1>
-    <h4 class="u-align-center">The Experience Replay Buffer</h4>
-    <p>To liberate our agent from the shackles of the environment, we can collect a bunch of states and then
-      treat the big store of states like good old fashioned data. This enables us to do all the tricks you can
-      do in regular machine learning: batches of data, data shuffling, data augmentation, data analysis, and whatever
-      else you
-      can think of.
-      How does this help our agent discover and develop good general feature detectors?
-      I will explain in a bit. Now is finally time for some code.
-    </p>
-    <!-- All the effects that proper data usage techniques have on normal machine learning model's feature detectors apply 
-      for our agents feature detectors as well.  -->
-    <h5>Review</h5>
-    <p>Let's skim back over the code from before to see what our starting point is.</p>
-    <pre><code class="language-python">import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-import gym       
-import math
-import numpy as np
-import random
-
-"""Here is our neural network used by the agent:
-    It takes in a state from the environment
-    passes it through 3 layers
-    and then spits out a qvalue for each available action"""
-class Network(torch.nn.Module):
-    def __init__(self, alpha, inputShape, numActions):
-        super().__init__()
-        self.inputShape = inputShape
-        self.numActions = numActions
-        self.fc1Dims = 1024
-        self.fc2Dims = 512
-
-        """the feature detectors are all in these"""
-        self.fc1 = nn.Linear(*self.inputShape, self.fc1Dims)    
-        self.fc2 = nn.Linear(self.fc1Dims, self.fc2Dims)
-        self.fc3 = nn.Linear(self.fc2Dims, numActions)
-
-        self.optimizer = optim.Adam(self.parameters(), lr=alpha)
-        self.loss = nn.MSELoss()
-        # self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.device = torch.device("cpu")
-        self.to(self.device)
-
-    """this is where the state comes in as x"""
-    def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-
-        return x  """out come the q values ex: [0.4, 0.6]"""
-
-"""Here is our agent:
-    It holds an instance of a neural network,
-    and it has some handy functions for choosing an action
-    and for training its neural network from an input state"""
-class Agent():
-    def __init__(self, lr, inputShape, numActions):
-        self.network = Network(lr, inputShape, numActions)
-
-    """Observation is an incoming state from the environment.
-        Asparagus is our exploration strategy.
-        And the action is just an integer, 1 or 2, the index of the highest q value (the agents choice)"""
-    def chooseAction(self, observation):
-        state = torch.tensor(observation).float().detach()
-        state = state.to(self.network.device)
-        state = state.unsqueeze(0)
-
-        qValues = self.network(state)
-        action = torch.argmax(qValues).item()
-
-        # 10% of the time the agent picks an action at random, and ignores its own q values
-        chanceOfAsparagus = random.randint(1, 10)
-        if chanceOfAsparagus == 1:  #   10% chance
-            action = random.randint(0, 1)
-
-        # print("qValues: {}, action {}".format(qValues.detach(), action))  # for your convenience, lol
-        return action
-
-    """The temporal difference function is in here. 
-        This is where the agent predicts qvalues, and then is corrected on what they should have been."""
-    def learn(self, state, action, reward, state_, done): # input is a SARS "transition"
-        self.network.optimizer.zero_grad()
-
-        state = torch.tensor(state).float().detach().to(self.network.device).unsqueeze(0)
-        state_ = torch.tensor(state_).float().detach().to(self.network.device).unsqueeze(0)
-        reward = torch.tensor(reward).float().detach().to(self.network.device)
-
-        qValues = self.network(state)
-        nextQValues = self.network(state_)
-
-        predictedValueOfNow = qValues[0][action]    #   interpret the past
-        futureActionValue = nextQValues[0].max()    #   interpret the future
-
-        trueValueOfNow = reward + futureActionValue * (1 - done)  # td function
-
-        loss = self.network.loss(trueValueOfNow, predictedValueOfNow)
-
-        loss.backward()
-        self.network.optimizer.step()
-
-"""This is where we launch our code from.
-      We make an agent and an environment, 
-      and trap the agent in a loop of 'step'ing the environment.
-      Training Camp"""
-if __name__ == '__main__':
-    env = gym.make('CartPole-v1').unwrapped
-    agent = Agent(lr=0.0001, inputShape=(4,), numActions=2)
-
-    highScore = -math.inf
-    episode = 0
-    while True:
-        done = False
-        state = env.reset()
-
-        score, frame = 0, 1
-        while not done:
-            env.render()
-
-            action = agent.chooseAction(state)
-            state_, reward, done, info = env.step(action)
-            
-            agent.learn(state, action, reward, state_, done)
-            state = state_
-
-            score += reward
-            frame += 1
-            # print("reward {}".format(reward))
-
-        highScore = max(highScore, score)
-
-        print(( "ep {}: high-score {:12.3f}, "
-                "score {:12.3f}, last-episode-time {:4d}").format(
-            episode, highScore, score,frame))
-
-        episode += 1</code></pre>
-
-    <h5>Replay Buffer</h5>
-    <p>Good review. Okay.<br>
-      See in our main function we are passing the <strong>SARS</strong>
-      (<strong>s</strong>tate, <strong>a</strong>ction, <strong>r</strong>eward, next-<strong>s</strong>tate)
-      transition directly from the environment into the agent.</p>
-    <pre><code class="language-python">action = agent.chooseAction(state)  # agent picks an action
-state_, reward, done, info = env.step(action) # pass action to env, it returns the "RS" of the SARS transition
-                                              # (we still have the state from last step) "S"ARS
-agent.learn(state, action, reward, state_, done)  # and we naively dump it straight into the agent to learn from</code></pre>
-    <p>Instead of dumping it straight into the agent, lets just collect all the transitions into a list.</p>
-
-    <pre><code class="language-python">state_, reward, done, info = env.step(action)
-transition = (state, action, reward, state_)  # create the transition
-memory.append(transition) # add to a list</code></pre>
-    <p>You can create the list up at the top of main with the environment and the agent.<br>
-      Also go ahead and put a batch size constant up there too.</p>
-    <pre><code class="language-python">if __name__ == '__main__':
-    env = gym.make('CartPole-v1').unwrapped
-    agent = Agent(lr=0.0001, inputShape=(4,), numActions=2)
-    BATCH_SIZE = 64 # you will see why we need this in a bit
-    memory = []</code></pre>
-    <p>All togethor it looks like this.</p>
-    <pre><code class="language-python">if __name__ == '__main__':
-    env = gym.make('CartPole-v1').unwrapped
-    agent = Agent(lr=0.0001, inputShape=(4,), numActions=2)
-    BATCH_SIZE = 64       # constant
-    memory = []           # replay buffer
-
-    highScore = -math.inf
-    episode = 0
-    while True:
-        done = False
-        state = env.reset()
-
-        score, frame = 0, 1
-        while not done:
-            env.render()
-
-            action = agent.chooseAction(state)
-            state_, reward, done, info = env.step(action)
-            transition = [state, action, reward, state_, done]  # make transition
-            memory.append(transition) # put it into the memory
-            
-            agent.learn(memory, BATCH_SIZE) # pass in the memory instead of a single transition
-            state = state_
-
-            score += reward
-            frame += 1
-            # print("reward {}".format(reward))
-
-        highScore = max(highScore, score)
-
-        print(( "ep {}: high-score {:12.3f}, "
-                "score {:12.3f}, last-episode-time {:4d}").format(
-            episode, highScore, score,frame))
-
-        episode += 1</code></pre>
-    <h5>Rewrite Learn Function Again</h5>
-    <p>Now we are creating a real dataset. That memory will fill up nicely. <br>
-      But, the agent not receiving single transitions to learn from anymore.
-      If we want to make it learn from the <strong>replay buffer</strong> instead, we have to rewrite the agents learn
-      function
-      so it can handle batches of transitions instead of just single transitions.
-    </p>
-    <pre><code class="language-python">def learn(self, memory, batchSize):
-    if len(memory) < batchSize: # dont even bother learning if you cant make a decent batch
-        return 
-
-    self.network.optimizer.zero_grad()
-
-    randomMemories = random.choices(memory, k=batchSize)  # randomly choose some memories
-    
-    # this bullshit just puts all the memories into their own seperate numpy arrays
-    # # I encourage you to print out each line to see what's going on
-    memories = np.stack(randomMemories) 
-    states, actions, rewards, states_, dones = memories.T
-    states, actions, rewards, states_, dones = \
-        np.stack(states), np.stack(actions), np.stack(rewards), np.stack(states_), np.stack(dones)
-
-    # then we have to convert the numpy arrays into tensors for pytorch
-    # # (also convert the types to floats so pytorch doesn't complain)
-    # # and also put them on the gpu device
-    states  =   torch.tensor( states    ).float().to(self.network.device)
-    actions =   torch.tensor( actions   ).to(self.network.device)
-    rewards =   torch.tensor( rewards   ).float().to(self.network.device)
-    states_ =   torch.tensor( states_   ).float().to(self.network.device)
-    dones   =   torch.tensor( dones     ).to(self.network.device)
-
-    qValues = self.network(states)  # compute an entire batch of q values
-    nextQValues = self.network(states_) # same as above, but for the "next state"
-                                        # instead of the current state
-    batchIndecies = np.arange(batchSize, dtype=np.int64)  # an indexing array (will explain later)
-
-    nowValues = qValues[batchIndecies, actions]    #   interpret the past
-    futureValues = torch.max(nextQValues, dim=1)[0]    #   interpret the future
-    futureValues[dones] = 0.0   #   ignore future actions if there will 
-                                #   be no future actions anyways
-    trueValuesOfNow = rewards + futureValues    #   same temporal difference but batched
-    loss = self.network.loss(trueValuesOfNow, nowValues)  # same error but along a batch
-
-    loss.backward()
-    self.network.optimizer.step()</code></pre>
-  </div>
-  <div class="grid-container halves u-align-left">
-    <div>
-      <h5>Learn Function Inputs</h5>
-      <p>
-        The new learn function takes in the replay buffer and the batch size.
-        The agent randomly chooses transitions from the replay buffer.
-      </p>
-      <pre><code class="language-python">randomMemories = random.choices(memory, k=batchSize)</code></pre>
-      <p>You don't have to worry about the replay buffer having enough transitions.
-        Even if k >= len(memory), the random.choices() function still works. You just might
-        get some repeats.
-      </p>
-      <h5>Minimum Data</h5>
-      <p>If you only have a few transitions stored the batch is not going to be a very good batch.
-        It's okay to just exit the function until the replay buffer has enough data.
-      </p>
-      <pre><code class="language-python">if len(memory) < batchSize:
-    return </code></pre>
-      <p>The minimum memory size has important agent performance implications actually. More on that later.</p>
-    </div>
-    <div>
-      <h5>Batched Temporal Difference</h5>
-      <p>The temporal difference section works exactly the same way as before.
-        It just uses "vectorized" code on arrays of transitions to run a lot faster.
-        You could have done all this stuff in a for loop, calculating temporal difference
-        for each transition and then summing/averaging the results togethor before you put
-        them into the loss function. But python is slow, and so that will be super super slow.
-      </p>
-      <pre><code class="language-python">trueValuesOfNow = rewards + futureValues
-
-# that's numpy magic for:
-trueValuesOfNow = [] 
-for transition in memoryBatch:
-  qValues = network(transition.state)
-  trueValuesOfNow.append(transition.reward + max(qValues))</code></pre>
-      <p>Notice vectorized code is much shorter. It expresses a lot more in much less code.
-        Some people find it hard to read at first, and it can be even more fickle to write.
-        That fickleness usually comes in the form of "pipe-alignment"
-        work. Thats why theres the whole <code>np.stack()</code>
-        block <code>np.arange()</code>, and <code>.float()</code> stuff up in the learn function.<br>
-        Don't feel bad if it often takes you a substantial amount of time to "align your pipes" in numpy.
-        I'm going to explain each bit of numpy magic used above.
-      </p>
-    </div>
-  </div>
-  <div class="grid-container full u-align-left">
-    <h5>Fickle Nonsense</h5>
-    <p>Numpy and pytorch can be really particular about everything.
-      They love to complain about array shapes, such as square, triangle, and circle.
-      And Pytorch especially loves to complain about datatypes.</p>
-    <pre><code class="language-python">>>> me = torch.tensor([1,2,3], dtype=torch.Gemini)
->>> her = torch.tensor([4,5,6], dtype=torch.Scorpio)
->>> me + her
-Traceback (most recent call last):
-  File "<stdin>", line 1, in <module>
-TypeError: unsupported operand type(s) for +: 'Gemini' and 'Scorpio'</code></pre>
-    <p>Pytorch expects your stars to be aligned. Luckily you are god and you have very long arms.<br>
-      <strong>State</strong>s and <strong>reward</strong>s should be float type. Thats because your gpu won't like
-      if they are doubles. I don't know if most gpu's don't have double precision
-      floating point processing units, or if the torch devs just never implemented
-      the required infrastructure to use it.<br>
-      <strong>Action</strong>s need to be int64 type. That's because you are using them to index tensors.</p>
-    <pre><code class="language-python">#   batchIndecies is a tensor used to index another tensor
-batchIndecies = np.arange(batchSize, dtype=np.int64)  # [0, 1, 2, ..., batchSize]
-nowValues = qValues[batchIndecies, actions] # actions is a tensor of indecies also
-# batchIndecies is indexing the first dimension of qValues
-# while the values of actions are being used to index the second dimension of qValues</code></pre>
-    <p>The first dimension is which transition. The second dimension is selecting either the first or second
-      qvalue we generated for each transition in the batch.<br>
-      Indexing tensors with other tensors is something you will have to do all the time.<br>
-      Anyways, notice how <code>batchIndecies.dtype == np.int64</code>. This kind of stuff is easy to miss.
-      <strong>Pytorch cares.</strong><br>
-      It works just fine to index numpy arrays with either int32 or int64's. It won't work in pytorch.
-    </p>
-    <pre><code class="language-python">#  in numpy this shit works fine
->>> a = np.arange(10)
->>> a
-array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
->>> b = np.arange(5)
->>> b
-array([0, 1, 2, 3, 4])
-
-# check the types
->>> a.dtype
-dtype('int64')
->>> b.dtype
-dtype('int64')
-
-# try indexing as int64
->>> a[b]
-array([0, 1, 2, 3, 4])
-
-# try indexing as int32
->>> b = np.arange(5, dtype=np.int32)
->>> b
-array([0, 1, 2, 3, 4], dtype=int32)
->>> a[b]
-array([0, 1, 2, 3, 4])
-# wow it worked</code></pre>
-    <p>Now try it in pytorch... watch...</p>
-    <pre><code class="language-python">>>> a = torch.arange(10)
->>> a
-tensor([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
->>> b = torch.arange(5)
->>> b
-tensor([0, 1, 2, 3, 4])
->>> a.dtype
-torch.int64
->>> b.dtype
-torch.int64
->>> a[b]                # int64 works just fine
-tensor([0, 1, 2, 3, 4])
-
->>> b = b.int()
->>> b.dtype
-torch.int32
->>> a[b]
-Traceback (most recent call last):
-File "<stdin>", line 1, in <module>
-IndexError: tensors used as indices must be long, byte or bool tensors
-# thanks pytorch for the very clear error message</code></pre>
-    <p>I know you are probably thinking "wow this is crazy specific, why are you telling me this? It's information
-      overload.
-      I will never remember this."
-      I'm telling you this because a lot of the time this is what working with numpy and tensors is actually like.
-      Behind every happy face in a deep q learning tutorial on youtube that takes 5 minutes to watch is a cold
-      broken husk of a man that spent 100 hours googling something like this:</p>
-    <pre><code class="language-python">RuntimeError: cuda runtime error (59) : device-side assert triggered at ...</code></pre>
-    <h5>Impending Dooooom</h5>
-    <p>From here on out all of the
-      code is going to be working with vectorized notation. Vectorized states, vectorized state processing,
-      vectorized experience replay, vectorized loss, vectorized temporal difference functions, vectorized vectorization,
-      vectorized sleeping, vectorized eating, vectorized pooping, vectorized stack overflowing. <br>
-      You are definitely going to have to do a bunch of "pipe-aligning" of your own. So I was
-      worried that if i just show you the code, you
-      won't realize this type of thinking is going on underneath when writing
-      this vectorized numpy/tensor stuff. I had to google a whole lot of errors to figure out pipe-alignment at first.
-      You reading this section may have just saved you 10 hours of time.</p>
-    <h5>Really Good Advice. Seriously, Actually Do This:</h5>
-    <p>
-      So far the best strategy I have for writing vectorized stuff is line by line deliberate programming.
-      Don't just try random changes to code to fix the numpy/pytorch
-      pipe-alignment errors. Plan out your data pipeline first. Carefully print each line as your transform the data to
-      make sure each operation does exactly what you thought it did. If you do it that way you can be sure it will work
-      on the first try.
-      And you can avoid days or weeks of the most will-breaking bug searching you can imagine.<br>
-      After a while you end up seeing way less errors like these anyway.
-      Probably because you got good at planning your pipes.<br>
-      But that might never happen if you are just <strong>googling random errors</strong>. Be deliberate.
-    </p>
-    <h5>Fetching And Formatting Our Memories</h5>
-    <p>Now that you know a little more, check out how it's done in the learn function again.</p>
-    <pre><code class="language-python">randomMemories = random.choices(memory, k=batchSize)  # randomly choose some memories
-
-memories = np.stack(randomMemories) 
-states, actions, rewards, states_, dones = memories.T
-states, actions, rewards, states_, dones = \
-    np.stack(states), np.stack(actions), np.stack(rewards), np.stack(states_), np.stack(dones)
-          
-states  =   torch.tensor( states    ).float().to(self.network.device) # dtype float32
-actions =   torch.tensor( actions   ).to(self.network.device)         # dtype int64
-rewards =   torch.tensor( rewards   ).float().to(self.network.device) # dtype float32
-states_ =   torch.tensor( states_   ).float().to(self.network.device) # dtype float32
-dones   =   torch.tensor( dones     ).to(self.network.device)         # dtype bool</code></pre>
-    <p>I bet you didn't pay much attention to it before, but do you notice the deliberate types now?
-      See we cast state, reward and states_ to float.
-      This code is actually getting lucky and the actions end up as <code>dtype=int64</code> automatically.
-      The <code>dones</code> array is of type <code>bool</code>. Bool arrays are pretty useful.
-      You can use them to mask out other arrays for operations.<br>
-      Check this out:
-    </p>
-    <pre><code class="language-python">>>> a = np.ones(4)
->>> a
-array([1., 1., 1., 1.])
->>> b = np.array([True, False, True, False], dtype=np.bool)
->>> b
-array([ True, False,  True, False])
->>> a[b] = 2
->>> a
-array([2., 1., 2., 1.])
-</code></pre>
-    <p>Look familiar? It should.</p>
-    <pre><code class="language-python">nowValues = qValues[batchIndecies, actions]    #   interpret the past
-futureValues = torch.max(nextQValues, dim=1)[0]    #   interpret the future
-
-'''WE DID IT HERE: 
-  it sets predicted q values to zero if the done is true at that index'''
-futureValues[dones] = 0.0   #   ignore future actions if there will 
-                            #   be no future actions anyways</code></pre>
-    <h5>Last Pipe Alignment</h5>
-    <p>If you already know how this part works you can skip this section.</p>
-    <pre><code class="language-python">memories = np.stack(randomMemories) 
-states, actions, rewards, states_, dones = memories.T
-states, actions, rewards, states_, dones = \
-    np.stack(states), np.stack(actions), np.stack(rewards), np.stack(states_), np.stack(dones)</code></pre>
-    <p>Code does a good job of explaining what this does.</p>
-    <pre><code class="language-python">#  make fake memories
->>> a = np.arange(25)
->>> a
-array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16,
-        17, 18, 19, 20, 21, 22, 23, 24])
->>> a = a.reshape((5,5))
->>> a
-array([[ 0,  1,  2,  3,  4],
-        [ 5,  6,  7,  8,  9],
-        [10, 11, 12, 13, 14],
-        [15, 16, 17, 18, 19],
-        [20, 21, 22, 23, 24]])
-
-# demonstrate stack
->>> pprint(a.tolist())
-[[0, 1, 2, 3, 4],
- [5, 6, 7, 8, 9],
- [10, 11, 12, 13, 14],
- [15, 16, 17, 18, 19],
- [20, 21, 22, 23, 24]]
->>> a = np.stack(a)     # converts a list of lists into a numpy array
->>> a
-array([[ 0,  1,  2,  3,  4],
-       [ 5,  6,  7,  8,  9],
-       [10, 11, 12, 13, 14],
-       [15, 16, 17, 18, 19],
-       [20, 21, 22, 23, 24]])
-
-# demonstrate tuple assignment and Transpose
-
-# # transpose
->>> a
-array([[ 0,  1,  2,  3,  4],
-       [ 5,  6,  7,  8,  9],
-       [10, 11, 12, 13, 14],
-       [15, 16, 17, 18, 19],
-       [20, 21, 22, 23, 24]])
->>> a.T
-array([[ 0,  5, 10, 15, 20],
-       [ 1,  6, 11, 16, 21],
-       [ 2,  7, 12, 17, 22],
-       [ 3,  8, 13, 18, 23],
-       [ 4,  9, 14, 19, 24]])
-
-# # tuple unpacking
->>> sliceOne, sliceTwo = [[1, 2], [3, 4]]
->>> sliceOne
-[1, 2]
->>> sliceTwo
-[3, 4]
-
-# # all togethor now 
->>> states, actions, rewards, states_, dones = a.T
->>> a.T
-array([[ 0,  5, 10, 15, 20],
-       [ 1,  6, 11, 16, 21],
-       [ 2,  7, 12, 17, 22],
-       [ 3,  8, 13, 18, 23],
-       [ 4,  9, 14, 19, 24]])
->>> states
-array([ 0,  5, 10, 15, 20])
->>> actions
-array([ 1,  6, 11, 16, 21])
->>> rewards
-array([ 2,  7, 12, 17, 22])
->>> states_
-array([ 3,  8, 13, 18, 23])
->>> dones
-array([ 4,  9, 14, 19, 24])</code></pre>
-  </div>
-  <div class="grid-container full u-align-left">
-    <h4 class="u-align-center">Full Code</h4>
-    <p>Good job if you made it through last section and you understand each line of the learn function.<br>
-      Here is the full code.</p>
-    <pre><code class="language-python">import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-import gym       
-import math
-import numpy as np
-import random
-
-class Network(torch.nn.Module):
-    def __init__(self, alpha, inputShape, numActions):
-        super().__init__()
-        self.inputShape = inputShape
-        self.numActions = numActions
-        self.fc1Dims = 1024
-        self.fc2Dims = 512
-
-        self.fc1 = nn.Linear(*self.inputShape, self.fc1Dims)
-        self.fc2 = nn.Linear(self.fc1Dims, self.fc2Dims)
-        self.fc3 = nn.Linear(self.fc2Dims, numActions)
-
-        self.optimizer = optim.Adam(self.parameters(), lr=alpha)
-        self.loss = nn.MSELoss()
-        # self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.device = torch.device("cpu")
-        self.to(self.device)
-
-    def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-
-        return x
-
-class Agent():
-    def __init__(self, lr, inputShape, numActions):
-        self.network = Network(lr, inputShape, numActions)
-
-    def chooseAction(self, observation):
-        state = torch.tensor(observation).float().detach()
-        state = state.to(self.network.device)
-        state = state.unsqueeze(0)
-
-        qValues = self.network(state)
-        action = torch.argmax(qValues).item()
-
-        chanceOfAsparagus = random.randint(1, 10)
-        if chanceOfAsparagus == 1:  #   10% chance
-            action = random.randint(0, 1)
-
-        return action
-
-    def learn(self, memory, batchSize):
-        if len(memory) < batchSize:
-            return 
-
-        self.network.optimizer.zero_grad()
-
-        randomMemories = random.choices(memory, k=batchSize)
-        memories = np.stack(randomMemories)
-        states, actions, rewards, states_, dones = memories.T
-        states, actions, rewards, states_, dones = \
-            np.stack(states), np.stack(actions), np.stack(rewards), np.stack(states_), np.stack(dones)
-        
-        states  =   torch.tensor( states    ).float().to(self.network.device)
-        actions =   torch.tensor( actions   ).to(self.network.device)
-        rewards =   torch.tensor( rewards   ).float().to(self.network.device)
-        states_ =   torch.tensor( states_   ).float().to(self.network.device)
-        dones   =   torch.tensor( dones     ).to(self.network.device)
-
-        qValues = self.network(states)
-        nextQValues = self.network(states_)
-
-        batchIndecies = np.arange(batchSize, dtype=np.int64)
-
-        nowValues = qValues[batchIndecies, actions]       #   interpret the past
-        futureValues = torch.max(nextQValues, dim=1)[0]   #   interpret the future
-        futureValues[dones] = 0.0 
-                                  
-        trueValuesOfNow = rewards + futureValues    # temporal difference
-        loss = self.network.loss(trueValuesOfNow, nowValues)
-
-        loss.backward()
-        self.network.optimizer.step()
-
-if __name__ == '__main__':
-    env = gym.make('CartPole-v1').unwrapped
-    agent = Agent(lr=0.0001, inputShape=(4,), numActions=2)
-    BATCH_SIZE = 64
-    memory = []
-
-    highScore = -math.inf
-    episode = 0
-    while True:
-        done = False
-        state = env.reset()
-
-        score, frame = 0, 1
-        while not done:
-            # env.render()
-
-            action = agent.chooseAction(state)
-            state_, reward, done, info = env.step(action)
-            transition = [state, action, reward, state_, done]
-            memory.append(transition)
-            
-            agent.learn(memory, BATCH_SIZE)
-            state = state_
-
-            score += reward
-            frame += 1
-
-        highScore = max(highScore, score)
-
-        print(( "ep {}: high-score {:12.3f}, "
-                "score {:12.3f}, last-episode-time {:4d}").format(
-            episode, highScore, score,frame))
-
-        episode += 1</code></pre>
-    <p>Most of the code in creating the actual experience replay buffer didn't involve the actual
-      experience replay buffer. The replay buffer was just an array. Almost
-      everything we coded was just aligning the pipes. FUN.
-    </p>
-  </div>
-  <div class="grid-container full u-align-left">
-    <h5>Did We Really Change Anything?</h4>
-      <p>The neural network gets batches now. Great. Let's see if it had any impact on performance.</p>
-      <pre><code class="language-python">...
-ep 632: high-score     2275.000, score     1340.000, last-episode-time 1341
-ep 633: high-score     2275.000, score      479.000, last-episode-time  480
-ep 634: high-score     2275.000, score      389.000, last-episode-time  390
-ep 635: high-score     2275.000, score      581.000, last-episode-time  582
-ep 636: high-score     2275.000, score      319.000, last-episode-time  320
-ep 637: high-score     2275.000, score      256.000, last-episode-time  257
-ep 638: high-score     2275.000, score      518.000, last-episode-time  519
-ep 639: high-score     2275.000, score      354.000, last-episode-time  355
-ep 640: high-score     2275.000, score      423.000, last-episode-time  424
-ep 641: high-score     2275.000, score      704.000, last-episode-time  705
-ep 642: high-score     2275.000, score      648.000, last-episode-time  649
-ep 643: high-score     2275.000, score      612.000, last-episode-time  613
-ep 644: high-score     2275.000, score      342.000, last-episode-time  343
-ep 645: high-score     2275.000, score      630.000, last-episode-time  631
-ep 646: high-score     2275.000, score      730.000, last-episode-time  731
-ep 647: high-score     2275.000, score      952.000, last-episode-time  953
-ep 648: high-score     2275.000, score      349.000, last-episode-time  350
-...</code></pre>
-      <p>Holy shit look at those scores. Not only are they high, but not a single one is below 200.
-        We <strong>may</strong> have addressed the network stability somewhat.
-      </p>
-      <h4 class="u-align-center">Making Fair Comparisons</h4>
-      <p class="u-align-center">Is it really better? We are basically using the same transitions as before.<br>
-        All we did was just batch the learning. Does this really work or are we being fooled?</p>
-      <h5>Episodic Reward Problems</h5>
-      <p>
-        First we should sanity check ourselves. Is it fair to compare the performance of this agent
-        at episode 500 to the version with no replay buffer at episode 500? Yes, and no.
-        In the old version the network only learned from one transition each step.
-        So on episode 500, if each episode was an average of 80 steps, the agent went through
-        500 * 80 = 40,000 transitions in total. Compare that to the new agent with memory.
-        The new version of the agent is calculating error for 64 transitions per step.
-        So at episode 500, if it had an average of 80 steps per episode, that would be 500 * 80 * 64 = 2,560,000
-        transitions.
-        The new agent has done way <strong>WAY</strong> more processing by episode 500.
-        In fact, the new agent processes so many transitions per step that it already hits the 40,000 transition mark
-        <strong>by episode 8</strong>.<br>
-        Additionaly, we are assuming that every episode is exactly 80 steps long. That never happens. Every episode
-        could be drastically
-        different in duration.<br>
-        This is a problem. How are we supposed to compare the performance of different agents if
-        the concept of an episode and the concept of a step is not the same across agents?
-        To make this even worse, in the agent with no memory, when it has done 40,000 steps it has seen
-        40,000 unique new transitions. It never reuses even one of them. For an agent with a replay buffer, by the time
-        it has processed 40,000 steps, the memory
-        has only collected about 600 transitions. That means some of those transitions could have been reused
-        <strong>over a hundred times</strong>.
-      </p>
-      <h5>Sample Efficiency</h5>
-      <p>Instead of using episodes or learn steps, a great way to measure agent performance is with "<strong>sample
-          efficiency</strong>".
-        The <strong>sample efficiency</strong> of an agent is simple. What performance did that agent achieve by the
-        time it has seen
-        x number of <strong>unique</strong> transitions. The better the performance gained per transition collected, the
-        better the sample efficiency is.
-        If you give two different agents 1,000,000 samples, the one that gets better, more reliable performance is the
-        better agent.<br>
-        So let's be fair and compare the old agent to the new agent on a per sample basis.</p>
-      <p>Here I modified the old agent without a replay buffer to print out the number of samples:</p>
-      <pre><code class="language-python">"""OLD AGENT CODE"""
-if __name__ == '__main__':
-    env = gym.make('CartPole-v1').unwrapped
-    agent = Agent(lr=0.0001, inputShape=(4,), numActions=2)
-
-    highScore = -math.inf
-    episode = 0
-    numSamples = 0            # LOOK HERE
-    while True:
-        done = False
-        state = env.reset()
-
-        score, frame = 0, 1
-        while not done:
-            env.render()
-
-            action = agent.chooseAction(state)
-            state_, reward, done, info = env.step(action)
-            
-            agent.learn(state, action, reward, state_, done)
-            state = state_
-
-            numSamples += 1     # increment it every time the agent gets one sample
-
-            score += reward
-            frame += 1
-
-        highScore = max(highScore, score)
-
-        print(( "total samples: {}, ep {}: high-score {:12.3f}, " # print it out now too
-                "score {:12.3f}").format(
-            numSamples, episode, highScore, score,frame))
-
-        episode += 1</code></pre>
-      <p>After running it for a few minutes, here are the results at 50,000 transitions.</p>
-      <pre><code class="language-python">...
-total samples: 49212, ep 1145: high-score     1094.000, score      198.000
-total samples: 49536, ep 1146: high-score     1094.000, score      324.000
-total samples: 49828, ep 1147: high-score     1094.000, score      292.000
-total samples: 49837, ep 1148: high-score     1094.000, score        9.000
-total samples: 49847, ep 1149: high-score     1094.000, score       10.000
-total samples: 49856, ep 1150: high-score     1094.000, score        9.000
-total samples: 49864, ep 1151: high-score     1094.000, score        8.000
-total samples: 49876, ep 1152: high-score     1094.000, score       12.000
-total samples: 49885, ep 1153: high-score     1094.000, score        9.000
-total samples: 49895, ep 1154: high-score     1094.000, score       10.000
-total samples: 49905, ep 1155: high-score     1094.000, score       10.000
-total samples: 49915, ep 1156: high-score     1094.000, score       10.000
-total samples: 50050, ep 1157: high-score     1094.000, score      135.000
-...</code></pre>
-      <p>That looks like a bad case of <strong>CATASTROPHIC FORGETTING</strong>.<br>
-        Now lets modify the new agent code to print out the number of unique samples collected.</p>
-      <pre><code class="language-python">"""NEW AGENT CODE"""
-if __name__ == '__main__':
-    env = gym.make('CartPole-v1').unwrapped
-    agent = Agent(lr=0.0001, inputShape=(4,), numActions=2)
-    BATCH_SIZE = 64
-    memory = []
-
-    highScore = -math.inf
-    episode = 0
-    numSamples = 0        # LOOK HERE AGAIN
-    while True:
-        done = False
-        state = env.reset()
-
-        score, frame = 0, 1
-        while not done:
-            env.render()
-
-            action = agent.chooseAction(state)
-            state_, reward, done, info = env.step(action)
-            transition = [state, action, reward, state_, done]
-            memory.append(transition)
-            
-            agent.learn(memory, BATCH_SIZE)
-            state = state_
-
-            numSamples += 1 # still only one sample collected per transition
-
-            score += reward
-            frame += 1
-
-        highScore = max(highScore, score)
-
-        print(( "total samples: {}, ep {}: high-score {:12.3f}, "   # and same printing
-                "score {:12.3f}").format( 
-            numSamples, episode, highScore, score,frame)) 
-
-        episode += 1</code></pre>
-      <p>And the results at 50,000 samples:</p>
-      <pre><code class="language-python">total samples: 45658, ep 227: high-score     1063.000, score      180.000
-total samples: 45941, ep 228: high-score     1063.000, score      283.000
-total samples: 46332, ep 229: high-score     1063.000, score      391.000
-total samples: 46477, ep 230: high-score     1063.000, score      145.000
-total samples: 46762, ep 231: high-score     1063.000, score      285.000
-total samples: 46955, ep 232: high-score     1063.000, score      193.000
-total samples: 47430, ep 233: high-score     1063.000, score      475.000
-total samples: 47929, ep 234: high-score     1063.000, score      499.000
-total samples: 48512, ep 235: high-score     1063.000, score      583.000
-total samples: 48835, ep 236: high-score     1063.000, score      323.000
-total samples: 49019, ep 237: high-score     1063.000, score      184.000
-total samples: 49897, ep 238: high-score     1063.000, score      878.000
-total samples: 50092, ep 239: high-score     1063.000, score      195.000</code></pre>
-      <p>Look at that stability.<br>
-        Notice, it has only played 239 episodes whereas the other one was on episode 1157.
-        And even though the stability has changed, the high score is similar. Perhaps that has to do with us having a
-        very similar distribution of transitions collected.
-        After all, what is in the data matters a lot, not just how much of it there is. The cartpole environment should
-        be providing
-        very similar transitions to both agents. <br>
-        Now, if we were really good scientists we would use the same set of transitions on both agents, and identical
-        starting weights
-        and frozen random seeds for the environment. I think that is overkill and if you run these 2 agents 100 times
-        each
-        you won't become any less confident about the following conclusion:<br>
-        An Experience Replay Buffer can increase the sample efficiency of a deep q agent.</p>
-      <h5>Wall Clock Time</h5>
-      <p>Something else to consider is runtime.<br>
-        Both agents can be considered on a per sample basis, however, the version with the replay buffer takes
-        substantially longer
-        to run each update step. Running on cpu it should take somewhere between 1 and 80ish times as long to process
-        one step of a network update. I had to wait quite a bit longer for the memory agent to hit the 50,000 samples
-        mark.
-        Whereas the agent without a replay buffer hit 50,000 samples in less than a minute. I didn't even have enough
-        time to make a
-        sandwhich.<br>
-        Part of this slowness has to do with our naive implementation of the replay buffer, which we will fix another
-        time.
-        But, we did legitimately increase the amount of computation necessary to train the agent on an equivalent amount
-        of experience.<br><br>
-        This difference in training clock time doesn't matter once you deploy the agent. Once the
-        agents are trained up to your satisfaction you can disable the learn function and just let the agents play
-        "offline".
-        Both agents take equally long to pick actions if they arent learning. (But the agent trained with the memory
-        will get much better scores. :^)</p>
-      <h5>Do All Three</h5>
-      For these reasons, when you see RL papers comparing agents, often times they will contain graphs of "reward per
-      episode",
-      "reward per sample", and "reward per time". Having all three methods of comparison ensures you are getting a
-      more fair assessment of performance between agents.</p>
-  </div>
   <div class="grid-container full u-align-left">
     <h4 class="u-align-center">It Is Also Just Plain Better Though</h4>
     <p>The new agent is way better in general. The features in the old agent would decay so fast from the poor dataset
