@@ -38,12 +38,12 @@
   <div class="grid-container full">
     <h1>Wegfawefgawefg's Tutorials</h1>
     <h2>Experience Replay 2</h2>
-    <h3>The Floodgates Have Opened</h3>
+    <h3>The Floodgates Are Opening</h3>
     <h4>Prerequisites</h4>
     <p class="u-align-left">This tutorial follows the first
       <a href="/tutorials/rl/experiencereplay/experiencereplay.html">Experience Replay Tutorial</a>.
       If you haven't read that one you might want to go give it a read.<br>
-      Also get a snack, relax. Make yourself comfy. You've got two weeks to live.
+      Also get a snack, relax. Make yourself comfy. You have two weeks left to live.
     </p>
   </div>
   <div class="grid-container full">
@@ -52,16 +52,18 @@
       In the last tutorial we made a replay buffer to fix some of our agent's stability issues.
       Our strategy turned the reinforcement learning problem into more classic machine learning,
       complete with an actual dataset and opportunity for some data management. The beneficial effects of shuffled
-      and balanced data batches are basically the same for reinforcement learning as they are for computer vision
+      batches are basically the same for reinforcement learning as they are for computer vision
       and NLP. However, the metaphor is a bit different and so how it helps might not be so obvious.
     </p>
 
   </div>
   <div class="grid-container full u-align-left">
     <h5 class="u-align-center">Data Quality<br>In Classic Machine Learning</h5>
-    <p>Two import things we did were shuffle and balance the data.
-      By adding a replay buffer we changed the order that the agent was exposed to the transitions.
-      <strong>Order and Balance</strong> have huge impacts on the agent's score.
+    <p>So, other than batching (which has a whole slew of advantages on its own, and you should go look that up), the
+      two most import things we did were shuffle and balance the data.
+      By adding a replay buffer we drastically changed the order that the agent was exposed to the transitions.
+      Changing data <strong>order</strong> and <strong>balance</strong> alone has huge impacts on the agent's score.
+      No changes were made to the agent architecture.
     </p>
     <div class="grid-container halves u-align-left">
       <div class="left">
@@ -88,9 +90,9 @@
           section. Then for the rest of the 9800 cat images, it will always guess cat, have an
           error near zero, and never learn anything else about either cat's or dogs. At this point
           the network is unusable. It didn't matter if the data was clean or how much of
-          it there was. All that training time, and almost all the data wasn't used.
+          it there was. All that training time, and almost all the data went unused.
         </p>
-        <p>The lesson to learn from this is that the network learns not from data,
+        <p>The lesson to learn from this is the network learns not from data,
           but when the data switches from one concept to another concept. The whole task is to
           learn by comparing things. You can't learn
           from comparing something to itself. The solution is to shuffle the data. Cat, dog,
@@ -105,7 +107,7 @@
           the data, the network has no reason to learn to identify cats at all, or even to learn dogs for that matter.
           All it has to do is guess dog 100% of the time, and it will end up with about 99% success rate.
         </p>
-        <p>You might be tricked, see the 99% and think the network is great at differentiation between
+        <p>You might be tricked, see the 99%, and think the network is great at differentiation between
           cats and dogs. It's not. It's terrible at it.
         </p>
         <p>Maybe you think i'm just exaggerating:<br>
@@ -114,7 +116,8 @@
             dogs and 500 images of cats."</i><br><br>
           Well, even in that scenario, if the network guessed dog 100% of the time it would get a 67% accuracy.
           Does that mean it understands 67% of the difference between cat and dog? No.<br>
-          Does it mean it understands even 17% <code>(67% - 50%)</code> of the difference between cat and dog? No.<br>
+          Does it mean it understands even 17% <code>(67% - 50%)</code> (50% is a coin flip) of the difference between
+          cat and dog? No.<br>
           It applied zero knowledge about cats and dogs. It just chose dog every time. The only correct conclusion
           you can come to is that it knows you have more pictures of one class than the other.
           You could swap the 1000 images of dogs out for pictures of asparagus and it would still get the high accuracy.
@@ -128,8 +131,8 @@
       class in school. When you use flashcards, do you drill yourself on one card 10,000 times, expect to have
       learned it,
       and then move on to the next card in the stack? No. Obviously it wouldn't work. So you shuffle the cards,
-      and make sure you practice a diverse set of concepts. Boredom might be a way of mechanically forcing you to
-      do this by the way. :^)
+      and make sure you practice a diverse set of concepts. Boredom seems to be a way of mechanically forcing you to
+      do this. :^)
     </p>
   </div>
   <div class="grid-container full u-align-left">
@@ -146,9 +149,10 @@
           pole.
           It isn't as diverse as images, so aren't the samples basically almost the same anyways?<br>
           RL is not like in classification where it is so obvious what distinguishes one sample from another, cat vs.
-          dog. You don't even know what the classes are beforehand. However,
-          from the perspective of an agent that already knows how to solve cartpole each transition represents
-          a distinct concept, a distinct "classification" even. For the expert agent, it is like a fuzzy classification
+          dog. You don't even know what the classes are beforehand. However, it is still a lot like a
+          classification problem.
+          From the perspective of an agent that already knows how to solve cartpole, each transition represents
+          a distinct concept, a distinct "classification". For the expert agent, it is a fuzzy classification
           problem.
         </p>
         <p>
@@ -173,42 +177,50 @@
           falling on the same side. The episode terminates when the pole is barely tipping over.
           Then when the next episode starts, there is a 50% chance it gets another 9-20 nearly identical
           frames...
-          This happens over and over and over.
+          This happens over and over and over. It's a serious data order problem.
         </p>
       </div>
       <div class="right">
         <h5>Data Balance</h5>
         <p>Now, let's assume you didnt know about replay buffers, but you wanted to fix
-          data order problems. So you decide to collect 10 transitions at a time into a minibuffer.
-          The sample are shuffled and then given to the agent. Then they are discarded.
-          This might seem to fix data order problems... but wouldn't you still have the same content issues?
+          data order problems. You come up with what you think is a solution.
+          You decide to collect 10 transitions at a time into a minibuffer.
+          That means, as the game is played, each step returns a transition and you put that transition
+          into a list. Once the list hits size 10, the list of samples is shuffled and then given to the agent.
+          Then they are discarded. The list is cleared.
+          This shuffles the data right? So shouldn't it fix data order problems?
+          No, because you still have the same content issues.
           The set of transitions collected represent the same, or very similar, concepts.
-          The order has changed, but the class balance is still messed up.</p>
+          The order has changed, but the class imbalance is still there.</p>
         <p>Maybe you could fix that by making the mini buffer bigger. That way it could
-          catch some samples from different episodes.
-          How long does this mini buffer need to be? Is 50 frames enough?<br>
+          catch some samples from different episodes, and thus have a chance of being
+          transitions from more diverse circumstances.
+          But to do that, how long should this mini buffer need to be? Is 50 frames enough? 1000?<br>
           What if you try a different environment
           where the physics run at half the speed? Do you make the mini buffer twice as large?
-          Are you going to micromanage the size of this mini buffer?<br>
+          Are you really going to micromanage the size of this mini buffer? Do you really
+          want to investigate the environment deeply to figure out how big it needs to be?<br>
           What if your agent is taking in real life data from a 144fps camera?
-          Thousands and thousands of those frames are going to be nearly identical when the agent isn't moving that
-          much.
-          Is it right to waste that time learning nothing? Or worse, all those similar frames can push the network
-          weights into a stale spot
-          where they will never recover from.<br>
+          Thousands and thousands of the frames in your big minibuffer are going to be nearly identical when the agent
+          isn't moving that
+          much. So your agent will be spending all that time reviewing thousands of nearly identical frames.
+          Isn't it a huge waste of time?
+          And if you are really unlucky all those similar frames could push the network
+          weights into a stale spot where they will never recover from.<br>
           All the great feature detectors it grew in other scenarios could be lost in time.
         </p>
       </div>
     </div>
-    <p>The experience replay buffer manages to improve the data a lot by giving the chance to address both
-      order and balance simultaniously. The agent is forced to review different
-      "classes" of scenarios, and the agent will continue to review old transitions even
+    <p>The experience replay buffer manages to address both data
+      order and balance simultaniously. The agent is much more likely to review a diverse set of transitions
+      at each learn step, and as such reviews diverse "classes" of scenarios.
+      And the agent can continue to review old transitions even
       when it is stuck in an environment scenario that is pretty stale on its own.
     </p>
     <h4 class="u-align-center">Feedback Loop</h4>
     <p>But why did I say these order and balance effects are even worse in reinforcement learning than in
       other machine learning? So far it seems like the same effects right?
-      The reason these effects are much worse in rl is that the agent is designing its own dataset.
+      The reason these effects are much worse in rl is the agent designs its own dataset.
       If you are training a network to identify cats vs. dogs that network doesn't get a chance to screw up the data.
       Assuming you balanced and shuffled the data, by the end of training you are guaranteed the network has seen every
       class equally.
@@ -226,27 +238,31 @@
       poles pointing straight up.</p>
     <p>That means the agent won't be practicing scenarios where the cart is near the edge of the play area. And
       it wont be practicing scenarios where the pole is at a more extreme angle or velocity.
-      The result? It likely will not be effective in those scenarios anymore.
-      <strong>CATASTROPHIC FORGETTING</strong>. When you go try the lunar lander
+      The result? It likely will not be effective in those scenarios anymore. This is the case even if it
+      used to be okay at those scenarios.
+      <strong>CATASTROPHIC FORGETTING</strong> strikes again, but in a much more sinister form.</p>
+    <p>When you go try the lunar lander
       environment you can witness this firsthand. The lander agent will seem to forget the old basic balancing
-      skills it had spend so much time practicing, as it refines the much more specific strategy it ended up converging
-      on. If you see the lander end up in a scenario that defies
-      its new specific strategy, it might just flip out and behave completely stupidly. I suspect that
+      skills it had spend so much time practicing, as it refines the much more specific strategy of inching towards
+      the ground. If you see the lander end up in a scenario that defies
+      its new very specific strategy, it might just flip out and behave completely stupidly. I suspect that
       wouldn't happen if it was getting a constant flow of samples from good old times to remind it.
     </p>
     <h5>Objection</h5>
     <p><i>"Hey what's wrong with that? The agent doesn't need to practice balancing at extreme angles anymore. So
         it's not only okay that it is focusing on refining its balancing technique within a more specific scenario,
         but it is ideal."
-      </i><br>
-      Yes this is true. And it is a beneficial effect of a replay buffer. The agent specializes and focuses on
-      what it should. How beneficial that is heavily depends on the environment though... You lose what you don't
-      practice, to make room for what you do.<br>
-      It is possible there is a fantastic feature detector that will work for both "very balanced poles" and
-      "barely balanced poles",
+      </i></p>
+    <p>
+      Yes this is true. And not only is it a beneficial effect of a replay buffer, but it's something
+      RL agents seem to do naturally anyways. The agent specializes and focuses on
+      what it should. How beneficial that strategy rigidity is heavily depends on the environment, though...
+      You lose what you don't practice, to make room for what you do. It is possible there is a
+      fantastic feature detector that will work for both "very balanced poles" and "barely balanced poles",
       but it will never be discovered unless both circumstances are considered frequently togethor.
       The nature of the agent is that its goal is to undiversify the data. It want's to see the same circumstance
-      over and over. As our agent is, it hates new scenarios. It is doing this on purpose. <br>
+      over and over. To minimize error is to minimize how much the circumstance changes.
+      As our agent is, it hates new scenarios. It is doing this on purpose. <br>
       Reinforcement learning makes your data "self-siloing", "self-unbalancing", and "self-ordering".
       By getting good at the game, our current agent is also setting itself up to be more specialized.
       To combat this you have to really force it to eat its vegetables.</p>
@@ -257,9 +273,10 @@
       Let's run under the assumption that we want the agent to specialize on refining its pole balance.
       Maybe you don't care if the agent is good at recovering from disastrous scenarios because it
       shouldn't be in any of those scenarios in the first place.
-      So in order to specialize, the agent needs to train on transitions that are similar to the kind of transitions 
+      So in order to specialize, the agent needs to train on transitions that are similar to the kind of transitions
       it will be likely to see.
-      Reviewing old disaster transitions from terrible early episodes might be necessary to prevent <strong>CATASTROPHIC FORGETTING</strong> 
+      Reviewing old disaster transitions from terrible early episodes might be necessary to prevent <strong>CATASTROPHIC
+        FORGETTING</strong>
       but beyond a threshold amount it will actually make the agent worse. (worth investigating the threshold)<br><br>
       Assuming 90% of the transitions end up as "nearly-balanced-poles", the remaining 10% are old "fire-drill samples".
       And they are going to be pretty hard to get rid of. To convert that 10% to 5% will require twice as many steps as
@@ -271,21 +288,40 @@
       Some of them are worth keeping around. (worth investigating)
     </p>
     <p>It's almost as if we need a second agent managing the replay buffer, choosing what memories to give
-      to the primary agent at what time, and what memories, if any, to dispose of. ;^) I suspect the memory will end up as 
-      part of the machine learning soon enough. If somebody hasn't done it already, I give it a few years. (or you could 
+      to the primary agent at what time, and what memories, if any, to dispose of. ;^) I suspect the memory will end up
+      as
+      part of the machine learning soon enough. If somebody hasn't done it already, I give it a few years. (or you could
       try doing it yourself)
     </p>
   </div>
   <div class="grid-container full u-align-left">
-    <h4 class="u-align-center">So Many Choices</h4>
-    <p>Life is complicated. You fix one thing, but break another. 
-      There are many addons waiting to be discovered that will improve the agent, some more 
-      complicated than others. But before you go off into research land, there is still some low hanging fruit 
-      available to reach for.
+    <h4 class="u-align-center">The Tutorial Is Within</h4>
+    <p>Life is complicated. You fix some things, but break another.
+      There are many addons waiting to be discovered that will improve the agent, some more
+      complicated (and more work :^) than others. I want you to consider some of the problems
+      that our experience replay brought to light. What are the causes of those problems?
+      What addons can you create that will mitigate them, without breaking everything in the process.
+      Focus on solutions that are easy. If something requires too much work, it is probably the wrong solution.</p>
+    <p>
+      I hope you aren't mad at me, but this time the tutorial provides you no code. <br>
+      Maybe it is the most important tutorial yet.
+      That's how it is at the edge of science. No parents. No rules. 
     </p>
+    <p>I want you to get a notebook and a pencil, and go sit outside, or go for a walk.
+      List circumstances that fool the agent.
+      List potential causes.
+      This time the tutorial is within your heart. <strong>awwwwwwwwww</strong><br>
+      I will go for a walk now, and do the same as you. Up ahead I'll tell you what i thought about.
+      But really, you better go do it. I'm not kidding. I'm actually going for a walk now with my notebook. Bye.
+    </p>
+    <h4 class="u-align-center">Hey</h4>
+    <h4 class="u-align-center">DONT SKIP AHEAD</h4>
+    <h4 class="u-align-center">GO HAVE SOME IDEAS</h4>
+    <h5>My Ideas</h5>
+
     <p>PER, and minimum memory size, and better memory performance</p>
-  </div>
-  <p>
+
+    <p>
       This is why its important to establish a decent minimum set of memories before you start training from the data.
       If you dont get a good base of memories from a diverse set of circumstances, you may just end up feeding the agent
       what is essentially "unshuffled" data.
@@ -294,39 +330,7 @@
       early stopping.
       You could also try to determine which memories are relevant and which are not, and then dump the unimportant ones:
     </p>
-  <div class="grid-container full u-align-left">
-    <h4 class="u-align-center">It Is Also Just Plain Better Though</h4>
-    <p>The new agent is way better in general. The features in the old agent would decay so fast from the poor dataset
-      that
-      they never got a chance to get refined. You can think of it like a persistant force of chaos always pressing down
-      on the
-      weights of the neural network at each step. The old agent's feature detectors were always taking one step forward,
-      two steps back.
-      It's highly likely you could train the old agent for days and it would never get as good as the new one with the
-      replay buffer.
-    </p>
-    <h4>What's Next</h4>
-    <p>Before you go off looking for the next upgrade to your agent, you should
-      assure that you really understand why adding the replay buffer improves performance so drastically.
-      I know you are probably wondering why it works at all given that we didn't really change much.
-      It is the same amount of transitions as before, after all... just in a different order...
-      I want you to think about it for yourself first as I will go deeply into this in the next tutorial.</p>
-    <ul>For now I will leave you with some questions...
-      <li>How come in classification tasks in typical machine learning you should always shuffle your data?</li>
-      <li>Why in both computer vision and NLP is data usually batched or minibatched? Does it improve performance?
-        Or is it only done for compute speed?
-      </li>
-      <li>Why in typical machine learning is it important to have balanced data? Ex:
-        If it is a classification task, why do you want equally as many images of cats as of dogs?
-        Is it okay to have 10,000 pictures of dogs, but only 100 pictures of cats?
-      </li>
-      <li>
-        What does it mean for an agent to generalize instead of memorize?
-      </li>
-      <li>
-        Why is my wife spending the weekend at her mothers house?
-      </li>
-    </ul>
+
     <p>If you can answer these questions, there's a good chance that you just might know how to read english.</p>
     <a class="u-align-center" href="/index.html">Tutorial Hub</a>
     <p></p>
@@ -335,212 +339,3 @@
 </body>
 
 </html>
-
-<!-- 
-
-
-    CONGRATS YOU FOUND MY BONUS NOTES AND DRAFT
-    HERE IS A COOKIE :^)
-
-
-
- -->
-
-<!-- also compare compute efficiency -->
-<!-- <h5>Too Many Problems</h5>
-  Here is a li -->
-
-<!-- so how are these features chosen? which features will appear? while the network is training, do many features appear, but 
-                        only the strongest survive? are we incentivising the creation of good features, or cheap trick features? -->
-<!-- bad features vs good features -->
-<!-- <h4>Not A Spectrum</h4>
-    <p>An agent's internal reasoning falls somewhere between the following two places:</p>
-    <div class="grid-container halves u-align-left">
-      <div class="left">
-        <h5>Memorization</h5>
-        <p>
-          If a student memorizes answers to test questions, and the test has questions he knows, he will get a good
-          score.
-          If the test has none of the questions he memorized he will get a zero. Not so different from what we see in
-          our episode rewards, right?
-        </p>
-        <p>What if we made a giant table full of all of the states the pole could be in, and the correct action at each
-          state?
-          (You can totally do this btw, It's the <a
-            href="https://people.csail.mit.edu/brooks/idocs/matchbox.pdf">original QLearning</a>.)
-          Now let's say you start simulating cartpole episodes to populate that table to find out which action is the
-          "best" action in each position.
-          Choose an action. Take a step. If that action resulted in the pole falling, then go back and put the opposite
-          action into that spot in the table.
-          Your table would start filling up with actions. States that are revisted frequently will store better and
-          better actions.
-          States that had never been seen before would not. The table can never generalize to states that it either has
-          not seen
-          or has infrequently seen. The table is just memorizing the good answers. </p>
-        <p>
-          Neural networks have the capacity to memorize, and will do so unless coerced not to with good data.
-          Our instability could just be a manifestation of typical overfitting.
-        </p>
-      </div>
-      <div class="right">
-        <h5>Generalization</h5>
-        <p>This isn't quite where humans are. Think of this as an ideal brain.</p>
-        <p>
-          The complete opposite of memorization would be some bank of general concepts that could be used to understand
-          or
-          reason about any system or task. Concepts like accelerations, velocities, boundaries of objects, waves,
-          teams, periodicity, balance, symmetry, etc...
-        </p>
-        <p>
-          It is unlikely your cartpole agent will learn to develope all these general concepts. Internally it may not
-          even
-          have a notion of acceleration and velocity that is general enough to apply to objects that arent carts or
-          poles.
-          However, we can hope that there are sets of neurons inside the network tracking the tip velocity, angle,
-          angular velocity,
-          chance of falling, and whatever else is convenient to maximizing the reward. We don't need to explicitly
-          design the
-          network architecture to understand these things. It will likely learn many of the ones that are useful
-          anyways.
-        </p>
-        <p>
-          These general features are really important.
-          The more general the features the network can detect and reason about, the more robust the agent will be to
-          dealing
-          with circumstances it has never seen before.
-        </p>
-      </div>
-    </div> -->
-<!-- <p>You might think that the memorization side sounds bad, and the generalization side sounds good.
-      But actually you want a combination of both.
-    </p>
-    <p>Our agent is either having a hard time <strong>discovering</strong> general features that are useful for the
-      task.
-      Or it is not being incentivised to do so. Or both (probably both). In reinforcement learning, unintuitively,
-      it almost always seems to be an issue of "bad" data.</p> -->
-<!-- <div class="grid-container full u-align-left">
-    <h5>Size Isnt Everything</h5>
-    <p>If our agent is memorizing, and memorizing is causing the poor performance, then it would be reasonable to think
-      that
-      you want the agent to be as general as possible, right? What tools are available to increase the networks ability
-      to find patterns?<br>
-      How about making the network bigger? You aren't going to be able to support tracking that many general features
-      with a network that has
-      only a few layers and not that many neurons per layer.
-      So, you could try to explode your network to some enourmous size, running on the latest super computer, and using
-      all the latest in fancy neural network architectures.
-      If you did that your agent would have the capacity for tons of general features and patterns.<br>
-      There tons of problems with that way of thinking.:
-      While it is true that a larger network can track larger and
-      more complicated patterns, even if you had all that computer hardware, and a nuclear powerplant, you have to train
-      it on the right data or
-      else it will just memorize the best actions. In fact, <strong>the larger the neural network is, the more likely it
-        is to
-        just memorize.</strong>
-    </p>
-    <h5>It's How You Use It</h5>
-    <p>Sometimes the issue isnt caused by the network size, or the architecture. Sometimes the data is just bad.
-      In a supervised training circumstance, such as identifying cats in images, you can choose where the data comes
-      from
-      and what order you show the data to the network. But in our case the environment is the one dictating what data
-      and in
-      what order the data is presented.
-    </p>
-  </div>
-  <div class="grid-container full">
-    <h4>Replay Buffer</h4> -->
-<!-- lets consider more why this even works, and go back to why you dont just want to grow your network -->
-<!-- Secondly, you probably dont need all that power to complete your task anyway. -->
-<!-- Are there really any options to change that? And is it a crutch? -->
-<!-- memorization is bad. " its not that simple, you want memorization at the other end of your features! The features 
-        are just that, features. They dont instigate ACTION. Ideally you want the network to detect the minimum necessary 
-        features it needs to complete the task, and then a small set of memorized actions at the end of that. 
-        Example: feature, detect pole is falling left. trigger memorized action: move the cart left. 
-        That is different from the case where the feature is "detect cart at x position -2.3 and pole at angle -23 degrees, 
-        trigger action: move cart left.
-        Differentiating between memorization and generalization extremely useful, but you must also not forget that the distinction 
-        is a human construct. Its just an abstract difference, and its not always as obvious as in the example given above.
-        
-        Is an agent that can beat sonic the hedgehog but cant beat mario memorizing sonic? Your response just depends on what your 
-        task is. If your task is to beat sonic, then you would say no. If your task is to beat any platformer game, then you would say 
-        yes.
-
-        What if the task was just to beat sonic, but the network could only beat 1 episode in sonic, and not the others.
-        You might consider that to be overfitting to that particular level.
-    
-    Now if we were really smart we would somehow go in and investigate what features certain groups of neurons are detecting specifically. 
-    Then we can determine if the feature is a general one that applies to lotss of circumstances, or a specific one that only applies 
-to one or a few specific circumstances. 
-
-    Some people have tried to do this, and rather succesfully. (pong example)
-
-    example is if there is a feature that detects a very specific set of tiles in the mario screen and triggers a jump. 
-    Sure that might be a useful feature, but it is completely useless for any other level, or any other platformer game. 
-    Also it wastes so many neurons!!! Wouldnt you rather have some sort of feature trigger for "avoid enemy coming at me"?
-    A General feature like that would only need to exist one time in the neural network, as opposed to a huge number of feature 
-triggers for specific positions and cases in known levels-->
-
-<!-- goomba jump example
-    environment never gives a reason to learn general features, because jumping when you see a specific set of tiles works great. 
-the network is never coerced to do otherwise. 
-the analogous situation in cartpole is -->
-<!-- replay buffer cant solve all of that, in some waay it must be solved by the environment design, just like how 
-meticulously picking data sources, designing shuffling and data augmenting your dataset for classification is so important. 
-However, it can solve some of this.  -->
-
-<!-- called q values because of probability theory or something. but its not quite the same -->
-<!-- issues:
-      catastrophic forgetting. (experience replay)
-      overestimation  (link to dueling) (link to twin)
-      discrete values (a few options, branching, )
-      policy stability (link to double) (link to advantage)
-      time series (frame stacking)
-      exploration (espilon greedy/ noise)
-
-      why does reward go up over time?
-      if you are in a good position in life, you have good options.
-      if you are in a bad position in life, you have bad options.
-
-      by succesively choosing the best option at any given moment, we improve the future options available too us.
-      So the result is better and better reward.
-
-
-      - add epsilon greedy in the next tutorial
-      -->
-<!-- <div class="grid-container halves u-align-left">
-   </div>
-   <h4>Settings</h4>
-   <div class="grid-container halves u-align-left">
-       <div>
-           <h5>Layer Sizes</h5>
-           <pre><code>self.fc1Dims = 1024
- self.fc2Dims = 512</code></pre>
-           <p>If it runs too slowly shrink these down in the network. I've seen the cartpole environment beaten with layer sizes around 32.<br>
-             However, the peak performance of the agent is limited by the network size.
-             The complexity of the agent's strategy will be limited by the network size. 
-             The complexity of the environments the agent can handle will be limited by the small network size.
-             The chance the agent's network gets stuck in a local minima goes down the larger the network is too.<br>
- 
-             Basically theres a lot of reasons to use a bigger network than you might immediatly think is necessary.
-           </p>
-       </div>
-       <div>
-           <h5>Learning Rate</h5>
-           <pre><code>lr=0.001, </code></pre>
-           <p>The learning rate heavily effects the stability of a deep reinforcement learning agent.<br>
-             If it is too small, your agent will either take way too long to train, or the errors will be so small that it may actually never train.
-             If it is too large, your weights will either go to 0.0 or go to infinity, and youll start getting NAN (not a number) warnings, 
-             and the agent performance will tank to minimum and never recover.<br>
-             If you want to see it happen just set the LR to 100.0 and look at a graph of reward over time.
-           </p>
-       </div>
-   </div>
- </div> -->
-<!-- its kind of random which feature appears. and depends on lucky starting values (thats why initialization is pretty important and 
-      in some drl papers they are rather particular about it) -->
-<!-- the more neurons you have the more likely you are going to have a lucky initialization of weights that discovers a 
-      useful feature. And the more neurons you have, the more unique features you can detect. make the network bigger then we can detect more patterns!!
-      Basically bigger brain is better. HOWEVER. brain size isnt causing out stability issues.-->
-<!-- YOU NEVER FIXED THE EXPLORATION SHIT , YOU NEED EPSILON GREEDY-->
-<!-- YOU ALSO NEED TO MENTION BATCH SIZE -->
-<!-- ALSO MENTION MINIMUM BATCH SIZE AND STUFF -->
