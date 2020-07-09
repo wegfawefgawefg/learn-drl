@@ -37,13 +37,14 @@
 <body>
   <div class="grid-container full">
     <h1>Wegfawefgawefg's Tutorials</h1>
-    <h2>Experience Replay 2</h2>
-    <h3>The Floodgates Are Opening</h3>
+    <h2>Life After Experience Replay</h2>
+    <h3>Letting Go of The Hand</h3>
     <h4>Prerequisites</h4>
     <p class="u-align-left">This tutorial follows the first
       <a href="/tutorials/rl/experiencereplay/experiencereplay.html">Experience Replay Tutorial</a>.
       If you haven't read that one you might want to go give it a read.<br>
-      Also get a snack, relax. Make yourself comfy. You have two weeks left to live.
+      Get a snack, relax. Make yourself comfy. This one is mostly a mental exercise.
+      Also you have two weeks left to live.
     </p>
   </div>
   <div class="grid-container full">
@@ -59,11 +60,12 @@
   </div>
   <div class="grid-container full u-align-left">
     <h5 class="u-align-center">Data Quality<br>In Classic Machine Learning</h5>
-    <p>So, other than batching (which has a whole slew of advantages on its own, and you should go look that up), the
+    <p>Other than batching (which has a whole slew of advantages on its own, and you should go look that up), the
       two most import things we did were shuffle and balance the data.
       By adding a replay buffer we drastically changed the order that the agent was exposed to the transitions.
-      Changing data <strong>order</strong> and <strong>balance</strong> alone has huge impacts on the agent's score.
       No changes were made to the agent architecture.
+      Changing data <strong>order</strong> and <strong>balance</strong> alone has huge impacts on the agent's score.
+      
     </p>
     <div class="grid-container halves u-align-left">
       <div class="left">
@@ -166,7 +168,7 @@
         <p>Now consider that you try this task again with the same cards,
           but the first 200 cards you pull out of the stack all look like this:</p>
         <div class="grid-container halves u-align-left">
-          <img src="/tutorials/rl/experiencereplay2/badorder.jpg" width=100%>
+          <img src="/tutorials/rl/lifeafterexperiencereplay/badorder.jpg" width=100%>
           <div>
             <p>What categories are there to make?? They all look the same.<br><br></p>
             <h6>:^) hehe that's because I used the same picture over and over.</h6>
@@ -305,7 +307,7 @@
     <p>
       I hope you aren't mad at me, but this time the tutorial provides you no code. <br>
       Maybe it is the most important tutorial yet.
-      That's how it is at the edge of science. No parents. No rules. 
+      That's how it is at the edge of science. No parents. No rules.
     </p>
     <p>I want you to get a notebook and a pencil, and go sit outside, or go for a walk.
       List circumstances that fool the agent.
@@ -317,21 +319,101 @@
     <h4 class="u-align-center">Hey</h4>
     <h4 class="u-align-center">DONT SKIP AHEAD</h4>
     <h4 class="u-align-center">GO HAVE SOME IDEAS</h4>
-    <h5>My Ideas</h5>
+    <h4 class="u-align-center">WHERE DO YOU THINK</h4>
+    <h4 class="u-align-center">THIS STUFF COMES FROM?</h4>
 
-    <p>PER, and minimum memory size, and better memory performance</p>
 
+    <h5>Some Of My Ideas</h5>
+    <ul>
+      <li>What if most of the memories are the same? Should similar memories
+        be merged into one? How do you preserve the magnitude of that merged result?
+        How to detect similar memories? An autoencoder perhaps? Categorize them into
+        some groups, and then replace a group with a quintessential memory that represents that group?
+        This could potentially replace massive amounts of memories with just a handful important ones.
+      </li>
+      <li>The agent finds some hard part in a game level. It has to restart over
+        and over to get to that point again, just to practice the hard part.
+        Isn't that a waste of time, and a distraction for the agent?
+        Should the memory contain save points from the environment?
+        Obviously you cant save every point right? (too much memory)
+        Do you save points that are surprising to the agent?
+        Or maybe you keep a running window of saves, and then if you find out
+        one presents a "fork in the road", then it goes into a list of "branching memories"?
+        Most environments don't support loading from save points...
+        Do you have to have a network that models the environment to get
+        load functionality?
+      </li>
+      <li>The agent doesn't really have an idea of arbitrary goals.
+        Could the agent be modified to try and fit a reward function, enabling you
+        to swap out reward functions on the fly? After all, human goals change all
+        the time. Are the changes in human goals just subgoals to a singular reward
+        signal like the agent has? Or does the actual reward source change?
+        If the reward source changes, the agent's qvalues will all be wrong instantaniously,
+        so somehow the transitions should be passed through a reward function filter
+        that supports arbitrarily switching goals at any moment. After all,
+        learning how to optimize for one reward in an environment should provide
+        insight into maximizing multiple different rewards. By being good at chess,
+        I can try to win, or lose on purpose, or stall the game. You don't instantly
+        become bad if the goal changes. Goals share useful features, and strategies.
+        In fact, if the agent can handle multiple goals, it may get even higher performance
+        on any singular goal.
+      </li>
+      <li>
+        Since we now have a real dataset to work with, can that data be passed through normal
+        data augmentation pipelines? Flipping, and rotating and scaling the data to get
+        better quality features detectors? Would this help an agent that is learning to balance itself?
+        As direction of motion should be arbitrary. It would especially help for an environment with a camera
+        that can move, or a coordinate system that is not fixed. (Such as real life.)
+      </li>
+      <li>If an agent gets a bad reward, currently it will attribute that reward to the last decision made.
+        If it was really smart, a large negative reward would trigger some function that walks backwards through
+        the transitions looking for the true cause.
+      </li>
+      <li>A binary tree environment with the reward hidden in one of the leaves would be really difficult to solve for
+        the agent. "Branch points", "save loading", "transition trajectories", "route review", would all be effective
+        ways to help. But it would be an exploration issue as well. Somehow the env needs to be designed to incentivise
+        traversing the tree evenly, kind of like how ants roam outward from an ant pile to maximize surface area
+        explored.
+        I cant think of a way to implement this at the moment. Im getting kind of bored. Time to walk home.
+      </li>
+    </ul>
+    <p>Some of those are much easier to implement than others.<br>
+      I want you to investigate some simpler ones as an exercise. This way you can get out
+      of the habit of looking up answers, and following tutorials. I love that you read my tutorials, but
+      remember the point of successive tutorials is that you should eventually graduate with a deeper 
+      understanding that no longer needs tutorials.</p>
     <p>
-      This is why its important to establish a decent minimum set of memories before you start training from the data.
-      If you dont get a good base of memories from a diverse set of circumstances, you may just end up feeding the agent
-      what is essentially "unshuffled" data.
-      Also,
-      To prevent this you could do use one of the techniques from typical machine learning used to fight overfitting:
-      early stopping.
-      You could also try to determine which memories are relevant and which are not, and then dump the unimportant ones:
+      Here are some ideas that aren't necessarily purely mine,
+      (are any ideas?) but they are simple enough that for you to try on your own without looking up how:<br>
     </p>
-
-    <p>If you can answer these questions, there's a good chance that you just might know how to read english.</p>
+    <h6>I bet you could solve any of these within just a few hours:</h6>
+    <ul>
+      <li>Early on there isnt much experience to work with. Should the agent
+        collect states without acting to build up some memory? I bet you could do this one in less than 30 minutes,
+        and test to see if it actually works.
+      </li>
+      <li>Does the agent really need to eat asparagus so often after it has obviously tried it?
+        Try tapering off the chance of random action over time. Try tapering linearly. Try tapering exponentially.<br>
+      </li>
+      <li>If the reward stagnates, should the chance of random action go up? Try checking the change in reward
+        each step, and then if it decreases for too long make the chance of random action increase.
+      </li>
+      <li><strong>Bonus Harder One:</strong> An important but rare event occurs once. How to get the agent to focus on it when
+        it is buried in 10,000 other less important memories? Try sorting the memory and make
+        more surprising memories get learned from more often.
+      </li>
+    </ul>
+    <p>Once you implement one of your ideas, make sure to compare it to the previous version of the agent.
+      Make sure to run both 10 or more times so you can be sure your modification didn't just get lucky runs.
+      Try adding a multiplier to your modification so that you have a hyperparameter to tune.
+      Try it in different environments.
+      Document the entire process, and write a blog about it. <strong>BOOM</strong> now you are an official researcher.
+    </p>
+    <p>I think you are coming to a deeper understanding of how these things work now, so the future tutorials can be 
+      more pragmatic, and less foundational.
+    </p>
+    <h1>END</h1>
+    <h1 class="u-align-right">...BEGIN?</h1>
     <a class="u-align-center" href="/index.html">Tutorial Hub</a>
     <p></p>
     <p></p>
@@ -339,3 +421,13 @@
 </body>
 
 </html>
+<!-- <p>
+    This is why its important to establish a decent minimum set of memories before you start training from the data.
+    If you dont get a good base of memories from a diverse set of circumstances, you may just end up feeding the agent
+    what is essentially "unshuffled" data.
+    Also,
+    To prevent this you could do use one of the techniques from typical machine learning used to fight overfitting:
+    early stopping.
+    You could also try to determine which memories are relevant and which are not, and then dump the unimportant ones:
+  </p> -->
+<!-- <p>PER, and minimum memory size, and better memory performance</p> -->
