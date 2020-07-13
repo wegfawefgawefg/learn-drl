@@ -37,13 +37,16 @@
 <body>
   <div class="grid-container full">
     <h1>Wegfawefgawefg's Tutorials</h1>
-    <h2>Actor Critic Tutorial</h2>
-    <h3>Teaching An Agent How To Make An Agent</h3>
+    <h2>Cleanup And Exploration</h2>
+    <h3>Bringing The Code Up To Modern Standards</h3>
     <h4>Prerequisites</h4>
-    <p class="u-align-left">This tutorial assumes you've completed the <a href="/index.html#foundations">"Foundations"</a> tutorials. 
-      It also uses code from those previous tutorials. The intention is to make the old code look more like 
-      common RL code in preperation for the coming <strong>upgrades</strong>. If you aren't new to reinforcement learning then i'm sure you can 
-      follow along. Less will be explained within the <a href="/index.html#upgrades">"Upgrades"</a> tutorials than prior tutorials. There might be a 
+    <p class="u-align-left">This tutorial assumes you've completed the <a
+        href="/index.html#foundations">"Foundations"</a> tutorials.
+      It also uses code from those previous tutorials. The intention is to make the old code look more like
+      common RL code in preperation for the coming <strong>upgrades</strong>. If you aren't new to reinforcement
+      learning then i'm sure you can
+      follow along. Less will be explained within the <a href="/index.html#upgrades">"Upgrades"</a> tutorials than prior
+      tutorials. There might be a
       link to prior explanation from prior tutorials if I can remember to add the link.
     </p>
   </div>
@@ -51,18 +54,19 @@
   <div class="grid-container full">
     <h4>Getting Started</h4>
     <p class="u-align-left">
-      The DQN implementations in prior tutorials worked, and functioned well as a demonstration of DRL. 
-      The intention was to minimize lines, and as such, minimize necessary explanation, and complication. 
-      However, that approach has flaws. The simplified code comes at a cost of both agent 
-      performance, and run speed. And that simplified code looks different from the common code seen on github. 
-      So comparing it to other people's agent code might not be as straightforward as it could be. 
-      Either way, it served it's purpose as a learning tool, and now that you are familiar with the function of 
+      The DQN implementations in prior tutorials worked, and functioned well as a demonstration of DRL.
+      The intention was to minimize lines, and as such, minimize necessary explanation, and complication.
+      However, that approach has flaws. The simplified code comes at a cost of both agent
+      performance, and run speed. And that simplified code looks different from the common code seen on github.
+      So comparing it to other people's agent code might not be as straightforward as it could be.
+      Either way, it served it's purpose as a learning tool, and now that you are familiar with the function of
       each component of a drl agent it's time to modernize it a bit.
     </p>
   </div>
   <div class="grid-container full u-align-left">
     <h4 class="u-align-center">Code Review</h4>
-    <p>This is what we are working with. There are some <code>HERE</code> comments marking what needs attention most.</p>
+    <p>This is what we are working with. There are some <code>HERE</code> comments marking what needs attention most.
+    </p>
     <pre><code class="language-python">import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -72,9 +76,9 @@ import math
 import numpy as np
 import random
 
-'''FINE: this class actually looks fine as is.
+'''FINE: this class actually looks mostly fine as is.
 Sure, the number of layers and layer dimensions aren't passed in as arguments 
-to the constructor, but that's a lot of boilerplate I don't want to bother with.
+to the constructor, but that's a lot of boilerplate I don't want to inflate the code with.
 Yes, that is useful if you want to programmatically try different architectures, but 
 it's not necessary generally.'''
 class Network(torch.nn.Module):
@@ -91,6 +95,7 @@ class Network(torch.nn.Module):
 
         self.optimizer = optim.Adam(self.parameters(), lr=alpha)
         self.loss = nn.MSELoss()
+
         # self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.device = torch.device("cpu")
         self.to(self.device)
@@ -199,57 +204,285 @@ if __name__ == '__main__':
             numSamples, episode, highScore, score,frame))
 
         episode += 1</code></pre>
-        <p></p>
   </div>
-  <div class="grid-container halves u-align-left">
-    <div class="left">
-      <h5>Action Picker (Actor)</h5>
-      <p>
-        The <strong>action picker</strong> takes in a frame of information,
-        camera input, game state, or even past action, and outputs a number
-        for each action the agent is allowed to take. The numbers it outputs
-        are used to pick the agents actions.
-      </p>
-      <strong>Ex:</strong> The actor is given a picture of a poisoned burger.
-      <div class="grid-container halves">
-        <div class="u-align-left">
-          <p>
-            It outputs 3 values. <br />
-            <br />
-            <strong>Eat:</strong> 0.8 <br />
-            <strong>Dont Eat:</strong> 0.3 <br />
-            <strong>Be Suspicious:</strong> 0.001
+  <div class="grid-container full u-align-left">
+    <h3 class="u-align-center">Upgrades</h3>
+    <p>The three areas in this code just asking for improvement are the experience replay buffer, the temporal
+      difference
+      code in the learn function, and the exploration strategy.
+    </p>
+    <h4 class="u-align-center">Exploration Strategy</h4>
+    <p>At the moment the agent is picking a random action 10% of the time. This is to force
+      the agent to try different actions. On a micro scale this has the effect of ensuring enough data is collected
+      to get the neural network to replicate the environments reward function. But on the macro scale it pushes
+      the agent into circumstances it wouldnt normally find itself in. I explain basic exploration in the
+      <a href="/tutorials/rl/deepqlearning/deepqlearning.html">DQLearning Tutorial</a> and the
+      <a href="/tutorials/rl/actorcritic/actorcritic.html">Actor Critic Tutorial</a>.
+      The primary issue in the code as is, is the exploration rate. It doesn't change.
+      As the qvalues become more refined, less exploration is necessary. Also the code has the word asparagus in it.
+    </p>
+    <pre><code class="language-python">class Agent(): # NEW AND IMPROVED
+    def __init__(self, lr, inputShape, numActions):
+        self.network = Network(lr, inputShape, numActions)
+
+        # exploration parameters
+        self.epsilon = 0.1            # chance of random action
+        self.epsilon_decay = 0.00005  # how much the chance shrinks each step
+        self.epsilon_min = 0.001      # minimum for the chance, so you never fully stop exploring
+
+    def chooseAction(self, observation):
+        if np.random.random() < self.epsilon: # generate a num between 0.0 and 1.0 to "roll"
+            action = random.randint(0, 1)
+        else: # dont bother doing all that torch stuff if you're just gonna choose a random
+            state = torch.tensor(observation).float().detach()
+            state = state.to(self.network.device)
+            state = state.unsqueeze(0)
+
+            qValues = self.network(state)
+            action = torch.argmax(qValues).item()
+        return action</code></pre>
+    <p>The new improved code uses the <strong>epsilon-greedy</strong> exploration strategy. It works just like the old
+      exploration strategy:</p>
+    <pre><code class="language-python">chanceOfAsparagus = random.randint(1, 10)
+if chanceOfAsparagus == 1:  #   10% chance
+    action = random.randint(0, 1)</code></pre>
+    <p>
+      Except instead of a fixed 10% chance, the chance starts high and shrinks until it hits a minimum.
+      Why is it called epsilon? More math history or something. It is generally denoted by the <code>ϵ</code> character.
+      I think it appeared around or before 1998, maybe in the Sutton and Barto book on reinforcement learning.
+      Anyways, epsilon is a number between 0 and 1, that should
+      start high, and slowly become smaller. Generate a random number between zero and one, and then compare it to
+      your exploration threshold, <strong>epsilon</strong>. If epsilon is 0.9, then 90% of the time the random number
+      will be smaller than epsilon, so 90% of the time the action will be random.
+
+      <strong>Epsilon-greedy</strong> is the most common exploration strategy I've seen.
+      You will see it all over reinforcement learning.
+    </p>
+    <h5>Common Concerns</h5>
+    <p>Dont forget to actually shrink epsilon, and cap it at the minimum value.
+      You can do it periodically but I most commonly see the decay done once per learn step at the bottom of
+      the learn function.
+    </p>
+    <pre><code class="language-python">def learn(self, memory, batchSize):
+      ... # bla bla bla the rest of the learn function above
+      trueValuesOfNow = rewards + futureValues    #   same temporal difference
+      loss = self.network.loss(trueValuesOfNow, nowValues)
+      
+      loss.backward()
+      self.network.optimizer.step()
+      
+      '''SHRINK EPSILON HERE'''
+      self.epsilon -= self.epsilon_decay  # shrink
+      if self.epsilon < self.epsilon_min: # clamp
+      self.epsilon = self.epsilon_min</code></pre>
+    <p>
+      <div class="grid-container halves u-align-left">
+        <div class="left">
+          <h5>Greater Than Less Than</h5>
+          <p>Make sure to get the direction of the <code>&lt</code> vs <code>&gt</code> correct when comparing to
+            epsilon to pick a random action. If you get it backwards, your exploration chance is inverted.</p>
+          <pre><code class="language-python"># epsilon = 0.1
+
+# this is 10% chance
+if np.random.random() < self.epsilon:   
+    action = random.randint(0, 1)
+
+# this is 90% chance
+if np.random.random() > self.epsilon:   
+    action = random.randint(0, 1)</code></pre>
+          <p>And worse, if it is backwards, your exploration chance will actually increase instead of decrease when you
+            shrink epsilon. As you can imagine, this results in terrible scores.
+          </p>
+          <h5>When In Doubt, Print</h5>
+          <p>If the agent is being dumb, print out epsilon at each step or episode to make sure
+            it is doing what you want.
           </p>
         </div>
-        <div class="u-align-left">
-          <p>
-            <br />
-            <br />
-            The Agent picks the highest one. :()
+        <div class="right">
+          <h5>How To Set Settings</h5>
+          <p>That epsilon_decay number I picked seems kinda random doesn't it?</p>
+          <pre><code class="language-python">self.epsilon = 0.1    
+self.epsilon_decay = 0.00005  
+self.epsilon_min = 0.001</code></pre>
+          <p>If you set these wrong the agent won't learn at all, and it becomes an exercising in diagnosing bugs. You
+            might
+            think it's an issue with any other part of your code, which could send you on an hours/days bug hunt.
+            Luckily, these new hyperparameters can be made to be equivalent to the old code.
+          </p>
+          <pre><code class="language-python">self.epsilon = 0.1    
+self.epsilon_decay = 0.0
+self.epsilon_min = 0.1</code></pre>
+          <p>If epsilon is 0.1, and the decay rate is 0.0, then it is a constant flat 10% chance of random action.
+            This should yield exactly the same results as the old code. (It does. I tested it.)
+            So you can start from this, and slowly shrink the epsilon from there. <code>self.epsilon_decay =
+              0.00000001</code>
+            One of the benefits of this standard epsilon-greedy implementation is you can now use other peoples
+            settings.
+            Yay.
           </p>
         </div>
       </div>
-      This is why we need the <strong>critic</strong>...
-    </div>
-    <div class="right">
-      <h5>State Value Estimator (Critic)</h5>
-      <p>
-        The <strong>state value estimator</strong> is very similar to the
-        action picker. It takes in the same exact frame of information as the
-        <strong>action picker</strong>, but outputs a single number
-        representing the value of the input state. <br /><br />
-        <strong>Ex:</strong> The critic gets a picture of you eating a
-        poisoned burger. <br />
-        <strong>Value:</strong> -10.0 :( <br /><br />
-        <strong>Ex:</strong> The critic gets a picture of a man handing you an
-        antidote. <br />
-        <strong>Value:</strong> 10.0 :) <br /><br />
-        <strong>Ex:</strong> The critic gets a picture of divorce papers.
-        <br />
-        <strong>Value:</strong> :^)
-      </p>
+      <h5>The Future of Exploration</h5>
+      Epsilon-greedy is not perfect.
+      Notice epsilon can only decrease, and never increase. This could be considered a feature,
+      but also a flaw.
+      It makes assumptions about how the best strategy is developed, and about how unchanging the environment is.
+      When a human finds that it is not getting good results, it actively tries new strategies. Animals use adaptive
+      exploration rates.
+      Maybe the agent's exploration rate should increase if reward is unexpectedly low.
+      Maybe it should change if the reward is staying the same for a while.
+      Perhaps it should decrease based on queues from the environment, and should be a function learned across
+      environments
+      with a neural network.
+      It's a whole other upgrade just waiting to be discovered.<br>
+      Another issue with this exploration strategy is that it explores by randomizing action,
+      as opposed to randomizing the goal. Humans practice tasks often by learning similar modified versions of the task.
+      Even if somebody doesn't know what optimal chess looks like, they still know they will get better at chess by
+      playing alternate versions of chess, and chess minigames. Sometimes this alternate goal
+      can be drastically different. For example, you can get better at shooting an arrow at a target, by practicing
+      missing the target on purpose by a certain amount. This goal exploration effect could be achieved by
+      micromanaging which environments the agent plays, or it could be built into the agent. Where the agent will
+      sometimes try different goals, and ignore the environmental reward.
+      Another upgrade worth investigating.
+    </p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4 class="u-align-center">Numpy Experience Replay</h4>
+    <p>Maybe you noticed before, but the old code gets slower over time.
+      This is partially due to the agent getting better at the game. As the agent gets better, the episodes require
+      more steps to end. However, you probably noticed if you let the game go for a few thousand episodes, the episodes
+      start to get really slow, even though the scores are roughly the same. (For the record, a few thousand 
+      episodes is not that many. DRL papers often consider agents trained on millions of samples.)
+      What is the cause of this slowdown? 
+      Nothing in our agent seems to require more processing at a later episode than an early episode. 
+      It should be a constant amount of processing per learn step... except the code involving the experience replay buffer. 
+      Thats not too much of a problem for "read", but the moment you need to "write" back to the buffer inside 
+      your learn step, runtime performance suffers too much. It starts to get unbearably slow.<br>
+      Additionally, your options for batch size are limited by the sampling speed of your replay buffer.
+      As the replay buffer gets longer, sampling from it becomes slower. (relative to numpy arrays atleast)
+      We mostly avoided that effect by being careful up to this point. But it's better to have a high power 
+      tool to play with. 
+      A lot of the agent upgrades involve sampling data from the memory, 
+      computing something, and maybe even storing. Doing this with python arrays starts to become a performance problem, 
+      especially once there are some python for loops in there. ew :^) 
+      So think of this as an infrastructural investment. The numpy indexing tricks end up being incredibly convenient, and 
+      besides, it's the most common way to do memories anyways.
+    </p>
+    <p>So, this:</p>
+    <pre><code class="language-python">memory = []</code></pre>
+    <p>becomes:</p>
+    <pre><code class="language-python">class ReplayBuffer(): '''NEW CODE'''
+    def __init__(self, maxSize, stateShape):
+        self.memSize = maxSize
+        self.memCount = 0
+
+        self.stateMemory        = np.zeros((self.memSize, *stateShape), dtype=np.float32)
+        self.actionMemory       = np.zeros( self.memSize,               dtype=np.int64)
+        self.rewardMemory       = np.zeros( self.memSize,               dtype=np.float32)
+        self.nextStateMemory    = np.zeros((self.memSize, *stateShape), dtype=np.float32)
+        self.doneMemory         = np.zeros( self.memSize,               dtype=np.bool)
+
+    def storeMemory(self, state, action, reward, nextState, done):
+        memIndex = self.memCount % self.memSize 
+        
+        self.stateMemory[memIndex]      = state
+        self.actionMemory[memIndex]     = action
+        self.rewardMemory[memIndex]     = reward
+        self.nextStateMemory[memIndex]  = nextState
+        self.doneMemory[memIndex]       = done
+
+        self.memCount += 1
+
+    def sample(self, sampleSize):
+        memMax = min(self.memCount, self.memSize)
+        batchIndecies = np.random.choice(memMax, sampleSize, replace=False)
+
+        states      = self.stateMemory[batchIndecies]
+        actions     = self.actionMemory[batchIndecies]
+        rewards     = self.rewardMemory[batchIndecies]
+        nextStates  = self.nextStateMemory[batchIndecies]
+        dones       = self.doneMemory[batchIndecies]
+
+        return states, actions, rewards, nextStates, dones</code></pre>
+    <p>Notice how much code this adds. There's a reason i don't encourage
+      people to start with this.</p>
+    <h5>Struct Of Arrays</h5>
+    <p>Each piece of the transition is stored in its own array. You premake and the arrays to a certain size when 
+      you create the memory.
+    </p>
+    <pre><code class="language-python">self.stateMemory        = np.zeros((self.memSize, *stateShape), dtype=np.float32)
+self.actionMemory       = np.zeros( self.memSize,               dtype=np.int64)
+self.rewardMemory       = np.zeros( self.memSize,               dtype=np.float32)
+self.nextStateMemory    = np.zeros((self.memSize, *stateShape), dtype=np.float32)
+self.doneMemory         = np.zeros( self.memSize,               dtype=np.bool)</code></pre>
+    <p>Notice the names of these arrays correspond to the same SARS you are familiar with.</p>
+    <div class="grid-container halves u-align-left">
+      <div>
+        <h5>Class Inputs</h5>
+        <pre><code class="language-python">class ReplayBuffer(): '''NEW CODE'''
+    def __init__(self, maxSize, stateShape):
+        self.memSize = maxSize
+        self.memCount = 0</code></pre>
+        <p>
+          The class takes in the max size of the buffer, and the shape of the states.
+          Something important to note here is that <code>stateShape</code> needs to be a tuple,
+          not a single number. <br>In python <code>(4,)</code> and <code>(4)</code> are
+          not the same thing. It's a noob trap.<br><br>
+          Ex: cartpole has a state shape of 4 numbers, so the stateShape
+          should be <code>(4,)</code>. If you just pass in <code>stateShape=4</code> it wont work.
+          That's because there is some <strong>tuple unpacking</strong> going on in the arrays.
+          (See the <code>*stateShape</code> in the array allocation.)<br>
+        </p>
+        <h5>Sampling</h5>
+        <p>Getting the transitions out isn't so difficult, and most importantly, it
+          takes the same amount of time, regardless of how big the memory is.
+        </p>
+        <pre><code class="language-python">batchIndecies = np.random.choice(
+    memMax, sampleSize, replace=False)
+
+states      = self.stateMemory[batchIndecies]
+actions     = self.actionMemory[batchIndecies]
+...</code></pre>
+        <p>First pick some random indices, and then just use the numpy indexing magic
+          to get all the right elements out at once.
+        </p>
+      </div>
+      <div>
+        <h5>Indexing Complications</h5>
+        <p>You may have noticed a few weird lines.</p>
+        <pre><code class="language-python">self.memCount = 0
+# and 
+memIndex = self.memCount % self.memSize
+# and
+memMax = min(self.memCount, self.memSize)</code></pre>
+        <p>The way this replay buffer works is the arrays are given a length before hand.
+          So we have to keep track of how many memories were currently stored to know where to
+          put the new transitions. <code>self.memCount += 1</code></p>
+        <p>What happens if you store memories after the buffer is full?</p>
+        <pre><code class="language-python"># the index rolls over back to the begining.
+memIndex = self.memCount % self.memSize 
+
+#  this overwrites the oldest memory
+self.stateMemory[memIndex]      = state
+self.actionMemory[memIndex]     = action
+self.rewardMemory[memIndex]     = reward
+self.nextStateMemory[memIndex]  = nextState
+self.doneMemory[memIndex]       = done</code></pre>
+        <p>Before the memory has been filled all the way, you have to ignore indices that haven't been
+          assigned data to yet. They will just hold garbage.
+        </p>
+        <pre><code class="language-python">#  that should explain this line in sample()
+memMax = min(self.memCount, self.memSize)</code></pre>
+      </div>
     </div>
   </div>
+  <div class="grid-container full u-align-left">
+    <h4>Now To Use It</h4>
+    <p>To use the new replay buffer we have to go put it in the main loop, and then plop it into the 
+      learn function where the "extract-and-stack" code was.
+    </p>
+  </div>
+  
   <div class="grid-container full u-align-left">
     <p>
       The predictive function behind the <strong>action picker</strong> or the
