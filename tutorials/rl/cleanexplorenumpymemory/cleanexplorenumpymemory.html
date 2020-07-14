@@ -47,20 +47,20 @@
       learning then i'm sure you can
       follow along. Less will be explained within the <a href="/index.html#upgrades">"Upgrades"</a> tutorials than prior
       tutorials. There might be a
-      link to prior explanation from prior tutorials if I can remember to add the link.
+      link to prior explanation from prior tutorials if I can remember to add them.
     </p>
   </div>
 
   <div class="grid-container full">
     <h4>Getting Started</h4>
     <p class="u-align-left">
-      The DQN implementations in prior tutorials worked, and functioned well as a demonstration of DRL.
-      The intention was to minimize lines, and as such, minimize necessary explanation, and complication.
-      However, that approach has flaws. The simplified code comes at a cost of both agent
-      performance, and run speed. And that simplified code looks different from the common code seen on github, 
-      so comparing it to other people's agent code might not be as straightforward as it could be.
+      The DQN implementations in prior tutorials worked as demonstrations of DRL.
+      The intention was to minimize lines, necessary explanation, and complication.
+      However, the simplified code comes at the cost of both agent
+      performance, and run speed. Also, it looked somewhat different from the common code seen on github, 
+      so comparing it to other people's agent code might not be so straightforward.
       It served it's purpose as a learning tool, but now that you are familiar with the function of
-      each component in a drl agent it's time to modernize our implementation.
+      each component in a drl agent it's time to modernize the implementation.
     </p>
   </div>
   <div class="grid-container full u-align-left">
@@ -207,19 +207,20 @@ if __name__ == '__main__':
   </div>
   <div class="grid-container full u-align-left">
     <h3 class="u-align-center">Upgrades</h3>
-    <p>The three areas in this code just asking for improvement are the experience replay buffer, the temporal
-      difference
-      code in the learn function, and the exploration strategy.
+    <p>The three aspects of this code most needing improvement are the experience replay buffer, 
+      the td code in the learn function, and the exploration strategy.
     </p>
     <h4 class="u-align-center">Exploration Strategy</h4>
     <p>At the moment the agent is picking a random action 10% of the time. This is to force
-      the agent to try different actions. On a micro scale this has the effect of ensuring enough data is collected
-      to get the neural network to replicate the environments reward function. But on the macro scale it pushes
-      the agent into circumstances it wouldnt normally find itself in. I explain basic exploration in the
+      the agent to try different actions. Regular exploration ensures enough data is collected
+      to get the neural network to learn the environments reward function. Mainly, it pushes
+      the agent into circumstances it wouldnt find itself in otherwise. Exploration is covered more deeply in the
       <a href="/tutorials/rl/deepqlearning/deepqlearning.html">DQLearning Tutorial</a> and the
       <a href="/tutorials/rl/actorcritic/actorcritic.html">Actor Critic Tutorial</a>.
-      The primary issue in the code as is, is the exploration rate. It doesn't change.
-      As the qvalues become more refined, less exploration is necessary. Also the code has the word asparagus in it.
+      The primary issue with the code as is, is the exploration rate. It doesn't change.
+      As the qvalues become more refined, the greedy action is often a better choice for the agent. 
+      If the exploration rate remains high, then the agent might not get to refine it's strategy.
+      Also the code has the word asparagus in it.
     </p>
     <pre><code class="language-python">class Agent(): # NEW AND IMPROVED
     def __init__(self, lr, inputShape, numActions):
@@ -248,15 +249,18 @@ if chanceOfAsparagus == 1:  #   10% chance
     action = random.randint(0, 1)</code></pre>
     <p>
       Except instead of a fixed 10% chance, the chance starts high and shrinks until it hits a minimum.
-      Why is it called epsilon? More math history or something. It is generally denoted by the <code>ϵ</code> character.
-      I think it appeared around or before 1998, maybe in the Sutton and Barto book on reinforcement learning.
+      Why is it called epsilon? More math history or something. It is generally denoted by the <code>ϵ</code> character, 
+      epsilon...
+      In the mainstream it appeared around 1998, maybe in the Sutton and Barto book on reinforcement learning. 
+      Probably before that.
       Anyways, epsilon is a number between 0 and 1, that should
       start high, and slowly become smaller. Generate a random number between zero and one, and then compare it to
-      your exploration threshold, <strong>epsilon</strong>. If epsilon is 0.9, then 90% of the time the random number
+      the exploration threshold, <strong>epsilon</strong>. If epsilon is 0.9, then 90% of the time the random number
       will be smaller than epsilon, so 90% of the time the action will be random.
 
-      <strong>Epsilon-greedy</strong> is the most common exploration strategy I've seen.
-      You will see it all over reinforcement learning.
+      <strong>Epsilon-greedy</strong> is probably the most common exploration strategy. 
+      More generally though, theres usually some way actions are randomized.
+      You will see epsilon-greedy all over reinforcement learning.
     </p>
     <h5>Common Concerns</h5>
     <p>Dont forget to actually shrink epsilon, and cap it at the minimum value.
@@ -291,7 +295,8 @@ if np.random.random() < self.epsilon:
 if np.random.random() > self.epsilon:   
     action = random.randint(0, 1)</code></pre>
           <p>And worse, if it is backwards, your exploration chance will actually increase instead of decrease when you
-            shrink epsilon. As you can imagine, this results in terrible scores.
+            shrink epsilon. As you can imagine, this results in terrible scores, as the agent will slowly 
+            take more and more random moves.
           </p>
           <h5>When In Doubt, Print</h5>
           <p>If the agent is being dumb, print out epsilon at each step, or episode, to make sure
@@ -304,22 +309,21 @@ if np.random.random() > self.epsilon:
           <pre><code class="language-python">self.epsilon = 0.1    
 self.epsilon_decay = 0.00005  
 self.epsilon_min = 0.001</code></pre>
-          <p>If you set these wrong the agent won't learn at all, and it becomes an exercising in diagnosing bugs. You
-            might
+          <p>If you set these wrong the agent won't learn at all. You might
             think it's an issue with any other part of your code, which could send you on an hours/days bug hunt.
-            Luckily, these new hyperparameters can be made to be equivalent to the old code.
+            Luckily, these new hyperparameters can be made to be equivalent to the old code to give a starting point that 
+            you can be confident will work.
           </p>
           <pre><code class="language-python">self.epsilon = 0.1    
 self.epsilon_decay = 0.0
 self.epsilon_min = 0.1</code></pre>
           <p>If epsilon is 0.1, and the decay rate is 0.0, then it is a constant flat 10% chance of random action.
             This should yield exactly the same results as the old code. (It does. I tested it.)
-            So you can start from this, and slowly shrink the epsilon from there. <code>self.epsilon_decay =
+            So you can start from this, and slowly raise the decay and shrink the min from there. <code>self.epsilon_decay =
               0.00000001</code> That might be a bit small of a decay rate, but maybe you can aim epsilon so that 
-              by a certain episode it hits the minimum. The right epsilon and decay rate heavily depends on the environment, though.<br>
+              by a certain episode it hits a target minimum. The right epsilon and decay rate heavily depends on the environment, though. 
             One of the benefits of using this standard epsilon-greedy implementation is you can now use other peoples
-            settings.
-            Yay.
+            espilon-greedy settings. Yay.
           </p>
         </div>
       </div>
@@ -328,22 +332,26 @@ self.epsilon_min = 0.1</code></pre>
       Notice epsilon can only decrease, and never increase. This could be considered a feature,
       but also a flaw.
       It makes assumptions about how the best strategy is developed, and about how unchanging the environment is.
-      When a human finds that it is not getting good results, it actively tries new strategies. Animals use adaptive
-      exploration rates.
-      Maybe the agent's exploration rate should increase if reward is unexpectedly low.
+      When a human finds that it is not getting good results, it actively tries new strategies (espilon goes up). 
+      If a human finds its current strategy to be paying off, it won't try new things (epsilon goes down).
+      Real animals use adaptive exploration rates.
+      So, maybe the agent's exploration rate should increase if reward is unexpectedly low.
       Maybe it should change if the reward is staying the same for a while.
       Perhaps it should decrease based on queues from the environment, and should be a function learned across
-      environments
-      with a neural network.
+      environments with a neural network.
       It's a whole other upgrade just waiting to be discovered.<br>
       Another issue with this exploration strategy is that it explores by randomizing action,
       as opposed to randomizing the goal. Humans practice tasks often by learning similar modified versions of the task.
       Even if somebody doesn't know what optimal chess play looks like, they still know they will get better at chess by
-      playing alternate versions of chess, and chess minigames. Sometimes these minigames and chess exercises have very 
-      different goals than the actual game, but that doesn't make them misaligned with the same skills one would 
-      use in regular chess. For reinforcement learning I was thinking along the lines of somoething like getting better 
-      at shooting an arrow at a target, by practicing missing the target on purpose by a certain amount. 
-      This goal exploration effect could be achieved by micromanaging which environments the agent plays, or it could be built into the agent. Where the agent will
+      playing alternate versions, and chess minigames. Sometimes these minigames have 
+      different goals than normal chess, but that doesn't make them misaligned with learning some of the same skills one would 
+      use in regular chess. For reinforcement learning this is also the case.<br> 
+      For a mechanical task, I was thinking along the lines of practicing 
+      shooting an arrow at a target, by training to miss the target by a certain amount on purpose. A big advantage of 
+      this feature is that it allows for training the agent on arbitrary goals, preventing overfitting to the main goal of the environment. 
+      Which would you rather have, an agent that can hit any target with an arrow? Or an agent that can only hit one?
+      This goal exploration effect could be achieved by micromanaging which environments the agent plays, 
+      but it would be much more valuable to build it into the agent as an exploration strategy. The agent would 
       sometimes try different goals, and ignore the environmental reward. I think I saw a paper along these lines where 
       the goal is augmented to give the agent a better sense of the real primary goal.
       Another upgrade worth investigating.
@@ -434,8 +442,7 @@ self.doneMemory         = np.zeros( self.memSize,               dtype=np.bool)</
           should be <code>(4,)</code>. If you just pass in <code>stateShape=4</code> it wont work.
           That's because there is some <strong>tuple unpacking</strong> going on in the arrays.
           (See the <code>*stateShape</code> in the array allocation.)<br><br>
-          Something important to note here is that <code>stateShape</code> needs to be a tuple,
-          not a single number. <br>In python <code>(4,)</code> and <code>(4)</code> are
+          In python <code>(4,)</code> and <code>(4)</code> are
           not the same thing. Sounds crazy right? It's a noob trap. Go ahead and try it in the 
           terminal. <code>print((4))</code> vs. <code>print((4,))</code><br><br>
         </p>
@@ -474,7 +481,7 @@ self.actionMemory[memIndex]     = action
 self.rewardMemory[memIndex]     = reward
 self.nextStateMemory[memIndex]  = nextState
 self.doneMemory[memIndex]       = done</code></pre>
-        <p>Before the memory has been filled all the way, you have to ignore parts of the arrays
+        <p>Before the memory has been filled all the way, you have to avoid sampling from parts of the arrays
         that haven't been assigned data to yet. They will just hold garbage.
         </p>
         <pre><code class="language-python">#  that should explain this line in sample()
@@ -485,7 +492,7 @@ memMax = min(self.memCount, self.memSize)</code></pre>
   <div class="grid-container full u-align-left">
     <h4>Now To Use It</h4>
     <p>To use the new replay buffer we have to do some refactoring. 
-        Let's first remove it from the main loop entirely, and put the replay buffer into the agent. 
+        First, remove it from the main loop entirely, and put the replay buffer into the agent. 
         This isnt the only way to do it, but I feel like doing it this way. I'm writing the 
         tutorial, so I am your god now. You have to do what I say. Give me your money.</p>
         <pre><code class="language-python">class Agent():
@@ -536,8 +543,8 @@ while not done:
     #   pep8 python style guidelines and google don't want you to format things like this.
     #   but i'm god, and this is my tutorial dimension. Mr.Google has no power here
 ...</code></pre>
-<p>The rest of the learn function code is almost completely still compatable. 
-    There are a couple of lines that need changing, but while we are at it let's 
+<p>The rest of the learn function code is compatable with the new memory. Almost...  
+    There are a couple of lines that need changing. And, while we are at it let's 
     try some more standard naming conventions.</p>
     <pre><code class="language-python">'''OLD CODE'''
 qValues = self.network(states)
@@ -553,7 +560,7 @@ trueValuesOfNow = rewards + futureValues    #   same temporal difference
 loss = self.network.loss(trueValuesOfNow, nowValues)
 
 '''NEW CODE'''
-batchIndices = np.arange(self.batchSize, dtype=np.int64)
+batchIndices = np.arange(self.batchSize, dtype=np.int64)  # i learned how to spell indices
 qValue = self.network(states)[batchIndices, actions]
 
 qValues_ = self.network(states_)        #   values of all actions
@@ -565,14 +572,14 @@ loss = self.network.loss(td, qValue)
 ...</code></pre>
 <p>It's a little more compact, but more importantly other people who look 
     at your code will recognize the idioms.<br>
-    Also you may have noticed <strong>gamma</strong> is back, which you might remember from the 
+    Also, you may have noticed <strong>gamma</strong> is back, which you might remember from the 
     <a href="/tutorials/rl/actorcritic/actorcritic.html#improving-our-choices-in-life">actor-critic tutorial</a>.
     I didn't explain it too much then, but basically its a bias towards the present. 
     Without it you might get circumstances where the agent could wait indefinitely for some anticipated reward. 
-    Realistically, that's never going to happen, but hey now you have another hyperparamater to play with. 
-    A value of 0.99 is fine. I've never had to
-    change it. But, in certain environments a lower gamma improves performance.<br>
-    By the way, don't forget to put gamma into the agent class definition.
+    Realistically, that's never going to happen, but hey now you have another hyperparamater to worry about. 
+    Lucky you. 
+    A gamma value of 0.99 is fine. I've never had to
+    change it. But, in certain environments a lower gamma improves performance. By the way, don't forget to put gamma into the agent class definition.
 </p>
 <pre><code class="language-python">class Agent():
     def __init__(self, lr, inputShape, numActions):
@@ -588,16 +595,18 @@ loss = self.network.loss(td, qValue)
     </p>
     <h4 class="u-align-center">Minimum Memory Fullness</h4>
     <p>Something that you will see if you peruse the openAI baselines is a minimum replay buffer fullness. 
-        They seem to set it to 20,000 for some reason. Anyways, the point of having a minimum memory fullness is 
-        to prevent sampling from a tiny replay buffer. If you do that you will end up seeing the first few memories 
+        They seem to set it to 20,000 samples for some reason. The agent won't learn from any samples, until 
+        the memory hits the minimum threshold. It is bad to sample from a barely filled replay buffer. 
+        An agent that does that will end up seeing the first few memories 
         tons of times, and so they will be overrepresented in the neural network. Also the buffer isn't very 
-        diverse at first, so there is even more risk for overfitting. Setting a minimum memory size aids both of these issues. Though, it 
-        does mean the agent will not be doing any learning for the earliest portion of episodes. 
+        diverse at first, so there is even more risk for overfitting. Setting a minimum memory size reduces both of these issues. 
+        Though, it does mean the agent will not be doing any learning for the earliest portion of episodes, so 
+        don't expect to see any good performance while the buffer is still filling up.
         In my personal experience, I have found that adding a minimum buffer fullness 
         really stabilizes agent performance. There are less weird sudden drops in score. 
         My guess is that without a minimum memory the network learns a bunch of noise that 
         it has to unlearn later on. Play with it to see if you can replicate that issue. 
-        (Try setting the minimum to a low number like the batch size.)
+        (Try setting the minimum to a low number like the batch size, then up to a higher number like 2048.)
     </p>
     <pre><code class="language-python">class Agent():
 def __init__(self, lr, inputShape, numActions):
@@ -774,8 +783,9 @@ if __name__ == '__main__':
         <p>It's about 30 lines longer now, and there's a lot more that can go wrong. 
             A few extra lines for epsilon-greedy and the rest for the 
             experience replay. But, this prep should make the rest of the upgrade tutorials substantially 
-            easier, for me to write, and for you to go through, and ultimately graduate from. 
-            Make sure to run it to ensure it gets some good scores.
+            easier, for me to write, and for you to read, and ultimately graduate from. 
+            Make sure to run the code to ensure it still gets some good scores. 
+            Play with the new settings to get a feel for how they affect performance.
         </p>
 </div>
 <div class="grid-container full">
