@@ -40,10 +40,10 @@
     <h2>Prioritized Experience Replay</h2>
     <h3>Algorithmic PTSD</h3>
     <h4>Prerequisites</h4>
-    <p class="u-align-left">The <a href="/index.html#upgrades">"Upgrades"</a> tutorials 
+    <p class="u-align-left">The <a href="/index.html#upgrades">"Upgrades"</a> tutorials
       assume you've completed the <a href="/index.html#foundations">"Foundations"</a> tutorials.
-      If you are comfortable enough with rl to smash cartpole by episode 75, but struggling with target 
-      networks, td clamping, prioritized experience replay or continous action spaces, 
+      If you are comfortable enough with rl to smash cartpole by episode 75, but struggling with target
+      networks, td clamping, prioritized experience replay or continous action spaces,
       get ready to <strong>Upgrade</strong> your agents. This is the place you should be.
     </p>
   </div>
@@ -52,12 +52,12 @@
     <h4>Getting Started</h4>
     <p class="u-align-left">
       All memories are equal. But, some are more equal than others.<br>
-      When you think about that time you spilled milk when you were 4, do you cry? Probably not. You dont 
-      care at all now, but you cried at the time. Do you lay awake at night for hours 
-      dwelling on that time you spilled milk? Probably not. But at some point you have probably stayed up late 
-      dwelling on something you did that you think might have been a bad decision. Why are you dwelling? 
-      Why replay that memory so much? It's not like you can go back and change the past. 
-      Is your brain trying to make you learn from your past memories, based on how impactful the decision was? 
+      When you think about that time you spilled milk when you were 4, do you cry? Probably not. You dont
+      care at all now, but you cried at the time. Do you lay awake at night for hours
+      dwelling on that time you spilled milk? Probably not. But at some point you have probably stayed up late
+      dwelling on something you did that you think might have been a bad decision. Why are you dwelling?
+      Why replay that memory so much? It's not like you can go back and change the past.
+      Is your brain trying to make you learn from your past memories, based on how impactful the decision was?
       If you dwell on it for years, eventually will you stop feeling so strongly about it?
     </p>
     <!-- cortisol surprise -->
@@ -65,46 +65,52 @@
   <div class="grid-container full u-align-left">
     <h4 class="u-align-center">Flawed Assumptions</h4>
     <p>
-      At the moment the agent already has the capacity to learn to distinguish between spilling milk, and the end of the world. 
-      It does that with the temporal difference function. If the agent spills milk, and get's surprised, 
-      the difference between the predicted reward and the actual reward will be small. The TD error will be small. 
+      At the moment the agent already has the capacity to learn to distinguish between spilling milk, and the end of the
+      world.
+      It does that with the temporal difference function. If the agent spills milk, and get's surprised,
+      the difference between the predicted reward and the actual reward will be small. The TD error will be small.
       The resulting adjustments to the neural network weights will be small.
-      If the agent causes the end of its own world, the 
-      difference between predicted reward and actual reward will be big. The TD error will be big. And the resulting adjustments to the neural network weights will be big. 
-      The agent already has a notion of circumstance magnitude. Some transitions are more important than others. 
+      If the agent causes the end of its own world, the
+      difference between predicted reward and actual reward will be big. The TD error will be big. And the resulting
+      adjustments to the neural network weights will be big.
+      The agent already has a notion of circumstance magnitude. Some transitions are more important than others.
       Some memories are valued more than others.</p>
-      <p>
+    <p>
       However, the agent has to learn this wisdom through blood, sweat, and tears.
-      At first spilled milk seems scary to it, but after enough exposures, the effect of spilled milk 
-      on reward becomes predictable. At first, the end of the world seems scary to the agent. But after enough 
-      exposures, the end of the world becomes predictable, and isn't scary anymore. 
+      At first spilled milk seems scary to it, but after enough exposures, the effect of spilled milk
+      on reward becomes predictable. At first, the end of the world seems scary to the agent. But after enough
+      exposures, the end of the world becomes predictable, and isn't scary anymore.
       Desensetization is learned from repeatedly experiencing misfortune, regardless of the magnitude of the misfortune.
     </p>
-    <p>You know intuitively that you should direct more of your activity to prevention of catastrophic circumstances than 
+    <p>You know intuitively that you should direct more of your activity to prevention of catastrophic circumstances
+      than
       prevention of spilled milk. The agent also can know this. It has the necessary tools.</p>
-      <h5>Frequency</h5>
-      <p>That part of the agent works great. So what's the problem? Consider the reason why some transitions 
-        are harder to learn from than others.  The two aspects of a circumstance that determine 
-        how difficult it is to learn to predict are <strong>complexity</strong>, and <strong>frequency</strong>. 
-        (There is probably something that should be said about <a href="https://en.wikipedia.org/wiki/Entropy_(information_theory)">entropy</a> here, 
-        but thats a distraction for now.)
-        The complexity of a circumstance can be broken down an infinite number of ways, and it's definitely beyond 
-        my ability to address that at the moment. However, the frequency of a circumstance is something we can atleast naively ponder.
+    <h5>Frequency</h5>
+    <p>That part of the agent works great. So what's the problem? Consider the reason why some transitions
+      are harder to learn from than others. The two aspects of a circumstance that determine
+      how difficult it is to learn to predict are <strong>complexity</strong>, and <strong>frequency</strong>.
+      (There is probably something that should be said about <a
+        href="https://en.wikipedia.org/wiki/Entropy_(information_theory)">entropy</a> here,
+      but thats a distraction for now.)
+      The complexity of a circumstance can be broken down an infinite number of ways, and it's definitely beyond
+      my ability to address that at the moment. However, the frequency of a circumstance is something we can atleast
+      naively ponder.
     </p>
     <div class="grid-container halves u-align-left">
       <div>
         <h5>Infrequent Scenarios</h5>
         <ul>
-          <li>Consider that you spill milk once every 5 years. Somehow it catches you by surprise every time. 
+          <li>Consider that you spill milk once every 5 years. Somehow it catches you by surprise every time.
             Is it a big deal? No, because its just spilled milk.
           </li>
-          <li>You are recording basketball trick shots for a video you are making. 
-            One time the ball goes into the basket after bouncing off the fence in a crazy way. 
+          <li>You are recording basketball trick shots for a video you are making.
+            One time the ball goes into the basket after bouncing off the fence in a crazy way.
             You were never able to replicate this again, even though you really want to.
           </li>
           <li>
-            Now consider that you crash your car once every 5 years, and that it's verifiably your fault. 
-            You were ignoring some traffic law, running red lights or stopsigns or something. Just like with the spilled milk, 
+            Now consider that you crash your car once every 5 years, and that it's verifiably your fault.
+            You were ignoring some traffic law, running red lights or stopsigns or something. Just like with the spilled
+            milk,
             it catches you by surprise every time due to the infrequency of the event.
             Is it a big deal? Yes. You or someone else could die from this.
           </li>
@@ -113,58 +119,208 @@
       <div>
         <h5>Frequent Scenarios</h5>
         <ul>
-          <li>Consider that you spill milk every morning. After the fifth day, this stops surprising you. 
-            Maybe you learn to stop pouring milk with buttery hands, or maybe you find out you have a 
-            brain tumor. Regardless of whether you can influence the outcome, it's still not going to 
-            surprise you. The scenario is predictable due to the frequency that you have to consider 
-            what happened. Is it a big deal that you are spilling? No. You learned what you needed to learn, and 
-            either learn to stop spilling the milk, or accept the fate of your new shakey hands. 
+          <li>Consider that you spill milk every morning. After the fifth day, this stops surprising you.
+            Maybe you learn to stop pouring milk with buttery hands, or maybe you find out you have a
+            brain tumor. Regardless of whether you can influence the outcome, it's still not going to
+            surprise you. The scenario is predictable due to the frequency that you have to consider
+            what happened. Is it a big deal that you are spilling? No. You learned what you needed to learn, and
+            either learn to stop spilling the milk, or accept the fate of your new shakey hands.
             At the end of the day it's just spilled milk.
           </li>
           <li>
-            Now consider that you crash your car once a month. 
-            By atleast the third crash, youre going to start questioning what the hell is going on. 
+            Now consider that you crash your car once a month.
+            By atleast the third crash, youre going to start questioning what the hell is going on.
             You probably learn to specifically avoid whatever circumstance that caused the first two crashes.
-            After you figure out the problem, you buy some new glasses and the crashes stop.            
+            After you figure out the problem, you buy some new glasses and the crashes stop.
           </li>
         </ul>
       </div>
     </div>
-    <p>The aspect of a circumstance that affects its td error isn't the reward magnitude, 
-      but the predictability. By that i mean, crashing being <strong>a big deal</strong> 
-      doesn't make the you more able to learn from it. This applies for the agent as well. 
-      The fact that spilling milk has a small effect on reward does not make it an 
-      easier circumstance for the agent to understand. What determines how easy the scenario is to understand 
-    is how often it happens. </p>
-  <h5>The Problem</h5>
-  <p>The consequence for not understanding milk spills is small. 
-    Wheras, the consequence for not understanding a serious but infrequent scenario, like car crashes, is great. 
-    So we would hope infrequent but impactful scenarios would be considered more by the agent.
-    The problem is, in its current form, the agent does not do this. It considers scenarios only as often as they occur in the environment. Thats because the memory has 
-    the same proportion of "milk spillings" to "car crashes" as the environment. Shuffling doesn't change that ratio, 
-    and a batch of memories will probably have the same ratio as the entire memory, and as such, the same ratio 
-    as the environment.<br><br>
-  You might protest.<br>
-  <i>"The agent is dedicating learning steps proportionally to how often something occurs. Is it unreasonable 
-    to expect that to be an efficient use of time and processing?"</i><br><br>
-  It is a somewhat reasonable way of thinking. More common scenarios would be useful to understand, because any trick you have 
-  for dealing with those scenarios will get lots of use. The problem is having "car-crash" scenarios ignored because they are buried under a million "milk-spills". 
-  It is pretty bad for the agent's performance.
-  </p>
-  <h4 class="u-align-center">A More Practical Example</h4>
-  <p>It isnt really obvious what a "milk-spill" or a "car-crash" is in cartpole anyways, so let's consider a different game instead.
-    Let's consider the agent is playing the original Super Mario Bros. 
-    If you are wondering why this game it's because I recently discovered our agent actually cannot beat mario. 
-    And the reason reveals there are probably many other environments with the same issue.
-  </p>
-  <p>In the very beginning of the very first level of mario there are three pipes. 
-    Each pipe is taller than the previous.</p>  
-  <div class="grid-container halves u-align-left">
+    <p>The aspect of a circumstance that affects its td error isn't the reward magnitude,
+      but the predictability. By that i mean, crashing being <strong>a big deal</strong>
+      doesn't make the you more able to learn from it. This applies for the agent as well.
+      The fact that spilling milk has a small effect on reward does not make it an
+      easier circumstance for the agent to understand. What determines how easy the scenario is to understand
+      is how often it happens. </p>
+    <h5>The Problem</h5>
+    <p>The consequence for not understanding milk spills is small.
+      Wheras, the consequence for not understanding a serious but infrequent scenario, like car crashes, is great.
+      So we would hope infrequent but impactful scenarios would be considered more by the agent.
+      The problem is, in its current form, the agent does not do this. It considers scenarios only as often as they
+      occur in the environment. Thats because the memory has
+      the same proportion of "milk spillings" to "car crashes" as the environment. Shuffling doesn't change that ratio,
+      and a batch of memories will probably have the same ratio as the entire memory, and as such, the same ratio
+      as the environment.<br><br>
+      You might protest.<br>
+      <i>"The agent is dedicating learning steps proportionally to how often something occurs. Is it unreasonable
+        to expect that to be an efficient use of time and processing?"</i><br><br>
+      It is a somewhat reasonable way of thinking. More common scenarios would be useful to understand, because any
+      trick you have
+      for dealing with those scenarios will get lots of use. The problem is having "car-crash" scenarios ignored because
+      they are buried under a million "milk-spills".
+      It is pretty bad for the agent's performance.
+    </p>
+    <h4 class="u-align-center">A More Practical Example</h4>
+    <p>It isnt really obvious what a "milk-spill" or a "car-crash" is in cartpole anyways, so let's consider a different
+      game instead.
+      Let's consider the agent is playing the original Super Mario Bros.
+      If you are wondering why this game it's because I recently discovered our agent can never be good at mario.
+      And the reason reveals there are probably many other environments with the same issue.
+    </p>
+    <h5>Fuck Pipes</h5>
+    <p>In the very beginning of the very first level of mario there are three pipes.
+      Each pipe is taller than the previous.</p>
+    <div class="grid-container halves u-align-left">
       <img src="/tutorials/rl/prioritizedexperiencereplay/pipes.jpg" width=100%>
       <img src="/tutorials/rl/prioritizedexperiencereplay/pipes2.jpg" width=100%>
+    </div>
+    <p>The third pipe is quite tall, and the agent gets stuck there running and bouncing into the pipe until the time
+      runs out and it dies. The agent will do this 3 times, and get a gameover. I ran the agent with many different
+      settings, and let it train for 12-36 hours per trial. Out of the tens of thousands of attempts, only fifty or so
+      runs made it over the pipe. Of those times, usually the agent got stuck at another pipe up ahead in exactly the
+      same way.
+      A handful of runs did actually beat the level, but this is pathetic.<br> I demand only excellence from my AI
+      slaves.</p>
+    <h5>The Chad Pipe</h5>
+    <p>There are multiple reasons why these tall pipes are such a big challenge for the agent.
+      But to understand those reasons, you need to know how hard it is to jump over one of these pipes.
+      In mario not all jumps are the same height. The player can choose how high the jump goes by holding the
+      jump button down for longer. This works up to a cap, which is the maximum jump height.
+      A single press of the jump button causes mario to make a tiny little hop, which isn't anywhere near high
+      enough to jump even the shorter pipes.
+      To jump over one of the tall pipes, the player has to hold the jump button down for a while.
+      It doesn't seem that long if you play the game in real time, but for the agent it is basically an eternity.
+      I used the TAS (Tool Assisted Speedrun) Emulator, BizHawk, to investigate exactly how many consecutive frames the
+      agent has to press the a button to jump that pipe.</p>
+    <h3 class="u-align-center">It's 20 Frames</h3>
+    <p>This agent was only able to jump the pipe a handfull of times due to the sheer unlikelyhood that it
+      would press the a button for 20 frames straight. How unlikely is it? Let's consider the ways the buttons on
+      the NES can be encoded. The controller has 8 buttons on it, 4 directions, start and select, a and b.
+      So you might think thats 8 different possible actions, and only 6 if you remove start and select.
+      If only things were so simple. Many maneuvers in games require pressing
+      more than one button at a time, and as you know, our Deep Q Agent selects only one action per observation.
+      So to give the agent access to every combination of simultanious button press available on the NES, it
+      comes out to 256 different actions. (A + right, A + left, A + down, B + select, etc...). Obviously that's too
+      many,
+      and the agent will have a hell of a time exploring the results of 256 different actions, so it is common to use a
+      reduced action space of about 12 actions involving only the most common button combinations (directions and a or
+      b, and
+      directions with a + b combined, and maybe a no-action, action). Jumping the pipe requires
+      20 "a" frames in a row, and the last couple frames the agent needs
+      to press right also to move over the top of the pipe. Well, really early on the agent learns to basically never
+      let go of the right button.
+      That leaves just the "a" presses to worry about. Consider the reduced 12 action case with 12 unique available
+      button combos.
+      To calculate the odds of 20 consecutive a presses in this action space, take the chance of pressing "a" multiplied
+      by itself 20 times. So 1/12 * 1/12 * 1/12... or <code>(1/12)^20</code>. It comes out to 2.6*10^-22.
+      My calculator couldn't even output this number because
+      it is so small. It isn't as unlikely as picking-a-random-atom-in-the-universe-looking-for-a-specific-one rare, but
+      it's still incredibly unlikely.
+      Its like reaching into a tiny vial of hydrogen, randomly extracting an atom, and doing this repeatedly, hoping to
+      find the specific one you want.<br><br>
+      You might think im overstating the bad odds here.<br>
+      <i>"Firstly, multiple actions in the 12-combo-actions space include an a press. So 1/12 should be more like 1/6.
+        Secondly, surely the agent learned to press "a" and right a lot to
+        make it to the pipe in the first place. The agent should be much more likely to press the buttons it needs to
+        jump the pipe.
+        Saying each action has a 1/12 or 1/6 chance of being pressed is misleading. Those chances obviously aren't equal
+        to eachother."</i><br><br>
+      While the agent does have a strong bias towards pressing right and 'a', you have to remember the agent doesn't
+      pick
+      its greedy action every time. Epsilon-greedy is forcing the agent to periodically choose a random action.
+      So while the odds arent 2.6*10^-22 to 1, or <code>(1/6)^20 = 2.6e-16 to 1</code> (the odds given purely random
+      button pressing),
+      the odds are still incredibly bad.
+    </p>
+    <h5>A Good Car Crash</h5>
+    <p>Basically, jumping over a pipe is an extreme case of a "car-crash" scenario. It's an event that, when it happens,
+      has a gigantic impact on reward, and comes with a huge surprise. But it happens so infrequently that it is
+      difficult, if not impossible, to learn from. The agent had no issue learning to jump over
+      the first two pipes. If the third pipe was just a little bit shorter, then
+      the agent would learn to jump over it because the scenario would happen more frequently.
+      99.99999999%+ of learn steps will be batches of transitions that don't involve successfully jumping the pipe.
+      Sadly, no amount of training will make the agent get good at jumping the pipe. The circumstance is just too rare.
+    </p>
   </div>
-  <p>The third pipe is quite tall. The agent gets stuck here running and bouncing into the pipe.</p>
+  <div class="grid-container full u-align-left">
+    <h4 class="u-align-center">Solution?</h4>
+    <p>To solve part of this problem, the agent needs to set asside rare but impactful scenarios, and keep training on
+      them.
+      That doesn't fix the low likelyhood of accidentally jumping over the pipe. But, hopefully it ensures the agent
+      only has to do it <strong>once</strong> or twice by accident before learning how to do it on purpose.
+    </p>
+    <h5>Implementation Specifics</h5>
+    <p>What is the correct way to implent this?<br>
+      You could make a seperate list of "car-crash" transitions, and then force the agent to run an additional
+      learn step on that list each environment step. That way when a car-crash happens, it can't go unnoticed. 
+      But then you are burdened with determining which transitions
+      deserve to be put in the list, and which don't. You could create a reward threshold hyperparameter that functions as the cutoff.
+      Any transitions that have a reward magnitude above the threshold get thrown into the FIRE-DRILL list.
+      That reward threshold would need to be tuned to each environment because each environment
+      has different scales of rewards. Not only that but some sections of game environments are more
+      sensetive than others, and the local reward deviations could be more subtle.<br><br>
+      That sucks, and I can't be bothered to tune an endlessly growing pile of hyperparameters
+      as our agent expands in complexity over time. Im a lazy bastard. So to avoid that manual work, the cutoff
+      could be set so that any transition with a plus or minus reward deviation 50% greater than
+      the average sample reward deviation goes into the FIRE-DRILL list. That average could even
+      be a running window average, so it can pick up local trends in reward.
+      But then you've still got to tune that percentage hyperparameter, and the running average window size...
+      Plus, what if there is a car-crash transition that was at 149% the average reward, or 51%.
+      It wont make it into the FIRE-DRILLS so it will go unnoticed.<br><br>
+      What if there are "micro-car-crash" scenarios, samples that
+      are more impactful and rare than the average, but not quite as world ending.
+      You could set up a tiered system of 10 different FIRE-DRILL lists. Each one with a slightly larger
+      cutoff from the last... and multiple sizes of running windows to focus the agent on different ranges 
+      of rareness and magnitude. How many tiers is enough?? How many windows?? What happepns when the 
+      agent has reviewed a specific car-crash enough times?? Does it still need to practice that one anymore? Do we 
+      need a remove cutoff to remove old ones as well?? Why does this sound like designing a whole new neural network architecture? 
+      Are we creating an animal operating system?
+    </p>
+    <h5>Woah. Calm Down</h5>
+    <p>This is getting pretty complicated... The solution needs to be simple. 
+      It could take days to code what's described above, and the bugs could be crazy. Not to mention setting those 
+      hyperparameters would deserve its own research paper.
+      What we need is for each transition to be on a continous spectrum of FIRE-DRILLness. Instead of sharp cutoffs, 
+      and seperate lists, use the list the agent already has. 
+    </p>
+    <h5>Prioritized Memory Sampling</h5>
+    <p>Currently when the agent has a learn() step, it samples the experience replay buffer to create a batch 
+      of transitions. All the samples have the same probability of being selected for 
+      a batch, <code>1 / memory_size</code>. This is the reason why the batch has the same ratio of car-crashes to 
+      milk-spills as the environment. The probability of seeing the car-crash is proportional to how rare it is. 
+      We need to rig the odds so that car-crash samples have a higher probability of being selected, and therefore 
+      learned from.
+      Instead of sampling the memory with a flat probability, we could bias the probability of a memory getting chosen for 
+      a batch. The amount of bias could be determined by anything, but in our case we want to scale the bias 
+      by how surprised the agent was, the magnitude of the temporal difference error.
+    </p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4 class="u-align-center">Time for Code</h4>
+    <p>Enough explanation, it's time to make it happen.</p>
+    
 
+    
+    <p>I hope you can see how this solution addresses the problems with the messy solution proposed before. 
+      Using this continous spectrum of priority is like having an infinite number of tiers in a tiered FIRE-DRILL list.
+      Micro-car-crash samples are not likely to be ignored. It works regardless of the scale of reward 
+      in an environment. And, as the agent trains on a car-crash sample, the td 
+      error will go down. This means the priority of that sample will go down, and so it slowly gets "removed" from the fire drills, 
+      making room for newer, or more subtle car-crash samples.
+      It is a really great solution, and it wasn't my idea. It was debuted and heavily investigated in 
+      <a href="https://arxiv.org/abs/1511.05952">this paper</a>, which I encourage you to read.
+    </p>
+
+    <p>There are other opportunities for biasing the sampling probabilities of the memory. 
+      I came up with a fun one that comes as a bonus in this tutorial. ;)
+    </p>
+    <ul>There are many other causes for the pipe difficulty issue. We focused on one specific cause because
+      it could be addressed with a relatively simple solution.
+      However, the other causes have not been addressed. They still exist as serious flaws in the agent's reasoning.
+      They could be fixed with different solutions, and probably run alongside Prioritized Experience Replay.
+      Here are some other agent shortcomings that might also cause the Pipe Problem.
+      <li>The agent cant remember what it's </li>
+    </ul>
   </div>
   <div class="grid-container full u-align-left">
     <h4 class="u-align-center">Code Review</h4>
@@ -310,7 +466,7 @@ if __name__ == '__main__':
   </div>
   <div class="grid-container full u-align-left">
     <h3 class="u-align-center">Upgrades</h3>
-    <p>The three aspects of this code most needing improvement are the experience replay buffer, 
+    <p>The three aspects of this code most needing improvement are the experience replay buffer,
       the td code in the learn function, and the exploration strategy.
     </p>
     <h4 class="u-align-center">Exploration Strategy</h4>
@@ -321,7 +477,7 @@ if __name__ == '__main__':
       <a href="/tutorials/rl/deepqlearning/deepqlearning.html">DQLearning Tutorial</a> and the
       <a href="/tutorials/rl/actorcritic/actorcritic.html">Actor Critic Tutorial</a>.
       The primary issue with the code as is, is the exploration rate. It doesn't change.
-      As the qvalues become more refined, the greedy action is often a better choice for the agent. 
+      As the qvalues become more refined, the greedy action is often a better choice for the agent.
       If the exploration rate remains high, then the agent might not get to refine it's strategy.
       Also the code has the word asparagus in it.
     </p>
@@ -352,16 +508,16 @@ if chanceOfAsparagus == 1:  #   10% chance
     action = random.randint(0, 1)</code></pre>
     <p>
       Except instead of a fixed 10% chance, the chance starts high and shrinks until it hits a minimum.
-      Why is it called epsilon? More math history or something. It is generally denoted by the <code>ϵ</code> character, 
+      Why is it called epsilon? More math history or something. It is generally denoted by the <code>ϵ</code> character,
       epsilon...
-      In the mainstream it appeared around 1998, maybe in the Sutton and Barto book on reinforcement learning. 
+      In the mainstream it appeared around 1998, maybe in the Sutton and Barto book on reinforcement learning.
       Probably before that.
       Anyways, epsilon is a number between 0 and 1, that should
       start high, and slowly become smaller. Generate a random number between zero and one, and then compare it to
       the exploration threshold, <strong>epsilon</strong>. If epsilon is 0.9, then 90% of the time the random number
       will be smaller than epsilon, so 90% of the time the action will be random.
 
-      <strong>Epsilon-greedy</strong> is probably the most common exploration strategy. 
+      <strong>Epsilon-greedy</strong> is probably the most common exploration strategy.
       More generally though, theres usually some way actions are randomized.
       You will see epsilon-greedy all over reinforcement learning.
     </p>
@@ -398,7 +554,7 @@ if np.random.random() < self.epsilon:
 if np.random.random() > self.epsilon:   
     action = random.randint(0, 1)</code></pre>
           <p>And worse, if it is backwards, your exploration chance will actually increase instead of decrease when you
-            shrink epsilon. As you can imagine, this results in terrible scores, as the agent will slowly 
+            shrink epsilon. As you can imagine, this results in terrible scores, as the agent will slowly
             take more and more random moves.
           </p>
           <h5>When In Doubt, Print</h5>
@@ -414,7 +570,8 @@ self.epsilon_decay = 0.00005
 self.epsilon_min = 0.001</code></pre>
           <p>If you set these wrong the agent won't learn at all. You might
             think it's an issue with any other part of your code, which could send you on an hours/days bug hunt.
-            Luckily, these new hyperparameters can be made to be equivalent to the old code to give a starting point that 
+            Luckily, these new hyperparameters can be made to be equivalent to the old code to give a starting point
+            that
             you can be confident will work.
           </p>
           <pre><code class="language-python">self.epsilon = 0.1    
@@ -422,9 +579,11 @@ self.epsilon_decay = 0.0
 self.epsilon_min = 0.1</code></pre>
           <p>If epsilon is 0.1, and the decay rate is 0.0, then it is a constant flat 10% chance of random action.
             This should yield exactly the same results as the old code. (It does. I tested it.)
-            So you can start from this, and slowly raise the decay and shrink the min from there. <code>self.epsilon_decay =
-              0.00000001</code> That might be a bit small of a decay rate, but maybe you can aim epsilon so that 
-              by a certain episode it hits a target minimum. The right epsilon and decay rate heavily depends on the environment, though. 
+            So you can start from this, and slowly raise the decay and shrink the min from there.
+            <code>self.epsilon_decay =
+              0.00000001</code> That might be a bit small of a decay rate, but maybe you can aim epsilon so that
+            by a certain episode it hits a target minimum. The right epsilon and decay rate heavily depends on the
+            environment, though.
             One of the benefits of using this standard epsilon-greedy implementation is you can now use other peoples
             espilon-greedy settings. Yay.
           </p>
@@ -435,7 +594,7 @@ self.epsilon_min = 0.1</code></pre>
       Notice epsilon can only decrease, and never increase. This could be considered a feature,
       but also a flaw.
       It makes assumptions about how the best strategy is developed, and about how unchanging the environment is.
-      When a human finds that it is not getting good results, it actively tries new strategies (espilon goes up). 
+      When a human finds that it is not getting good results, it actively tries new strategies (espilon goes up).
       If a human finds its current strategy to be paying off, it won't try new things (epsilon goes down).
       Real animals use adaptive exploration rates.
       So, maybe the agent's exploration rate should increase if reward is unexpectedly low.
@@ -446,16 +605,18 @@ self.epsilon_min = 0.1</code></pre>
       Another issue with this exploration strategy is that it explores by randomizing action,
       as opposed to randomizing the goal. Humans practice tasks often by learning similar modified versions of the task.
       Even if somebody doesn't know what optimal chess play looks like, they still know they will get better at chess by
-      playing alternate versions, and chess minigames. Sometimes these minigames have 
-      different goals than normal chess, but that doesn't make them misaligned with learning some of the same skills one would 
-      use in regular chess. For reinforcement learning this is also the case.<br> 
-      For a mechanical task, I was thinking along the lines of practicing 
-      shooting an arrow at a target, by training to miss the target by a certain amount on purpose. A big advantage of 
-      this feature is that it allows for training the agent on arbitrary goals, preventing overfitting to the main goal of the environment. 
+      playing alternate versions, and chess minigames. Sometimes these minigames have
+      different goals than normal chess, but that doesn't make them misaligned with learning some of the same skills one
+      would
+      use in regular chess. For reinforcement learning this is also the case.<br>
+      For a mechanical task, I was thinking along the lines of practicing
+      shooting an arrow at a target, by training to miss the target by a certain amount on purpose. A big advantage of
+      this feature is that it allows for training the agent on arbitrary goals, preventing overfitting to the main goal
+      of the environment.
       Which would you rather have, an agent that can hit any target with an arrow? Or an agent that can only hit one?
-      This goal exploration effect could be achieved by micromanaging which environments the agent plays, 
-      but it would be much more valuable to build it into the agent as an exploration strategy. The agent would 
-      sometimes try different goals, and ignore the environmental reward. I think I saw a paper along these lines where 
+      This goal exploration effect could be achieved by micromanaging which environments the agent plays,
+      but it would be much more valuable to build it into the agent as an exploration strategy. The agent would
+      sometimes try different goals, and ignore the environmental reward. I think I saw a paper along these lines where
       the goal is augmented to give the agent a better sense of the real primary goal.
       Another upgrade worth investigating.
     </p>
@@ -465,22 +626,25 @@ self.epsilon_min = 0.1</code></pre>
     <p>Maybe you noticed before, but the old code gets slower over time.
       This is partially due to the agent getting better at the game. As the agent gets better, the episodes require
       more steps to end. However, you probably noticed if you let the game go for a few thousand episodes, the episodes
-      start to get really slow, even though the scores are roughly the same. (For the record, a few thousand 
+      start to get really slow, even though the scores are roughly the same. (For the record, a few thousand
       episodes is not that many. DRL papers often consider agents trained on millions of samples.)
-      What is the cause of this slowdown? 
-      Nothing in our agent seems to require more processing at a later episode than an early episode. 
-      It should be a constant amount of processing per learn step... except the code involving the experience replay buffer. 
-      This isn't too much of a problem for "read", but the moment you might try to "write" back to the buffer inside 
+      What is the cause of this slowdown?
+      Nothing in our agent seems to require more processing at a later episode than an early episode.
+      It should be a constant amount of processing per learn step... except the code involving the experience replay
+      buffer.
+      This isn't too much of a problem for "read", but the moment you might try to "write" back to the buffer inside
       your learn step, runtime performance suffers too much. It starts to get unbearably slow.<br>
       Additionally, your options for batch size are limited by the sampling speed of your replay buffer.
       As the replay buffer gets longer, sampling from it becomes slower. (relative to numpy arrays atleast)
-      We mostly avoided that effect by being careful up to this point. But it's better to have a high power 
-      tool to play with. 
-      A lot of the agent upgrades involve sampling data from the memory, 
-      computing something, and sometimes even storing (regularly processing the memories, and storing information about them). 
-      Doing this with python arrays starts to become a performance problem, 
-      especially once there are some python for loops in there. ew :^) 
-      So think of this as an infrastructural investment. The numpy indexing tricks end up being incredibly convenient, and 
+      We mostly avoided that effect by being careful up to this point. But it's better to have a high power
+      tool to play with.
+      A lot of the agent upgrades involve sampling data from the memory,
+      computing something, and sometimes even storing (regularly processing the memories, and storing information about
+      them).
+      Doing this with python arrays starts to become a performance problem,
+      especially once there are some python for loops in there. ew :^)
+      So think of this as an infrastructural investment. The numpy indexing tricks end up being incredibly convenient,
+      and
       besides, it's the most common way to do memories anyways.
     </p>
     <p>So, this:</p>
@@ -522,7 +686,7 @@ self.epsilon_min = 0.1</code></pre>
     <p>Notice how much code this adds. There's a reason i don't encourage
       people to start with this. I apologize for inflating your code now, but it's time.</p>
     <h5>Struct Of Arrays</h5>
-    <p>Each piece of the transition is stored in its own array. You premake and the arrays to a certain size when 
+    <p>Each piece of the transition is stored in its own array. You premake and the arrays to a certain size when
       you create the memory.
     </p>
     <pre><code class="language-python">self.stateMemory        = np.zeros((self.memSize, *stateShape), dtype=np.float32)
@@ -540,13 +704,13 @@ self.doneMemory         = np.zeros( self.memSize,               dtype=np.bool)</
         self.memCount = 0</code></pre>
         <p>
           The class takes in the max size of the buffer, and the shape of the states.<br>
-         
+
           Ex: cartpole has a state shape of 4 numbers, so the stateShape
           should be <code>(4,)</code>. If you just pass in <code>stateShape=4</code> it wont work.
           That's because there is some <strong>tuple unpacking</strong> going on in the arrays.
           (See the <code>*stateShape</code> in the array allocation.)<br><br>
           In python <code>(4,)</code> and <code>(4)</code> are
-          not the same thing. Sounds crazy right? It's a noob trap. Go ahead and try it in the 
+          not the same thing. Sounds crazy right? It's a noob trap. Go ahead and try it in the
           terminal. <code>print((4))</code> vs. <code>print((4,))</code><br><br>
         </p>
         <h5>Sampling</h5>
@@ -585,7 +749,7 @@ self.rewardMemory[memIndex]     = reward
 self.nextStateMemory[memIndex]  = nextState
 self.doneMemory[memIndex]       = done</code></pre>
         <p>Before the memory has been filled all the way, you have to avoid sampling from parts of the arrays
-        that haven't been assigned data to yet. They will just hold garbage.
+          that haven't been assigned data to yet. They will just hold garbage.
         </p>
         <pre><code class="language-python">#  that should explain this line in sample()
 memMax = min(self.memCount, self.memSize)</code></pre>
@@ -594,18 +758,18 @@ memMax = min(self.memCount, self.memSize)</code></pre>
   </div>
   <div class="grid-container full u-align-left">
     <h4>Now To Use It</h4>
-    <p>To use the new replay buffer we have to do some refactoring. 
-        First, remove it from the main loop entirely, and put the replay buffer into the agent. 
-        This isnt the only way to do it, but I feel like doing it this way. I'm writing the 
-        tutorial, so I am your god now. You have to do what I say. Give me your money.</p>
-        <pre><code class="language-python">class Agent():
+    <p>To use the new replay buffer we have to do some refactoring.
+      First, remove it from the main loop entirely, and put the replay buffer into the agent.
+      This isnt the only way to do it, but I feel like doing it this way. I'm writing the
+      tutorial, so I am your god now. You have to do what I say. Give me your money.</p>
+    <pre><code class="language-python">class Agent():
     def __init__(self, lr, inputShape, numActions):
         self.network = Network(lr, inputShape, numActions)
         self.memory = ReplayBuffer(maxSize=100000, stateShape=inputShape)
         self.batchSize = 64</code></pre>
-        <p>Also we need to wrap the memory store function so you can call it from the agent.</p>
-        <!-- <pre><code class="language-python"></code></pre> -->
-        <pre><code class="language-python">#    this function is in the agent class
+    <p>Also we need to wrap the memory store function so you can call it from the agent.</p>
+    <!-- <pre><code class="language-python"></code></pre> -->
+    <pre><code class="language-python">#    this function is in the agent class
 def storeMemory(self, state, action, reward, nextState, done):
     self.memory.storeMemory(state, action, reward, nextState, done)</code></pre>
     <p>Inside the main function its a little bit cleaner now.</p>
@@ -621,9 +785,9 @@ while not done:
                     #   the agent has everything it needs
     state = state_
 ...</code></pre>
-<h5>Learn Function Adjustments</h5>
-<p>So that's all setup... now to fix the learn function.</p>
-<pre><code class="language-python">def learn(self, memory, batchSize):
+    <h5>Learn Function Adjustments</h5>
+    <p>So that's all setup... now to fix the learn function.</p>
+    <pre><code class="language-python">def learn(self, memory, batchSize):
     if self.memory.memCount < self.batchSize:   #   this changed, but does the same thing
         return
 
@@ -646,9 +810,9 @@ while not done:
     #   pep8 python style guidelines and google don't want you to format things like this.
     #   but i'm god, and this is my tutorial dimension. Mr.Google has no power here
 ...</code></pre>
-<p>The rest of the learn function code is compatable with the new memory. Almost...  
-    There are a couple of lines that need changing. And, while we are at it let's 
-    try some more standard naming conventions.</p>
+    <p>The rest of the learn function code is compatable with the new memory. Almost...
+      There are a couple of lines that need changing. And, while we are at it let's
+      try some more standard naming conventions.</p>
     <pre><code class="language-python">'''OLD CODE'''
 qValues = self.network(states)
 nextQValues = self.network(states_)
@@ -673,43 +837,45 @@ qValue_[dones] = 0.0                    #   filter out post-terminal states
 td = reward + self.gamma * qValue_      #   temporal difference
 loss = self.network.loss(td, qValue)
 ...</code></pre>
-<p>It's a little more compact, but more importantly other people who look 
-    at your code will recognize the idioms.<br>
-    Also, you may have noticed <strong>gamma</strong> is back, which you might remember from the 
-    <a href="/tutorials/rl/actorcritic/actorcritic.html#improving-our-choices-in-life">actor-critic tutorial</a>.
-    I didn't explain it too much then, but basically its a bias towards the present. 
-    Without it you might get circumstances where the agent could wait indefinitely for some anticipated reward. 
-    Realistically, that's never going to happen, but hey now you have another hyperparamater to worry about. 
-    Lucky you. 
-    A gamma value of 0.99 is fine. I've never had to
-    change it. But, in certain environments a lower gamma improves performance. By the way, don't forget to put gamma into the agent class definition.
-</p>
-<pre><code class="language-python">class Agent():
+    <p>It's a little more compact, but more importantly other people who look
+      at your code will recognize the idioms.<br>
+      Also, you may have noticed <strong>gamma</strong> is back, which you might remember from the
+      <a href="/tutorials/rl/actorcritic/actorcritic.html#improving-our-choices-in-life">actor-critic tutorial</a>.
+      I didn't explain it too much then, but basically its a bias towards the present.
+      Without it you might get circumstances where the agent could wait indefinitely for some anticipated reward.
+      Realistically, that's never going to happen, but hey now you have another hyperparamater to worry about.
+      Lucky you.
+      A gamma value of 0.99 is fine. I've never had to
+      change it. But, in certain environments a lower gamma improves performance. By the way, don't forget to put gamma
+      into the agent class definition.
+    </p>
+    <pre><code class="language-python">class Agent():
     def __init__(self, lr, inputShape, numActions):
         self.network = Network(lr, inputShape, numActions)
         self.memory = ReplayBuffer(maxSize=100000, stateShape=inputShape)
         self.batchSize = 64
         self.gamma = 0.99   #   did i really need to show you this?</code></pre>
     <h5>Learned Gamma</h5>
-    <p>This is another case where a hyperparameter imposes assumptions about the nature of the environment. 
-        Gamma should probably vary during the agent's life. Maybe learned with a neural network across 
-        environments or just tuned based on td error and state familiarity. It is yet another upgrade idea that 
-        facilitates a new type of adaptation.
+    <p>This is another case where a hyperparameter imposes assumptions about the nature of the environment.
+      Gamma should probably vary during the agent's life. Maybe learned with a neural network across
+      environments or just tuned based on td error and state familiarity. It is yet another upgrade idea that
+      facilitates a new type of adaptation.
     </p>
     <h4 class="u-align-center">Minimum Memory Fullness</h4>
-    <p>Something that you will see if you peruse the openAI baselines is a minimum replay buffer fullness. 
-        They seem to set it to 20,000 samples for some reason. The agent won't learn from any samples, until 
-        the memory hits the minimum threshold. It is bad to sample from a barely filled replay buffer. 
-        An agent that does that will end up seeing the first few memories 
-        tons of times, and so they will be overrepresented in the neural network. Also the buffer isn't very 
-        diverse at first, so there is even more risk for overfitting. Setting a minimum memory size reduces both of these issues. 
-        Though, it does mean the agent will not be doing any learning for the earliest portion of episodes, so 
-        don't expect to see any good performance while the buffer is still filling up.
-        In my personal experience, I have found that adding a minimum buffer fullness 
-        really stabilizes agent performance. There are less weird sudden drops in score. 
-        My guess is that without a minimum memory the network learns a bunch of noise that 
-        it has to unlearn later on. Play with it to see if you can replicate that issue. 
-        (Try setting the minimum to a low number like the batch size, then up to a higher number like 2048.)
+    <p>Something that you will see if you peruse the openAI baselines is a minimum replay buffer fullness.
+      They seem to set it to 20,000 samples for some reason. The agent won't learn from any samples, until
+      the memory hits the minimum threshold. It is bad to sample from a barely filled replay buffer.
+      An agent that does that will end up seeing the first few memories
+      tons of times, and so they will be overrepresented in the neural network. Also the buffer isn't very
+      diverse at first, so there is even more risk for overfitting. Setting a minimum memory size reduces both of these
+      issues.
+      Though, it does mean the agent will not be doing any learning for the earliest portion of episodes, so
+      don't expect to see any good performance while the buffer is still filling up.
+      In my personal experience, I have found that adding a minimum buffer fullness
+      really stabilizes agent performance. There are less weird sudden drops in score.
+      My guess is that without a minimum memory the network learns a bunch of noise that
+      it has to unlearn later on. Play with it to see if you can replicate that issue.
+      (Try setting the minimum to a low number like the batch size, then up to a higher number like 2048.)
     </p>
     <pre><code class="language-python">class Agent():
 def __init__(self, lr, inputShape, numActions):
@@ -721,11 +887,11 @@ def __init__(self, lr, inputShape, numActions):
         if self.memory.memCount < self.minMemorySize:   #   this replaced self.batchSize
             return
 ...</code></pre>
-</div>
-<div class="grid-container full u-align-left">
-<h4 class="u-align-center">Full Code</h4>
-<p>Welcome your code to the 22nd century.</p>
-<pre><code class="language-python">import torch
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4 class="u-align-center">Full Code</h4>
+    <p>Welcome your code to the 22nd century.</p>
+    <pre><code class="language-python">import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -883,20 +1049,20 @@ if __name__ == '__main__':
             episode, highScore, score, agent.epsilon))
 
         episode += 1</code></pre>
-        <p>It's about 30 lines longer now, and there's a lot more that can go wrong. 
-            A few extra lines for epsilon-greedy and the rest for the 
-            experience replay. But, this prep should make the rest of the upgrade tutorials substantially 
-            easier, for me to write, and for you to read, and ultimately graduate from. 
-            Make sure to run the code to ensure it still gets some good scores. 
-            Play with the new settings to get a feel for how they affect performance.
-        </p>
-</div>
-<div class="grid-container full">
+    <p>It's about 30 lines longer now, and there's a lot more that can go wrong.
+      A few extra lines for epsilon-greedy and the rest for the
+      experience replay. But, this prep should make the rest of the upgrade tutorials substantially
+      easier, for me to write, and for you to read, and ultimately graduate from.
+      Make sure to run the code to ensure it still gets some good scores.
+      Play with the new settings to get a feel for how they affect performance.
+    </p>
+  </div>
+  <div class="grid-container full">
     <h4>Moving Forward</h4>
     <p>
-      Honestly this just isnt a very philosophical tutorial. 
+      Honestly this just isnt a very philosophical tutorial.
       It's time to move on to the dumptruck of upgrades awaiting your agent.<br>
-      Good luck. 
+      Good luck.
     </p>
     <a href="/index.html">Tutorial Index</a>
     <p></p>
