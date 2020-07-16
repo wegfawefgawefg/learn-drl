@@ -556,8 +556,8 @@ nowValues = qValues[batchIndecies, actions]    #   interpret the past
 futureValues = torch.max(nextQValues, dim=1)[0]    #   interpret the future
 futureValues[dones] = 0.0   #   ignore future actions if there will 
                             #   be no future actions anyways
-trueValuesOfNow = rewards + futureValues    #   same temporal difference
-loss = self.network.loss(trueValuesOfNow, nowValues)
+trueValuesOfNow = rewards + futureValues    
+loss = self.network.loss(trueValuesOfNow, nowValues)  #   same temporal difference
 
 '''NEW CODE'''
 batchIndices = np.arange(self.batchSize, dtype=np.int64)  # i learned how to spell indices
@@ -567,8 +567,8 @@ qValues_ = self.network(states_)        #   values of all actions
 qValue_ = torch.max(qValues_, dim=1)[0] #   extract greedy action value
 qValue_[dones] = 0.0                    #   filter out post-terminal states
 
-td = reward + self.gamma * qValue_      #   temporal difference
-loss = self.network.loss(td, qValue)
+qTarget = reward + self.gamma * qValue_      
+loss = self.network.loss(qTarget, qValue)    #   temporal difference
 ...</code></pre>
 <p>It's a little more compact, but more importantly other people who look 
     at your code will recognize the idioms.<br>
@@ -576,10 +576,12 @@ loss = self.network.loss(td, qValue)
     <a href="/tutorials/rl/actorcritic/actorcritic.html#improving-our-choices-in-life">actor-critic tutorial</a>.
     I didn't explain it too much then, but basically its a bias towards the present. 
     Without it you might get circumstances where the agent could wait indefinitely for some anticipated reward. 
-    Realistically, that's never going to happen, but hey now you have another hyperparamater to worry about. 
+    Realistically, that's never going to happen. A more likely scenario is that 
+    the agent can't tell which route to the reward is longer, or takes more time. 
+    Either way, hey, now you have another hyperparamater to worry about. 
     Lucky you. 
-    A gamma value of 0.99 is fine. I've never had to
-    change it. But, in certain environments a lower gamma improves performance. By the way, don't forget to put gamma into the agent class definition.
+    Picking gamma is a whole seperate topic to get into, but generrally a gamma value of 0.99 is fine. I've never had to
+    change it. In some environments a tuned lower gamma improves performance. By the way, don't forget to put gamma into the agent class definition.
 </p>
 <pre><code class="language-python">class Agent():
     def __init__(self, lr, inputShape, numActions):
@@ -735,8 +737,8 @@ class Agent():
         qValue_ = torch.max(qValues_, dim=1)[0]
         qValue_[dones] = 0.0
 
-        td = reward + self.gamma * qValue_
-        loss = self.network.loss(td, qValue)
+        qTarget = reward + self.gamma * qValue_
+        loss = self.network.loss(qTarget, qValue)
 
         self.network.optimizer.zero_grad()
         loss.backward()

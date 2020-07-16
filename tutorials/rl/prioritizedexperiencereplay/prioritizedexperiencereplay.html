@@ -252,9 +252,10 @@
     <h5>Implementation Specifics</h5>
     <p>What is the correct way to implent this?<br>
       You could make a seperate list of "car-crash" transitions, and then force the agent to run an additional
-      learn step on that list each environment step. That way when a car-crash happens, it can't go unnoticed. 
+      learn step on that list each environment step. That way when a car-crash happens, it can't go unnoticed.
       But then you are burdened with determining which transitions
-      deserve to be put in the list, and which don't. You could create a reward threshold hyperparameter that functions as the cutoff.
+      deserve to be put in the list, and which don't. You could create a reward threshold hyperparameter that functions
+      as the cutoff.
       Any transitions that have a reward magnitude above the threshold get thrown into the FIRE-DRILL list.
       That reward threshold would need to be tuned to each environment because each environment
       has different scales of rewards. Not only that but some sections of game environments are more
@@ -270,57 +271,249 @@
       What if there are "micro-car-crash" scenarios, samples that
       are more impactful and rare than the average, but not quite as world ending.
       You could set up a tiered system of 10 different FIRE-DRILL lists. Each one with a slightly larger
-      cutoff from the last... and multiple sizes of running windows to focus the agent on different ranges 
-      of rareness and magnitude. How many tiers is enough?? How many windows?? What happepns when the 
-      agent has reviewed a specific car-crash enough times?? Does it still need to practice that one anymore? Do we 
-      need a remove cutoff to remove old ones as well?? Why does this sound like designing a whole new neural network architecture? 
+      cutoff from the last... and multiple sizes of running windows to focus the agent on different ranges
+      of rareness and magnitude. How many tiers is enough?? How many windows?? What happepns when the
+      agent has reviewed a specific car-crash enough times?? Does it still need to practice that one anymore? Do we
+      need a remove cutoff to remove old ones as well?? Why does this sound like designing a whole new neural network
+      architecture?
       Are we creating an animal operating system?
     </p>
     <h5>Woah. Calm Down</h5>
-    <p>This is getting pretty complicated... The solution needs to be simple. 
-      It could take days to code what's described above, and the bugs could be crazy. Not to mention setting those 
+    <p>This is getting pretty complicated... The solution needs to be simple.
+      It could take days to code what's described above, and the bugs could be crazy. Not to mention setting those
       hyperparameters would deserve its own research paper.
-      What we need is for each transition to be on a continous spectrum of FIRE-DRILLness. Instead of sharp cutoffs, 
-      and seperate lists, use the list the agent already has. 
+      What we need is for each transition to be on a continous spectrum of FIRE-DRILLness. Instead of sharp cutoffs,
+      and seperate lists, use the list the agent already has.
     </p>
     <h5>Prioritized Memory Sampling</h5>
-    <p>Currently when the agent has a learn() step, it samples the experience replay buffer to create a batch 
-      of transitions. All the samples have the same probability of being selected for 
-      a batch, <code>1 / memory_size</code>. This is the reason why the batch has the same ratio of car-crashes to 
-      milk-spills as the environment. The probability of seeing the car-crash is proportional to how rare it is. 
-      We need to rig the odds so that car-crash samples have a higher probability of being selected, and therefore 
+    <p>Currently when the agent has a learn() step, it samples the experience replay buffer to create a batch
+      of transitions. All the samples have the same probability of being selected for
+      a batch, <code>1 / memory_size</code>. This is the reason why the batch has the same ratio of car-crashes to
+      milk-spills as the environment. The probability of seeing the car-crash is proportional to how rare it is.
+      We need to rig the odds so that car-crash samples have a higher probability of being selected, and therefore
       learned from.
-      Instead of sampling the memory with a flat probability, we could bias the probability of a memory getting chosen for 
-      a batch. The amount of bias could be determined by anything, but in our case we want to scale the bias 
+      Instead of sampling the memory with a flat probability, we could bias the probability of a memory getting chosen
+      for
+      a batch. The amount of bias could be determined by anything, but in our case we want to scale the bias
       by how surprised the agent was, the magnitude of the temporal difference error.
     </p>
   </div>
   <div class="grid-container full u-align-left">
     <h4 class="u-align-center">Time for Code</h4>
-    <p>Enough explanation, it's time to make it happen.</p>
-    
+      <h5>Step One</h5>
+      <p>First we need to add the ability to bias the sampling chances of our transitions so they 
+        aren't all the same.
+        The experience replay buffer is responsible for the sampling at the moment. Just add another array
+        to the memory to store probabilities of being sampled.
+      </p>
+      <pre><code class="language-python">class ReplayBuffer():
+    def __init__(self, maxSize, stateShape):
+        self.memSize = maxSize
+        self.memCount = 0
 
-    
-    <p>I hope you can see how this solution addresses the problems with the messy solution proposed before. 
-      Using this continous spectrum of priority is like having an infinite number of tiers in a tiered FIRE-DRILL list.
-      Micro-car-crash samples are not likely to be ignored. It works regardless of the scale of reward 
-      in an environment. And, as the agent trains on a car-crash sample, the td 
-      error will go down. This means the priority of that sample will go down, and so it slowly gets "removed" from the fire drills, 
-      making room for newer, or more subtle car-crash samples.
-      It is a really great solution, and it wasn't my idea. It was debuted and heavily investigated in 
-      <a href="https://arxiv.org/abs/1511.05952">this paper</a>, which I encourage you to read.
-    </p>
+        self.stateMemory        = np.zeros((self.memSize, *stateShape), dtype=np.float32)
+        self.actionMemory       = np.zeros( self.memSize,               dtype=np.int64  )
+        self.rewardMemory       = np.zeros( self.memSize,               dtype=np.float32)
+        self.nextStateMemory    = np.zeros((self.memSize, *stateShape), dtype=np.float32)
+        self.doneMemory         = np.zeros( self.memSize,               dtype=np.bool   )
+        self.priorityMemory     = np.zeros( self.memSize,               dtype=np.float32) # LOOK HERE
 
-    <p>There are other opportunities for biasing the sampling probabilities of the memory. 
-      I came up with a fun one that comes as a bonus in this tutorial. ;)
+    def storeMemory(self, state, action, reward, nextState, done):
+        memIndex = self.memCount % self.memSize 
+        
+        self.stateMemory[memIndex]      = state
+        self.actionMemory[memIndex]     = action
+        self.rewardMemory[memIndex]     = reward
+        self.nextStateMemory[memIndex]  = nextState
+        self.doneMemory[memIndex]       = done
+        self.priorityMemory[memIndex]   = 100.0       # AND LOOK HERE
+
+        self.memCount += 1</code></pre>
+      <p>I called it priority, instead of probabilities, because the numbers don't really have to be between 0 and 1, which is what they
+        should be if it was really a list of probabilities. Also, you might wonder why the priority of
+        a new transition starts at 100. I just picked a nice big number. The priority needs to start high.
+        If it starts low, then a brand new transition probably won't get chosen for a batch even once.
+        That sample might as well not have existed. The initial priority should probably be chosen more smartly,
+        but for now that's a distraction.
+      </p>
+      <h5>Step Two</h5>
+      <p>Now that the memory can store sampling biases, the memory sample function needs to actualy use them.</p>
+      <pre><code class="language-python">def sample(self, sampleSize):
+    memMax = min(self.memCount, self.memSize)
+    # batchIndices = np.random.choice(memMax, sampleSize, replace=False) # the old code
+
+    priorities = torch.tensor(self.priorityMemory, dtype=torch.float32) # fetch priorities
+    priorityDist = torch.distributions.Categorical(priorities[:memMax]) # fill a bag with colored marbles
+    batchIndices = priorityDist.sample(sample_shape=(sampleSize,))      # pick marbles from the bag
+
+    states      = self.stateMemory[batchIndices]
+    actions     = self.actionMemory[batchIndices]
+    rewards     = self.rewardMemory[batchIndices]
+    nextStates  = self.nextStateMemory[batchIndices]
+    dones       = self.doneMemory[batchIndices]
+
+    return states, actions, rewards, nextStates, dones, batchIndices # returning the indices is NEW</code></pre>
+    <p>Which transitions are selected is no longer flat random. Now it's biased random. 
+      You've seen categorical distributions before in the beginning of the <a href="/tutorials/rl/actorcritic/actorcritic.html">actor-critic tutorial</a>.
+    But, basically we put colored marbles into a bag. The number of marbles each transition gets is its priority. 
+    Ex: If a transition has a priority of 100 it means it gets 100 marbles of its index in the bag. 
+    Then you draw marble until you have enough to fill your batch. There can be repeats. It's totally fine. 
+    Also the function returns the indices now. You'll see why in a sec.</p>
+    <h5>Step Three</h5>
+    <p>The agents learn function gets the batch from the memory, so the prioritized sampling should already be
+      in effect. However, the priorities are going to stay at 100... That's no good. 
+      The priority of a memory should be how surprising it was to the agent, the td error. 
+      The td error of a transition can then be stored back as the transitions new priority.
     </p>
-    <ul>There are many other causes for the pipe difficulty issue. We focused on one specific cause because
-      it could be addressed with a relatively simple solution.
-      However, the other causes have not been addressed. They still exist as serious flaws in the agent's reasoning.
-      They could be fixed with different solutions, and probably run alongside Prioritized Experience Replay.
-      Here are some other agent shortcomings that might also cause the Pipe Problem.
-      <li>The agent cant remember what it's </li>
-    </ul>
+    <pre><code class="language-python">def learn(self):
+    if self.memory.memCount < self.minMemorySize:
+        return
+
+    # the sample indices are fetched too now |-right here-|
+    states, actions, rewards, states_, dones, memIndices = self.memory.sample(self.batchSize)
+    states  = torch.tensor(states , dtype=torch.float32).to(self.network.device)
+    actions = torch.tensor(actions, dtype=torch.long   ).to(self.network.device)
+    rewards = torch.tensor(rewards, dtype=torch.float32).to(self.network.device)
+    states_ = torch.tensor(states_, dtype=torch.float32).to(self.network.device)
+    dones   = torch.tensor(dones  , dtype=torch.bool   ).to(self.network.device)
+
+    batchIndices = np.arange(self.batchSize, dtype=np.int64)
+    qValue = self.network(states)[batchIndices, actions]
+
+    qValues_ = self.network(states_)
+    qValue_ = torch.max(qValues_, dim=1)[0]
+    qValue_[dones] = 0.0
+
+    qTarget = reward + self.gamma * qValue_
+    loss = self.network.loss(qTarget, qValue)
+
+    '''PRIORITIES ARE UPDATED HERE'''
+    td = qTarget - qValue   #   temporal difference, (almost same as loss)
+    self.memory.td[memIndices] = td.detach().abs() #   update priorities
+
+    self.network.optimizer.zero_grad()
+    loss.backward()
+    self.network.optimizer.step()
+
+    self.epsilon -= self.epsilon_decay
+    if self.epsilon < self.epsilon_min:
+        self.epsilon = self.epsilon_min</code></pre>
+    <p>Now you can see why the batch indices needed to be passed through. They are needed to assign new priorities 
+      into the replay buffer.
+    </p>
+    <pre><code class="language-python">td = qTarget - qValue   #   temporal difference, (almost same as loss)
+self.memory.td[memIndices] = td.detach().abs() #   update priorities</code></pre>
+    <p>You're probably wondering why to recalculate td, since the loss function is already doing this subtraction 
+      internally. Honestly it's just easy to do it like this. I doubt doing 64 subtractions is 
+      going to incur any noticeable performance drop. And it's way less work than going and re-engineering 
+      the loss function ourselves just to reuse the subtraction.<br><br>
+      Also you can see that we aren't using the raw td, we are taking the absolute value of it. 
+      Some surprises are car-crashes, and others are lottery-wins. The magnitude of the surprise is what is important in 
+      determining whether a transition should be reviewed again. That's not to say you couldn't bias the agent 
+      to be more optimistically focused than pessimistic, but at the moment the agent is a fairly reasonable kind of guy. 
+      The lady agents don't find it very romantic.
+    </p>
+    <h4 class="u-align-center">Time for Testing</h4>
+    <p>We only changed 10 lines of code. That's great. But does it work? 
+      To test something like this we're gonna have to do multiple runs of the old code vs multiple runs of the new code. 
+      Ill graph 10 runs from each, where each run goes until it gets 50 episodes in a row that last for 200 
+      steps without dropping the pole.
+    </p>
+    <img src="/tutorials/rl/prioritizedexperiencereplay/noexponent.jpg" width=100%>
+    <p>The image is very compressed for phone users, but you can see that the blue agent got higher scores earlier 
+      than the orange agent. Wow, that's great. Except theres just one problem. Blue is the agent without prioritized 
+      experience replay. Orange is the new code.<br><br>
+      So PER sucks? No, it doesn't suck. It's great, as demonstrated in the original <a href="https://arxiv.org/abs/1511.05952">paper</a>.
+      Our PER sucks. Let's investigate those priorities.  
+    </p>
+    <p>I put this code in the main loop.</p>
+    <pre><code class="language-python">if score > 100:
+    memMax = min(agent.memory.memCount, agent.memory.memSize)
+    print(agent.memory.priorityMemory[:memMax])
+    print(agent.memory.priorityMemory[:memMax].max())
+    print(agent.memory.priorityMemory[:memMax].mean())</code></pre>
+    <p>And here are the prints...</p>
+    <pre><code class="language-python">...
+9.81832504e-01 8.61540794e-01 1.13772488e+00 9.08970833e-01
+9.69904900e-01 7.01960564e-01 6.44301414e-01 4.78118896e-01
+5.88344574e-01 2.69694328e-01 3.67557526e-01 6.77224159e-01
+3.56877327e-01 5.16098022e-01 4.01191711e-02 4.76974487e-01
+4.45224762e-01 5.12881279e-01 3.70181084e-01 1.23029709e-01
+5.47778130e-01 3.72940540e-01 7.13039875e-01 7.90067673e-01
+3.81707668e-01 5.62210083e-01 8.12056065e-01 8.49058628e-01
+9.64502811e-01 3.74630451e-01 7.71329880e-01 7.46834755e-01
+8.80380154e-01 9.21054363e-01 8.86570930e-01 1.01419759e+00
+9.17692423e-01 8.95126343e-01 7.80601740e-01 1.07545328e+00
+8.76361132e-01 1.26037169e+00 9.33368206e-01 1.00000000e+02
+1.20824647e+00 1.01140404e+00 1.05878687e+00 1.00000000e+02
+1.13288975e+00 1.12992764e+00 1.00000000e+02 1.00000000e+02
+1.00000000e+02 1.26903963e+00 8.25684071e-01 1.25932932e+00
+8.55631828e-01 8.39446068e-01 1.00000000e+02 1.00000000e+02
+1.07417965e+00 8.56302261e-01 4.51126575e-01 1.09786844e+00
+1.09506273e+00 7.49367714e-01 4.81671810e-01 8.34473610e-01
+9.24391508e-01 1.00000000e+02 6.76158905e-01 1.00000000e+02
+9.44183111e-01 1.00000000e+02 1.00000000e+02 1.00000000e+02
+1.00000000e+02 1.00000000e+02 1.00000000e+02 1.00000000e+02
+1.00000000e+02]
+100.0 # must be a max, looks like an new memory (since its 100)
+2.460974  # mean value</code></pre>
+<p>There are an awful lot of 100's in there too, 
+  which doesn't seem right. However, considering that the print is the tail end of the memory, that means 
+  out of maybe ten thousand samples, theres just a few 100s in there, and they are brand new. 
+  So thats not so bad. It looks like it takes about 9 steps for new samples to get processed 
+  the first time. Is this the birth of a reaction time?<br><br> Why is the mean value almost 2.5
+  when most of the numbers printed out are less than 1.0? Those numbers vary by a lot, which is to be expected, 
+  but if the variation is too great, it could be a sign some transitions are dominating learn steps. 
+  This could be a good thing.
+  However, if the agent is left going for a while, after enough 500's the loss will suddenly spike 
+  and the score will jump to 9, the minimum score. I think the problem is that the prioritization 
+  is too strong.
+</p>
+<h5>An Assertion</h5>
+<p>To test this idea we can introduce another hyperparamater. Yay.
+This hyperparameter will control the degree of prioritization. More specifically, it 
+will scale variation between sample td's to be wider, or thinner. 
+Let's call this hyperparameter "surprise". Because, it scales how surprisable 
+the agent is.</p>
+<pre><code class="language-python">class Agent():
+    def __init__(self, lr, inputShape, numActions):
+        self.network = Network(lr, inputShape, numActions)
+        self.memory = ReplayBuffer(maxSize=10000, stateShape=inputShape)
+        self.minMemorySize = 64
+        self.batchSize = 64
+        self.gamma = 0.99
+        self.surprise = 0.5 # here's the new stuff
+...
+        td = qTarget - qValue
+        priority = td.abs() ** self.surprise  # squash the td error
+        self.memory.priorityMemory[memIndices] = priority.detach().cpu()</code></pre>
+<p>0.5 is just a middle number, but its possible the ideal value is 0.645345 or something.<br>
+  Anyways, lets test it.
+</p>
+<img src="/tutorials/rl/prioritizedexperiencereplay/noexponent.jpg" width=100%>
+
+      <p>I hope you can see how this solution addresses the problems with the messy solution proposed before.
+        Using this continous spectrum of priority is like having an infinite number of tiers in a tiered FIRE-DRILL
+        list.
+        Micro-car-crash samples are not likely to be ignored. It works regardless of the scale of reward
+        in an environment. And, as the agent trains on a car-crash sample, the td
+        error will go down. This means the priority of that sample will go down, and so it slowly gets "removed" from
+        the fire drills,
+        making room for newer, or more subtle car-crash samples.
+        It is a really great solution, and it wasn't my idea. It was debuted and heavily investigated in
+        <a href="https://arxiv.org/abs/1511.05952">this paper</a>, which I encourage you to read.
+      </p>
+
+      <p>There are other opportunities for biasing the sampling probabilities of the memory.
+        I came up with a fun one that comes as a bonus in this tutorial. ;)
+      </p>
+      <ul>There are many other causes for the pipe difficulty issue. We focused on one specific cause because
+        it could be addressed with a relatively simple solution.
+        However, the other causes have not been addressed. They still exist as serious flaws in the agent's reasoning.
+        They could be fixed with different solutions, and probably run alongside Prioritized Experience Replay.
+        Here are some other agent shortcomings that might also cause the Pipe Problem.
+        <li>The agent cant remember what it's </li>
+      </ul>
   </div>
   <div class="grid-container full u-align-left">
     <h4 class="u-align-center">Code Review</h4>
