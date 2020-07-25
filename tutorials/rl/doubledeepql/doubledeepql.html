@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Basic Page Needs
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta charset="utf-8" />
+  <title>Wegfawefgawefg's Tutorials</title>
+  <meta name="description" content="" />
+  <meta name="author" content="" />
+
+  <!-- Mobile Specific Metas
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- FONT
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css" />
+
+  <!-- CSS
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="stylesheet" href="/css/normalize.css" />
+  <link rel="stylesheet" href="/css/barebones.css" />
+
+  <!-- Favicon
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="icon" type="image/png" href="images/favicon-16.png" />
+  <!-- Code Highlighting
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="stylesheet" href="/highlightjs/styles/atom-one-dark-reasonable.css" />
+  <script src="/highlightjs/highlight.pack.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad();
+  </script>
+</head>
+
+<body>
+  <div class="grid-container full">
+    <h1>Wegfawefgawefg's Tutorials</h1>
+    <h2>Double Deep Q Learning</h2>
+    <h3>Barely Even An Addon</h3>
+    <h4>Prerequisites</h4>
+    <p class="u-align-left">This tutorial assumes you've completed the <a
+        href="/index.html#foundations">"Foundations"</a> tutorials.
+      It also uses code from those previous tutorials. The intention is to make the old code look more like
+      common RL code in preperation for the coming <strong>upgrades</strong>. If you aren't new to reinforcement
+      learning then i'm sure you can
+      follow along. Less will be explained within the <a href="/index.html#upgrades">"Upgrades"</a> tutorials than prior
+      tutorials. There might be a link to prior explanation from prior tutorials if I can remember to add them.
+    </p>
+  </div>
+  <div class="grid-container full">
+    <h4>Getting Started</h4>
+    <p class="u-align-left">
+      DQN works okay as is. But I don't know if you have been looking at the performance graphs.
+      These things are unstable. The rewards go all over the place. Numbers are going up but only generally, and
+      chaotically. Some of this chaos comes from the stochastic nature of the environment. Some of it
+      comes from the randomly initialized network weights finding their happy place. However,
+      what likely is the root cause of chaos in deep reinforcement learning is the fact that the agent is
+      a big feedback loop. Action changes the environment changes the action changes the environment changes
+      the weights changes the actions... etc. In a recursive system like this, everything is an exponential whirlpool.
+      What if you froze one or more components of the feedback loop temporarily? Would it reduce the insanity?
+    </p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4 class="u-align-center">Code Review</h4>
+    <p>
+      Let's begin by reviewing the code starting point. It should look familiar but also slightly unfamiliar.
+      Recently I started coding with underscores to match the common python formatting.
+      Consider it an exercise in reading. Also consider it a hand exercise in painful finger movements used
+      to type underscores.
+    </p>
+    <pre><code class="language-python">import gym       
+import math
+import numpy as np
+import random
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+
+class ReplayBuffer:
+    def __init__(self, mem_size, state_shape):
+        self.mem_size = mem_size
+        self.mem_count = 0
+
+        self.states     = np.zeros((self.mem_size, *state_shape),dtype=np.float32)
+        self.actions    = np.zeros( self.mem_size,               dtype=np.int64  )
+        self.rewards    = np.zeros( self.mem_size,               dtype=np.float32)
+        self.states_    = np.zeros((self.mem_size, *state_shape),dtype=np.float32)
+        self.dones      = np.zeros( self.mem_size,               dtype=np.bool   )
+
+    def add(self, state, action, reward, state_, done):
+        mem_index = self.mem_count % self.mem_size 
+        
+        self.states[mem_index]  = state
+        self.actions[mem_index] = action
+        self.rewards[mem_index] = reward
+        self.states_[mem_index] = state_
+        self.dones[mem_index]   = done
+
+        self.mem_count += 1
+
+    def sample(self, sample_size):
+        mem_max = min(self.mem_count, self.mem_size)
+        batch_indices = np.random.choice(mem_max, sample_size, replace=True)
+
+        states  = self.states[batch_indices]
+        actions = self.actions[batch_indices]
+        rewards = self.rewards[batch_indices]
+        states_ = self.states_[batch_indices]
+        dones   = self.dones[batch_indices]
+
+        return states, actions, rewards, states_, dones
+
+class Network(torch.nn.Module):
+    def __init__(self, alpha, input_shape, num_actions):
+        super().__init__()
+        self.input_shape = input_shape
+        self.num_actions = num_actions
+        self.fc1_dims = 1024
+        self.fc2_dims = 512
+
+        self.fc1 = nn.Linear(*self.input_shape, self.fc1_dims)
+        self.fc2 = nn.Linear(self.fc1_dims, self.fc2_dims)
+        self.fc3 = nn.Linear(self.fc2_dims, num_actions)
+
+        self.optimizer = optim.Adam(self.parameters(), lr=alpha)
+        # self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cpu")
+        self.to(self.device)
+
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+
+        return x
+
+class Agent():
+    def __init__(self, lr, state_shape, num_actions):
+        self.net = Network(lr, state_shape, num_actions)
+        self.memory = ReplayBuffer(mem_size=10000, state_shape=state_shape)
+        self.batch_size = 64
+        self.gamma = 0.99
+
+        self.epsilon = 0.1
+        self.epsilon_decay = 0.00005
+        self.epsilon_min = 0.001
+
+    def choose_action(self, observation):
+        if np.random.random() < self.epsilon:
+            action = random.randint(0, 1)
+        else:
+            state = torch.tensor(observation).float().detach()
+            state = state.to(self.net.device)
+            state = state.unsqueeze(0)
+
+            q_values = self.net(state)
+            action = torch.argmax(q_values).item()
+        return action
+
+    def store_memory(self, state, action, reward, state_, done):
+        self.memory.add(state, action, reward, state_, done)
+
+    def learn(self):
+        if self.memory.mem_count < self.batch_size:
+            return
+
+        states, actions, rewards, states_, dones = self.memory.sample(self.batch_size)
+        states  = torch.tensor(states , dtype=torch.float32).to(self.net.device)
+        actions = torch.tensor(actions, dtype=torch.long   ).to(self.net.device)
+        rewards = torch.tensor(rewards, dtype=torch.float32).to(self.net.device)
+        states_ = torch.tensor(states_, dtype=torch.float32).to(self.net.device)
+        dones   = torch.tensor(dones  , dtype=torch.bool   ).to(self.net.device)
+
+        batch_indices = np.arange(self.batch_size, dtype=np.int64)
+        q_values  =   self.net(states)[batch_indices, actions]
+
+        q_values_ =   self.net(states_)
+        action_qs_ = torch.max(q_values_, dim=1)[0]
+        action_qs_[dones] = 0.0
+        q_target = rewards + self.gamma * action_qs_
+
+        td = q_target - q_values
+
+        self.net.optimizer.zero_grad()
+        loss = ((td ** 2.0)).mean()
+        loss.backward()
+        self.net.optimizer.step()
+
+        self.epsilon -= self.epsilon_decay
+        if self.epsilon < self.epsilon_min:
+            self.epsilon = self.epsilon_min
+
+if __name__ == '__main__':
+    env = gym.make('CartPole-v1').unwrapped
+    agent = Agent(lr=0.001, state_shape=(4,), num_actions=2)
+
+    high_score = -math.inf
+    episode = 0
+    while True:
+        done = False
+        state = env.reset()
+
+        score, frame = 0, 1
+        while not done:
+            # env.render()
+
+            action = agent.choose_action(state)
+            state_, reward, done, info = env.step(action)
+            agent.store_memory(state, action, reward, state_, done)
+            agent.learn()
+            
+            state = state_
+
+            score += reward
+            frame += 1
+
+        high_score = max(high_score, score)
+
+        print(( "ep {:4d}: high-score {:12.3f}, "
+                "score {:12.3f}, epsilon {:5.3f}").format(
+            episode, high_score, score, agent.epsilon))
+
+        episode += 1</code></pre>
+    <p>At this point this code should look really familiar to you. The only
+      thing I can think of that might be confusing you is the <code>state</code> vs <code>state_</code> thing.
+      I'm not sure why but <code>state_</code> is often used as short for <code>next_state</code>.
+      Anyways now you'll know what that is when you see it. But basically anytime a variable ends in <code>_</code>
+      it is assumed to be "for the next time step".
+    </p>
+    <p>By the way when you run it you get normal DQN performance like this.</p>
+    <pre><code class="language-python">...
+ep   57: high-score      273.000, score      158.000, epsilon 0.001
+ep   58: high-score      273.000, score      167.000, epsilon 0.001
+ep   59: high-score      273.000, score      188.000, epsilon 0.001
+ep   60: high-score      273.000, score      228.000, epsilon 0.001
+ep   61: high-score      273.000, score      222.000, epsilon 0.001
+ep   62: high-score      273.000, score      144.000, epsilon 0.001
+ep   63: high-score      273.000, score      199.000, epsilon 0.001
+ep   64: high-score      300.000, score      300.000, epsilon 0.001
+ep   65: high-score      300.000, score      162.000, epsilon 0.001
+ep   66: high-score      300.000, score      170.000, epsilon 0.001
+ep   67: high-score      312.000, score      312.000, epsilon 0.001</code></pre>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h3 class="u-align-center">Chef Man</h3>
+    <p>You are a chef. You cook tacos.
+      You are on a quest to cook the most perfect taco that ever existed.
+      You get a bags of supplies and you go to the kitchen.
+      Also this is the first taco you've ever made and the first time you have ever cooked.
+      For some reason this doesn't seem like a problem to you and so you turn on the "Taco Food Channel" and
+      start cooking random ingredients while you watch the TV.
+      12 hours later you are tired, sweaty, and defeated and also your tacos are terrible. You tried to eat one
+      and threw up. You know your friend is a world renouned taco chef so you call him, and invite him over
+      for an educational cooking party. The next day he teaches you how to make great tacos.
+      First you watch him make one. Then you try. Then you watch him make one. Then you try. This goes on 
+      for 36 hours and you emerge from taco bootcamp a taco making god.</p>
+      <p>At the moment, the agent never watches. It only tries to learn while doing. This is easily fixed.
+      </p>
+      <pre><code class="language-python">...
+counter = 0     #   COUNT THE LESSONS
+while True:
+    done = False
+    state = env.reset()
+
+    score, frame = 0, 1
+    while not done:
+        # env.render()
+
+        action = agent.choose_action(state)
+        state_, reward, done, info = env.step(action)
+        agent.store_memory(state, action, reward, state_, done)
+        
+        if counter % 10 == 0:   #   WATCH SOMETIMES
+            agent.learn()
+        
+        state = state_
+
+        score += reward
+        frame += 1
+
+        counter += 1    #   ONE MORE</code></pre>
+      <p>This way the agent will take turns with the environment. Sometimes it will sit and learn passively from 
+        it's past self. And other times it will actively learn by doing. Let's see how the results turn out.
+      </p>
+      <pre><code class="language-python">...
+ep  392: high-score      490.000, score      163.000, epsilon 0.001
+ep  393: high-score      490.000, score      185.000, epsilon 0.001
+ep  394: high-score      490.000, score      187.000, epsilon 0.001
+ep  395: high-score      490.000, score      232.000, epsilon 0.001
+ep  396: high-score      490.000, score      339.000, epsilon 0.001</code></pre>
+<p>It took about 400 episodes for the results to get similar. You might think thats pretty good because the agent 
+  should only have actually trained 1/10th as often. Meaning, it should get the same scores but after 10 times 
+  as many episodes. However, episodes are different lengths. Turns out this isnt that useful on its own. 
+  Let's keep track of how many samples are collected, and how many transitions have been processed by the network.
+</p>
+<pre><code class="language-python">...
+num_samples = 0         #   TRANSITIONS COLLECTED
+samples_processed = 0   #   TRANSITIONS PROCESSED
+counter = 0
+while True:
+    done = False
+    state = env.reset()
+
+    score, frame = 0, 1
+    while not done:
+        # env.render()
+
+        action = agent.choose_action(state)
+        state_, reward, done, info = env.step(action)
+        agent.store_memory(state, action, reward, state_, done)
+        
+        if counter % 1 == 0:    #   BACK TO 1
+            agent.learn()
+            samples_processed += agent.batch_size   #   NEW
+        
+        state = state_
+
+        score += reward
+        frame += 1
+        num_samples += 1    #   NEW
+
+        counter += 1 
+        
+    high_score = max(high_score, score)
+
+    ''' SOME NEW PRINTING STUFF '''
+    print(( "samples: {}, samps_procd: {}, ep {:4d}: high-score {:12.3f}, "
+            "score {:12.3f}, epsilon {:5.3f}").format(
+        num_samples, samples_processed, episode, 
+        high_score, score, agent.epsilon))
+
+    episode += 1</code></pre>
+    <p>Okay let's get a new baseline. Notice the counter is set to 1 so this is normal DQN without the turn taking.</p>
+    <pre><code class="language-python">...
+samples: 4017, samps_procd: 257088, ep   50: high-score      214.000, score      180.000, epsilon 0.001
+samples: 4164, samps_procd: 266496, ep   51: high-score      214.000, score      147.000, epsilon 0.001
+samples: 4332, samps_procd: 277248, ep   52: high-score      214.000, score      168.000, epsilon 0.001
+samples: 4681, samps_procd: 299584, ep   53: high-score      349.000, score      349.000, epsilon 0.001
+samples: 4975, samps_procd: 318400, ep   54: high-score      349.000, score      294.000, epsilon 0.001
+samples: 5281, samps_procd: 337984, ep   55: high-score      349.000, score      306.000, epsilon 0.001
+...</code></pre>
+    <p>So looks about the same. To get to this point the agent processed 300,000 frames and only had 5000 transitions 
+      collected to work with. That means the agent reused the same data about 30,000 times on average. In normal 
+      machine learning, 30,000 epochs would make someone slap you and yell "overfitting". But we are ignorant DRL 
+      programmers so we can get away with it. Part of this has to do with old transitions being 
+      framed within a new "reward prediction state of mind". Later on in your life you can think back to your childhood 
+      and learn new things from analysing it. This is because your interpretation is different, and your goals have 
+      changed. Normal ML data does not have this component. Generally the classification or ground truth of a sample in a 
+      regular ML dataset is fixed. So reviewing the same data over and over isn't quite so useful. 
+      Anyways, set the agent to learn every 10 steps instead to see what changes.
+    </p>
+    <pre><code class="language-python">if counter % 10 == 0:    #   BACK TO 10
+      agent.learn()
+      samples_processed += agent.batch_size   #   NOT NEW ANYMORE</code></pre>
+      <p>And results...</p>
+      <pre><code class="language-python">...
+samples: 38808, samps_procd: 248384, ep  570: high-score      508.000, score      508.000, epsilon 0.001
+samples: 39052, samps_procd: 249984, ep  571: high-score      508.000, score      244.000, epsilon 0.001
+samples: 39396, samps_procd: 252160, ep  572: high-score      508.000, score      344.000, epsilon 0.001
+samples: 39504, samps_procd: 252864, ep  573: high-score      508.000, score      108.000, epsilon 0.001
+samples: 39679, samps_procd: 253952, ep  574: high-score      508.000, score      175.000, epsilon 0.001
+samples: 40009, samps_procd: 256064, ep  575: high-score      508.000, score      330.000, epsilon 0.001
+samples: 40300, samps_procd: 257920, ep  576: high-score      508.000, score      291.000, epsilon 0.001
+samples: 40561, samps_procd: 259648, ep  577: high-score      508.000, score      261.000, epsilon 0.001
+...</code></pre>
+  <p>The agent jumped from getting 200 scores to 500 scores right away. I ran it a few times and the result is 
+    like this each time. You can also see that <code>train()</code> ran much 
+  </p>
+      <p>
+      you feel excited because you just bought ten different types of tortillas.
+      Three hours of painful attemps follows, as you try to cook the tortillas in various ways.
+      In your frustration, each time
+      you fail, you grab a tortilla from a different bag hoping it will result in a better outcome.
+      Somehow you keep getting different results. Some tortillas are burning early, some burning in spots.
+      It seems impossible to figure out what is going wrong. Perhaps you'd be able to see what the problem was
+      if you
+    </p>
+    <p>Normally an agent learns at each time step and immediatly changes its policy. More specifically, the
+      feature detectors get tuned to trigger different actions than before. This happens at each time step.
+      So the network has a difficult time predicting the rewards of actions if they are always tried in new contexts.
+    </p>
+    <h4 class="u-align-center">Exploration Strategy</h4>
+    <p>At the moment the agent is picking a random action 10% of the time. This is to force
+      the agent to try different actions. Regular exploration ensures enough data is collected
+      to get the neural network to learn the environments reward function. Mainly, it pushes
+      the agent into circumstances it wouldnt find itself in otherwise. Exploration is covered more deeply in the
+      <a href="/tutorials/rl/deepqlearning/deepqlearning.html">DQLearning Tutorial</a> and the
+      <a href="/tutorials/rl/actorcritic/actorcritic.html">Actor Critic Tutorial</a>.
+      The primary issue with the code as is, is the exploration rate. It doesn't change.
+      As the qvalues become more refined, the greedy action is often a better choice for the agent.
+      If the exploration rate remains high, then the agent might not get to refine it's strategy.
+      Also the code has the word asparagus in it.
+    </p>
+    <pre><code class="language-python">class Agent(): # NEW AND IMPROVED
+    def __init__(self, lr, inputShape, numActions):
+        self.network = Network(lr, inputShape, numActions)
+
+        # exploration parameters
+        self.epsilon = 0.1            # chance of random action
+        self.epsilon_decay = 0.00005  # how much the chance shrinks each step
+        self.epsilon_min = 0.001      # minimum for the chance, so you never fully stop exploring
+
+    def chooseAction(self, observation):
+        if np.random.random() < self.epsilon: # generate a num between 0.0 and 1.0 to "roll"
+            action = random.randint(0, 1)
+        else: # dont bother doing all that torch stuff if you're just gonna choose a random
+            state = torch.tensor(observation).float().detach()
+            state = state.to(self.network.device)
+            state = state.unsqueeze(0)
+
+            qValues = self.network(state)
+            action = torch.argmax(qValues).item()
+        return action</code></pre>
+    <p>The new improved code uses the <strong>epsilon-greedy</strong> exploration strategy. It works just like the old
+      exploration strategy:</p>
+    <pre><code class="language-python">chanceOfAsparagus = random.randint(1, 10)
+if chanceOfAsparagus == 1:  #   10% chance
+    action = random.randint(0, 1)</code></pre>
+    <p>
+      Except instead of a fixed 10% chance, the chance starts high and shrinks until it hits a minimum.
+      Why is it called epsilon? More math history or something. It is generally denoted by the <code>ϵ</code> character,
+      epsilon...
+      In the mainstream it appeared around 1998, maybe in the Sutton and Barto book on reinforcement learning.
+      Probably before that.
+      Anyways, epsilon is a number between 0 and 1, that should
+      start high, and slowly become smaller. Generate a random number between zero and one, and then compare it to
+      the exploration threshold, <strong>epsilon</strong>. If epsilon is 0.9, then 90% of the time the random number
+      will be smaller than epsilon, so 90% of the time the action will be random.
+
+      <strong>Epsilon-greedy</strong> is probably the most common exploration strategy.
+      More generally though, theres usually some way actions are randomized.
+      You will see epsilon-greedy all over reinforcement learning.
+    </p>
+    <h5>Common Concerns</h5>
+    <p>Dont forget to actually shrink epsilon, and cap it at the minimum value.
+      You can do it periodically but I most commonly see the decay done once per learn step at the bottom of
+      the learn function.
+    </p>
+    <pre><code class="language-python">def learn(self, memory, batchSize):
+    ... # bla bla bla the rest of the learn function above
+    trueValuesOfNow = rewards + futureValues    #   same temporal difference
+    loss = self.network.loss(trueValuesOfNow, nowValues)
+
+    loss.backward()
+    self.network.optimizer.step()
+
+    '''SHRINK EPSILON HERE'''
+    self.epsilon -= self.epsilon_decay  # shrink
+    if self.epsilon < self.epsilon_min: # clamp
+        self.epsilon = self.epsilon_min</code></pre>
+    <p>
+      <div class="grid-container halves u-align-left">
+        <div class="left">
+          <h5>Greater Than Less Than</h5>
+          <p>Make sure to get the direction of the <code>&lt</code> vs <code>&gt</code> correct when comparing to
+            epsilon to pick a random action. If you get it backwards, your exploration chance is inverted.</p>
+          <pre><code class="language-python"># epsilon = 0.1
+
+# this is 10% chance
+if np.random.random() < self.epsilon:   
+    action = random.randint(0, 1)
+
+# this is 90% chance
+if np.random.random() > self.epsilon:   
+    action = random.randint(0, 1)</code></pre>
+          <p>And worse, if it is backwards, your exploration chance will actually increase instead of decrease when you
+            shrink epsilon. As you can imagine, this results in terrible scores, as the agent will slowly
+            take more and more random moves.
+          </p>
+          <h5>When In Doubt, Print</h5>
+          <p>If the agent is being dumb, print out epsilon at each step, or episode, to make sure
+            it is doing what you want.
+          </p>
+        </div>
+        <div class="right">
+          <h5>How To Set Settings</h5>
+          <p>That epsilon_decay number I picked seems kinda random doesn't it?</p>
+          <pre><code class="language-python">self.epsilon = 0.1    
+self.epsilon_decay = 0.00005  
+self.epsilon_min = 0.001</code></pre>
+          <p>If you set these wrong the agent won't learn at all. You might
+            think it's an issue with any other part of your code, which could send you on an hours/days bug hunt.
+            Luckily, these new hyperparameters can be made to be equivalent to the old code to give a starting point
+            that
+            you can be confident will work.
+          </p>
+          <pre><code class="language-python">self.epsilon = 0.1    
+self.epsilon_decay = 0.0
+self.epsilon_min = 0.1</code></pre>
+          <p>If epsilon is 0.1, and the decay rate is 0.0, then it is a constant flat 10% chance of random action.
+            This should yield exactly the same results as the old code. (It does. I tested it.)
+            So you can start from this, and slowly raise the decay and shrink the min from there.
+            <code>self.epsilon_decay =
+              0.00000001</code> That might be a bit small of a decay rate, but maybe you can aim epsilon so that
+            by a certain episode it hits a target minimum. The right epsilon and decay rate heavily depends on the
+            environment, though.
+            One of the benefits of using this standard epsilon-greedy implementation is you can now use other peoples
+            espilon-greedy settings. Yay.
+          </p>
+        </div>
+      </div>
+      <h5>The Future of Exploration</h5>
+      Epsilon-greedy is not perfect.
+      Notice epsilon can only decrease, and never increase. This could be considered a feature,
+      but also a flaw.
+      It makes assumptions about how the best strategy is developed, and about how unchanging the environment is.
+      When a human finds that it is not getting good results, it actively tries new strategies (espilon goes up).
+      If a human finds its current strategy to be paying off, it won't try new things (epsilon goes down).
+      Real animals use adaptive exploration rates.
+      So, maybe the agent's exploration rate should increase if reward is unexpectedly low.
+      Maybe it should change if the reward is staying the same for a while.
+      Perhaps it should decrease based on queues from the environment, and should be a function learned across
+      environments with a neural network.
+      It's a whole other upgrade just waiting to be discovered.<br>
+      Another issue with this exploration strategy is that it explores by randomizing action,
+      as opposed to randomizing the goal. Humans practice tasks often by learning similar modified versions of the task.
+      Even if somebody doesn't know what optimal chess play looks like, they still know they will get better at chess by
+      playing alternate versions, and chess minigames. Sometimes these minigames have
+      different goals than normal chess, but that doesn't make them misaligned with learning some of the same skills one
+      would
+      use in regular chess. For reinforcement learning this is also the case.<br>
+      For a mechanical task, I was thinking along the lines of practicing
+      shooting an arrow at a target, by training to miss the target by a certain amount on purpose. A big advantage of
+      this feature is that it allows for training the agent on arbitrary goals, preventing overfitting to the main goal
+      of the environment.
+      Which would you rather have, an agent that can hit any target with an arrow? Or an agent that can only hit one?
+      This goal exploration effect could be achieved by micromanaging which environments the agent plays,
+      but it would be much more valuable to build it into the agent as an exploration strategy. The agent would
+      sometimes try different goals, and ignore the environmental reward. I think I saw a paper along these lines where
+      the goal is augmented to give the agent a better sense of the real primary goal.
+      Another upgrade worth investigating.
+    </p>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4 class="u-align-center">Numpy Experience Replay</h4>
+    <p>Maybe you noticed before, but the old code gets slower over time.
+      This is partially due to the agent getting better at the game. As the agent gets better, the episodes require
+      more steps to end. However, you probably noticed if you let the game go for a few thousand episodes, the episodes
+      start to get really slow, even though the scores are roughly the same. (For the record, a few thousand
+      episodes is not that many. DRL papers often consider agents trained on millions of samples.)
+      What is the cause of this slowdown?
+      Nothing in our agent seems to require more processing at a later episode than an early episode.
+      It should be a constant amount of processing per learn step... except the code involving the experience replay
+      buffer.
+      This isn't too much of a problem for "read", but the moment you might try to "write" back to the buffer inside
+      your learn step, runtime performance suffers too much. It starts to get unbearably slow.<br>
+      Additionally, your options for batch size are limited by the sampling speed of your replay buffer.
+      As the replay buffer gets longer, sampling from it becomes slower. (relative to numpy arrays atleast)
+      We mostly avoided that effect by being careful up to this point. But it's better to have a high power
+      tool to play with.
+      A lot of the agent upgrades involve sampling data from the memory,
+      computing something, and sometimes even storing (regularly processing the memories, and storing information about
+      them).
+      Doing this with python arrays starts to become a performance problem,
+      especially once there are some python for loops in there. ew :^)
+      So think of this as an infrastructural investment. The numpy indexing tricks end up being incredibly convenient,
+      and
+      besides, it's the most common way to do memories anyways.
+    </p>
+    <p>So, this:</p>
+    <pre><code class="language-python">memory = []</code></pre>
+    <p>becomes:</p>
+    <pre><code class="language-python">class ReplayBuffer(): '''NEW CODE'''
+    def __init__(self, maxSize, stateShape):
+        self.memSize = maxSize
+        self.memCount = 0
+
+        self.stateMemory        = np.zeros((self.memSize, *stateShape), dtype=np.float32)
+        self.actionMemory       = np.zeros( self.memSize,               dtype=np.int64)
+        self.rewardMemory       = np.zeros( self.memSize,               dtype=np.float32)
+        self.nextStateMemory    = np.zeros((self.memSize, *stateShape), dtype=np.float32)
+        self.doneMemory         = np.zeros( self.memSize,               dtype=np.bool)
+
+    def storeMemory(self, state, action, reward, nextState, done):
+        memIndex = self.memCount % self.memSize 
+        
+        self.stateMemory[memIndex]      = state
+        self.actionMemory[memIndex]     = action
+        self.rewardMemory[memIndex]     = reward
+        self.nextStateMemory[memIndex]  = nextState
+        self.doneMemory[memIndex]       = done
+
+        self.memCount += 1
+
+    def sample(self, sampleSize):
+        memMax = min(self.memCount, self.memSize)
+        batchIndecies = np.random.choice(memMax, sampleSize, replace=False)
+
+        states      = self.stateMemory[batchIndecies]
+        actions     = self.actionMemory[batchIndecies]
+        rewards     = self.rewardMemory[batchIndecies]
+        nextStates  = self.nextStateMemory[batchIndecies]
+        dones       = self.doneMemory[batchIndecies]
+
+        return states, actions, rewards, nextStates, dones</code></pre>
+    <p>Notice how much code this adds. There's a reason i don't encourage
+      people to start with this. I apologize for inflating your code now, but it's time.</p>
+    <h5>Struct Of Arrays</h5>
+    <p>Each piece of the transition is stored in its own array. You premake and the arrays to a certain size when
+      you create the memory.
+    </p>
+    <pre><code class="language-python">self.stateMemory        = np.zeros((self.memSize, *stateShape), dtype=np.float32)
+self.actionMemory       = np.zeros( self.memSize,               dtype=np.int64)
+self.rewardMemory       = np.zeros( self.memSize,               dtype=np.float32)
+self.nextStateMemory    = np.zeros((self.memSize, *stateShape), dtype=np.float32)
+self.doneMemory         = np.zeros( self.memSize,               dtype=np.bool)</code></pre>
+    <p>Notice the names of these arrays correspond to the same SARS you are familiar with.</p>
+    <div class="grid-container halves u-align-left">
+      <div>
+        <h5>Class Inputs</h5>
+        <pre><code class="language-python">class ReplayBuffer(): '''NEW CODE'''
+    def __init__(self, maxSize, stateShape):
+        self.memSize = maxSize
+        self.memCount = 0</code></pre>
+        <p>
+          The class takes in the max size of the buffer, and the shape of the states.<br>
+
+          Ex: cartpole has a state shape of 4 numbers, so the stateShape
+          should be <code>(4,)</code>. If you just pass in <code>stateShape=4</code> it wont work.
+          That's because there is some <strong>tuple unpacking</strong> going on in the arrays.
+          (See the <code>*stateShape</code> in the array allocation.)<br><br>
+          In python <code>(4,)</code> and <code>(4)</code> are
+          not the same thing. Sounds crazy right? It's a noob trap. Go ahead and try it in the
+          terminal. <code>print((4))</code> vs. <code>print((4,))</code><br><br>
+        </p>
+        <h5>Sampling</h5>
+        <p>Getting the transitions out isn't so difficult, and most importantly, it
+          takes the same amount of time, regardless of how big the memory is.
+        </p>
+        <pre><code class="language-python">batchIndecies = np.random.choice(
+    memMax, sampleSize, replace=False)
+
+states      = self.stateMemory[batchIndecies]
+actions     = self.actionMemory[batchIndecies]
+...</code></pre>
+        <p>First pick some random indices, and then just use the numpy indexing magic
+          to get all the right elements out at once.
+        </p>
+      </div>
+      <div>
+        <h5>Indexing Complications</h5>
+        <p>You may have noticed a few weird lines.</p>
+        <pre><code class="language-python">self.memCount = 0
+# and 
+memIndex = self.memCount % self.memSize
+# and
+memMax = min(self.memCount, self.memSize)</code></pre>
+        <p>The way this replay buffer works is the arrays are given a length before hand.
+          So we have to keep track of how many memories were currently stored to know where to
+          put the new transitions. <code>self.memCount += 1</code></p>
+        <p>What happens if you store memories after the buffer is full?</p>
+        <pre><code class="language-python"># the index rolls over back to the begining.
+memIndex = self.memCount % self.memSize 
+
+#  this overwrites the oldest memory
+self.stateMemory[memIndex]      = state
+self.actionMemory[memIndex]     = action
+self.rewardMemory[memIndex]     = reward
+self.nextStateMemory[memIndex]  = nextState
+self.doneMemory[memIndex]       = done</code></pre>
+        <p>Before the memory has been filled all the way, you have to avoid sampling from parts of the arrays
+          that haven't been assigned data to yet. They will just hold garbage.
+        </p>
+        <pre><code class="language-python">#  that should explain this line in sample()
+memMax = min(self.memCount, self.memSize)</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4>Now To Use It</h4>
+    <p>To use the new replay buffer we have to do some refactoring.
+      First, remove it from the main loop entirely, and put the replay buffer into the agent.
+      This isnt the only way to do it, but I feel like doing it this way. I'm writing the
+      tutorial, so I am your god now. You have to do what I say. Give me your money.</p>
+    <pre><code class="language-python">class Agent():
+    def __init__(self, lr, inputShape, numActions):
+        self.network = Network(lr, inputShape, numActions)
+        self.memory = ReplayBuffer(maxSize=100000, stateShape=inputShape)
+        self.batchSize = 64</code></pre>
+    <p>Also we need to wrap the memory store function so you can call it from the agent.</p>
+    <!-- <pre><code class="language-python"></code></pre> -->
+    <pre><code class="language-python">#    this function is in the agent class
+def storeMemory(self, state, action, reward, nextState, done):
+    self.memory.storeMemory(state, action, reward, nextState, done)</code></pre>
+    <p>Inside the main function its a little bit cleaner now.</p>
+    <pre><code class="language-python">...
+score, frame = 0, 1
+while not done:
+    # env.render()
+
+    action = agent.chooseAction(state)
+    state_, reward, done, info = env.step(action)
+    agent.storeMemory(state, action, reward, state_, done)  #   use the wrapped memory store function
+    agent.learn()   #   no more arguments go into learn()
+                    #   the agent has everything it needs
+    state = state_
+...</code></pre>
+    <h5>Learn Function Adjustments</h5>
+    <p>So that's all setup... now to fix the learn function.</p>
+    <pre><code class="language-python">def learn(self, memory, batchSize):
+    if self.memory.memCount < self.batchSize:   #   this changed, but does the same thing
+        return
+
+    ''' this stuff gets replaced with the ReplayBuffer sample function, 
+        which basically does the same thing internally. 
+        just without the stacking and python choice'''
+    # randomMemories = random.choices(memory, k=batchSize)
+    # memories = np.stack(randomMemories)
+    # states, actions, rewards, states_, dones = memories.T
+    # states, actions, rewards, states_, dones = \
+    #     np.stack(states), np.stack(actions), np.stack(rewards), np.stack(states_), np.stack(dones)
+    states, actions, rewards, states_, dones = self.memory.sample(self.batchSize)
+
+    #   still need to pass the stuff to the gpu
+    states  = torch.tensor(states , dtype=torch.float32).to(self.network.device)
+    actions = torch.tensor(actions, dtype=torch.long   ).to(self.network.device)
+    rewards = torch.tensor(rewards, dtype=torch.float32).to(self.network.device)
+    states_ = torch.tensor(states_, dtype=torch.float32).to(self.network.device)
+    dones   = torch.tensor(dones  , dtype=torch.bool   ).to(self.network.device)
+    #   pep8 python style guidelines and google don't want you to format things like this.
+    #   but i'm god, and this is my tutorial dimension. Mr.Google has no power here
+...</code></pre>
+    <p>The rest of the learn function code is compatable with the new memory. Almost...
+      There are a couple of lines that need changing. And, while we are at it let's
+      try some more standard naming conventions.</p>
+    <pre><code class="language-python">'''OLD CODE'''
+qValues = self.network(states)
+nextQValues = self.network(states_)
+
+batchIndecies = np.arange(self.batchSize, dtype=np.int64)
+
+nowValues = qValues[batchIndecies, actions]    #   interpret the past
+futureValues = torch.max(nextQValues, dim=1)[0]    #   interpret the future
+futureValues[dones] = 0.0   #   ignore future actions if there will 
+                            #   be no future actions anyways
+trueValuesOfNow = rewards + futureValues    
+loss = self.network.loss(trueValuesOfNow, nowValues)  #   same temporal difference
+
+'''NEW CODE'''
+batchIndices = np.arange(self.batchSize, dtype=np.int64)  # i learned how to spell indices
+qValue = self.network(states)[batchIndices, actions]
+
+qValues_ = self.network(states_)        #   values of all actions
+qValue_ = torch.max(qValues_, dim=1)[0] #   extract greedy action value
+qValue_[dones] = 0.0                    #   filter out post-terminal states
+
+qTarget = reward + self.gamma * qValue_      
+loss = self.network.loss(qTarget, qValue)    #   temporal difference
+...</code></pre>
+    <p>It's a little more compact, but more importantly other people who look
+      at your code will recognize the idioms.<br>
+      Also, you may have noticed <strong>gamma</strong> is back, which you might remember from the
+      <a href="/tutorials/rl/actorcritic/actorcritic.html#improving-our-choices-in-life">actor-critic tutorial</a>.
+      I didn't explain it too much then, but basically its a bias towards the present.
+      Without it you might get circumstances where the agent could wait indefinitely for some anticipated reward.
+      Realistically, that's never going to happen. A more likely scenario is that
+      the agent can't tell which route to the reward is longer, or takes more time.
+      Either way, hey, now you have another hyperparamater to worry about.
+      Lucky you.
+      Picking gamma is a whole seperate topic to get into, but generrally a gamma value of 0.99 is fine. I've never had
+      to
+      change it. In some environments a tuned lower gamma improves performance. By the way, don't forget to put gamma
+      into the agent class definition.
+    </p>
+    <pre><code class="language-python">class Agent():
+    def __init__(self, lr, inputShape, numActions):
+        self.network = Network(lr, inputShape, numActions)
+        self.memory = ReplayBuffer(maxSize=100000, stateShape=inputShape)
+        self.batchSize = 64
+        self.gamma = 0.99   #   did i really need to show you this?</code></pre>
+    <h5>Learned Gamma</h5>
+    <p>This is another case where a hyperparameter imposes assumptions about the nature of the environment.
+      Gamma should probably vary during the agent's life. Maybe learned with a neural network across
+      environments or just tuned based on td error and state familiarity. It is yet another upgrade idea that
+      facilitates a new type of adaptation.
+    </p>
+    <h4 class="u-align-center">Minimum Memory Fullness</h4>
+    <p>Something that you will see if you peruse the openAI baselines is a minimum replay buffer fullness.
+      They seem to set it to 20,000 samples for some reason. The agent won't learn from any samples, until
+      the memory hits the minimum threshold. It is bad to sample from a barely filled replay buffer.
+      An agent that does that will end up seeing the first few memories
+      tons of times, and so they will be overrepresented in the neural network. Also the buffer isn't very
+      diverse at first, so there is even more risk for overfitting. Setting a minimum memory size reduces both of these
+      issues.
+      Though, it does mean the agent will not be doing any learning for the earliest portion of episodes, so
+      don't expect to see any good performance while the buffer is still filling up.
+      In my personal experience, I have found that adding a minimum buffer fullness
+      really stabilizes agent performance. There are less weird sudden drops in score.
+      My guess is that without a minimum memory the network learns a bunch of noise that
+      it has to unlearn later on. Play with it to see if you can replicate that issue.
+      (Try setting the minimum to a low number like the batch size, then up to a higher number like 2048.)
+    </p>
+    <pre><code class="language-python">class Agent():
+def __init__(self, lr, inputShape, numActions):
+    self.network = Network(lr, inputShape, numActions)
+    self.memory = ReplayBuffer(maxSize=10000, stateShape=inputShape)
+    self.minMemorySize = 1024
+...
+    def learn(self):
+        if self.memory.memCount < self.minMemorySize:   #   this replaced self.batchSize
+            return
+...</code></pre>
+  </div>
+  <div class="grid-container full u-align-left">
+    <h4 class="u-align-center">Full Code</h4>
+    <p>Welcome your code to the 22nd century.</p>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+import gym       
+import math
+import numpy as np
+import random
+
+class ReplayBuffer():
+    def __init__(self, maxSize, stateShape):
+        self.memSize = maxSize
+        self.memCount = 0
+
+        self.stateMemory        = np.zeros((self.memSize, *stateShape), dtype=np.float32)
+        self.actionMemory       = np.zeros( self.memSize,               dtype=np.int64  )
+        self.rewardMemory       = np.zeros( self.memSize,               dtype=np.float32)
+        self.nextStateMemory    = np.zeros((self.memSize, *stateShape), dtype=np.float32)
+        self.doneMemory         = np.zeros( self.memSize,               dtype=np.bool   )
+
+    def storeMemory(self, state, action, reward, nextState, done):
+        memIndex = self.memCount % self.memSize 
+        
+        self.stateMemory[memIndex]      = state
+        self.actionMemory[memIndex]     = action
+        self.rewardMemory[memIndex]     = reward
+        self.nextStateMemory[memIndex]  = nextState
+        self.doneMemory[memIndex]       = done
+
+        self.memCount += 1
+
+    def sample(self, sampleSize):
+        memMax = min(self.memCount, self.memSize)
+        batchIndecies = np.random.choice(memMax, sampleSize, replace=False)
+
+        states      = self.stateMemory[batchIndecies]
+        actions     = self.actionMemory[batchIndecies]
+        rewards     = self.rewardMemory[batchIndecies]
+        nextStates  = self.nextStateMemory[batchIndecies]
+        dones       = self.doneMemory[batchIndecies]
+
+        return states, actions, rewards, nextStates, dones
+
+class Network(torch.nn.Module):
+    def __init__(self, alpha, inputShape, numActions):
+        super().__init__()
+        self.inputShape = inputShape
+        self.numActions = numActions
+        self.fc1Dims = 1024
+        self.fc2Dims = 512
+
+        self.fc1 = nn.Linear(*self.inputShape, self.fc1Dims)
+        self.fc2 = nn.Linear(self.fc1Dims, self.fc2Dims)
+        self.fc3 = nn.Linear(self.fc2Dims, numActions)
+
+        self.optimizer = optim.Adam(self.parameters(), lr=alpha)
+        self.loss = nn.MSELoss()
+        # self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cpu")
+        self.to(self.device)
+
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+
+        return x
+
+class Agent():
+    def __init__(self, lr, inputShape, numActions):
+        self.network = Network(lr, inputShape, numActions)
+        self.memory = ReplayBuffer(maxSize=10000, stateShape=inputShape)
+        self.minMemorySize = 1024
+        self.batchSize = 64
+        self.gamma = 0.99
+
+        self.epsilon = 0.1
+        self.epsilon_decay = 0.00005
+        self.epsilon_min = 0.001
+
+    def chooseAction(self, observation):
+        if np.random.random() < self.epsilon:
+            action = random.randint(0, 1)
+        else:
+            state = torch.tensor(observation).float().detach()
+            state = state.to(self.network.device)
+            state = state.unsqueeze(0)
+
+            qValues = self.network(state)
+            action = torch.argmax(qValues).item()
+        return action
+
+    def storeMemory(self, state, action, reward, nextState, done):
+        self.memory.storeMemory(state, action, reward, nextState, done)
+
+    def learn(self):
+        if self.memory.memCount < self.minMemorySize:
+            return
+
+        states, actions, rewards, states_, dones = self.memory.sample(self.batchSize)
+        states  = torch.tensor(states , dtype=torch.float32).to(self.network.device)
+        actions = torch.tensor(actions, dtype=torch.long   ).to(self.network.device)
+        rewards = torch.tensor(rewards, dtype=torch.float32).to(self.network.device)
+        states_ = torch.tensor(states_, dtype=torch.float32).to(self.network.device)
+        dones   = torch.tensor(dones  , dtype=torch.bool   ).to(self.network.device)
+
+        batchIndices = np.arange(self.batchSize, dtype=np.int64)
+        qValue = self.network(states)[batchIndices, actions]
+
+        qValues_ = self.network(states_)
+        qValue_ = torch.max(qValues_, dim=1)[0]
+        qValue_[dones] = 0.0
+
+        qTarget = reward + self.gamma * qValue_
+        loss = self.network.loss(qTarget, qValue)
+
+        self.network.optimizer.zero_grad()
+        loss.backward()
+        self.network.optimizer.step()
+
+        self.epsilon -= self.epsilon_decay
+        if self.epsilon < self.epsilon_min:
+            self.epsilon = self.epsilon_min
+
+if __name__ == '__main__':
+    env = gym.make('CartPole-v1').unwrapped
+    agent = Agent(lr=0.001, inputShape=(4,), numActions=2)
+
+    highScore = -math.inf
+    episode = 0
+    numSamples = 0
+    while True:
+        done = False
+        state = env.reset()
+
+        score, frame = 0, 1
+        while not done:
+            # env.render()
+
+            action = agent.chooseAction(state)
+            state_, reward, done, info = env.step(action)
+            agent.storeMemory(state, action, reward, state_, done)
+            agent.learn()
+            
+            state = state_
+
+            numSamples += 1
+
+            score += reward
+            frame += 1
+
+        highScore = max(highScore, score)
+
+        print(( "ep {:4d}: high-score {:12.3f}, "
+                "score {:12.3f}, epsilon {:5.3f}").format(
+            episode, highScore, score, agent.epsilon))
+
+        episode += 1</code></pre>
+    <p>It's about 30 lines longer now, and there's a lot more that can go wrong.
+      A few extra lines for epsilon-greedy and the rest for the
+      experience replay. But, this prep should make the rest of the upgrade tutorials substantially
+      easier, for me to write, and for you to read, and ultimately graduate from.
+      Make sure to run the code to ensure it still gets some good scores.
+      Play with the new settings to get a feel for how they affect performance.
+    </p>
+  </div>
+  <div class="grid-container full">
+    <h4>Moving Forward</h4>
+    <p>
+      Honestly this just isnt a very philosophical tutorial.
+      It's time to move on to the dumptruck of upgrades awaiting your agent.<br>
+      Good luck.
+    </p>
+    <a href="/index.html">Tutorial Index</a>
+    <p></p>
+    <p></p>
+  </div>
+</body>
+
+</html>

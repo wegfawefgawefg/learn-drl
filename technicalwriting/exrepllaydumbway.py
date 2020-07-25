@@ -31,7 +31,7 @@ memory = []
 And thats the end of the tutorial. Thanks for reading.
 
 
-
+# You can use it until you see any serious performance bottlenecks caused by it. My guess is that's going to be a while.
 
 
 Seriously, though that’s the "Experience Replay Buffer" the alleged """scientists""" keep trying to tell us about.
