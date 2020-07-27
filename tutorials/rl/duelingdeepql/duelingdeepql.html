@@ -42,23 +42,24 @@
     <h4>Prerequisites</h4>
     <p class="u-align-left">This tutorial assumes you've completed the <a
         href="/index.html#foundations">"Foundations"</a> tutorials.
-      It also uses code from those previous tutorials. If you aren't new to reinforcement
+      It also uses code from those previous tutorials. The intention is to make the old code look more like
+      common RL code in preperation for the coming <strong>upgrades</strong>. If you aren't new to reinforcement
       learning then i'm sure you can
       follow along. Less will be explained within the <a href="/index.html#upgrades">"Upgrades"</a> tutorials than prior
-      tutorials.
+      tutorials. There might be a link to prior explanation from prior tutorials if I can remember to add them.
     </p>
   </div>
   <div class="grid-container full">
     <h4>Getting Started</h4>
     <p class="u-align-left">
-      DQN works okay as is, but I don't know if you have been looking at the performance graphs...
+      DQN works okay as is. But I don't know if you have been looking at the performance graphs.
       These things are unstable. The rewards go all over the place. Numbers are going up but only generally, and
       chaotically. Some of this chaos comes from the stochastic nature of the environment. Some of it
       comes from the randomly initialized network weights finding their happy place. However,
       what likely is the root cause of chaos in deep reinforcement learning is the fact that the agent is
       a big feedback loop. Action changes the environment changes the action changes the environment changes
       the weights changes the actions... etc. In a recursive system like this, everything is an exponential whirlpool.
-      So, what if you froze one or more components of the feedback loop temporarily? Would it reduce the insanity?
+      What if you froze one or more components of the feedback loop temporarily? Would it reduce the insanity?
     </p>
   </div>
   <div class="grid-container full u-align-left">
@@ -224,22 +225,14 @@ if __name__ == '__main__':
 
         episode += 1</code></pre>
     <p>At this point this code should look really familiar to you. The only
-      thing I can think of that might be confusing you is <code>state</code> vs <code>state_</code>.
+      thing I can think of that might be confusing you is the <code>state</code> vs <code>state_</code> thing.
       I'm not sure why but <code>state_</code> is often used as short for <code>next_state</code>.
       Anyways now you'll know what that is when you see it. But basically anytime a variable ends in <code>_</code>
       it is assumed to be "for the next time step".
     </p>
-    <p>You also might have noticed MSELoss() is gone now from the network class. Instead of using the built in pytorch
-      loss function I reimplemented it in learn(). You can see the td error is squared, and then that tensor is meaned.
-    </p>
-    <pre><code class="language-python">self.net.optimizer.zero_grad()
-loss = ((td ** 2.0)).mean()   # this is what MSELoss did.
-loss.backward()
-self.net.optimizer.step()
-</code></pre>
-    <p>Now there is no more magic hidden beneath. It's good to know how things work.</p>
-    <p>By the way when you run the code as is you get typical DQN performance like this.</p>
-    <pre><code class="language-python">ep   57: high-score      273.000, score      158.000, epsilon 0.001
+    <p>By the way when you run it you get normal DQN performance like this.</p>
+    <pre><code class="language-python">...
+ep   57: high-score      273.000, score      158.000, epsilon 0.001
 ep   58: high-score      273.000, score      167.000, epsilon 0.001
 ep   59: high-score      273.000, score      188.000, epsilon 0.001
 ep   60: high-score      273.000, score      228.000, epsilon 0.001
@@ -262,14 +255,12 @@ ep   67: high-score      312.000, score      312.000, epsilon 0.001</code></pre>
       12 hours later you are tired, sweaty, and defeated and also your tacos are terrible. You tried to eat one
       and threw up. You know your friend is a world renouned taco chef so you call him, and invite him over
       for an educational cooking party. The next day he teaches you how to make great tacos.
-      First you watch him make one. Then you try to make one. Then he slaps you, and he makes you watch him make one.
-      Then you try. Then he makes one... This goes on for 36 hours and you emerge from taco bootcamp a taco making god.
-    </p>
-    <p>At the moment, the agent is not like taco chef man at all. He never takes time
-      to observe. He only tries to learn while doing. This is easily fixed.
+      First you watch him make one. Then you try. Then you watch him make one. Then you try. This goes on
+      for 36 hours and you emerge from taco bootcamp a taco making god.</p>
+    <p>At the moment, the agent never watches. It only tries to learn while doing. This is easily fixed.
     </p>
     <pre><code class="language-python">...
-counter = 0     #   count the lessons
+counter = 0     #   COUNT THE LESSONS
 while True:
     done = False
     state = env.reset()
@@ -282,7 +273,7 @@ while True:
         state_, reward, done, info = env.step(action)
         agent.store_memory(state, action, reward, state_, done)
         
-        if counter % 10 == 0:   #   just watch sometimes
+        if counter % 10 == 0:   #   WATCH SOMETIMES
             agent.learn()
         
         state = state_
@@ -290,22 +281,20 @@ while True:
         score += reward
         frame += 1
 
-        counter += 1    #   count count count</code></pre>
+        counter += 1    #   ONE MORE</code></pre>
     <p>This way the agent will take turns with the environment. Sometimes it will sit and learn passively from
       it's past self. And other times it will actively learn by doing. Let's see how the results turn out.
     </p>
-    <pre><code class="language-python">ep  392: high-score      490.000, score      163.000, epsilon 0.001
+    <pre><code class="language-python">...
+ep  392: high-score      490.000, score      163.000, epsilon 0.001
 ep  393: high-score      490.000, score      185.000, epsilon 0.001
 ep  394: high-score      490.000, score      187.000, epsilon 0.001
 ep  395: high-score      490.000, score      232.000, epsilon 0.001
 ep  396: high-score      490.000, score      339.000, epsilon 0.001</code></pre>
-    <h5>Sample Efficiency</h5>
-    <p>It took about 400 episodes for the results to be on par with before. You might think thats pretty good because
-      the agent
+    <p>It took about 400 episodes for the results to get similar. You might think thats pretty good because the agent
       should only have actually trained 1/10th as often. Meaning, it should get the same scores but after 10 times
-      as many episodes. However, episodes are different lengths, so they aren't that useful as a metric on their own.
-      What works much better is performance per sample. Let's keep track of how many samples are collected, and how many
-      transitions have been processed by the network.
+      as many episodes. However, episodes are different lengths. Turns out this isnt that useful on its own.
+      Let's keep track of how many samples are collected, and how many transitions have been processed by the network.
     </p>
     <pre><code class="language-python">...
 num_samples = 0         #   TRANSITIONS COLLECTED
@@ -345,44 +334,42 @@ while True:
 
     episode += 1</code></pre>
     <p>Okay let's get a new baseline. Notice the counter is set to 1 so this is normal DQN without the turn taking.</p>
-    <pre><code class="language-python">samples: 4017, samps_procd: 257088, ep   50: high-score      214.000, score      180.000, epsilon 0.001
+    <pre><code class="language-python">...
+samples: 4017, samps_procd: 257088, ep   50: high-score      214.000, score      180.000, epsilon 0.001
 samples: 4164, samps_procd: 266496, ep   51: high-score      214.000, score      147.000, epsilon 0.001
 samples: 4332, samps_procd: 277248, ep   52: high-score      214.000, score      168.000, epsilon 0.001
 samples: 4681, samps_procd: 299584, ep   53: high-score      349.000, score      349.000, epsilon 0.001
 samples: 4975, samps_procd: 318400, ep   54: high-score      349.000, score      294.000, epsilon 0.001
-samples: 5281, samps_procd: 337984, ep   55: high-score      349.000, score      306.000, epsilon 0.001</code></pre>
-    <p>It should look about the same. And it does. But something new is standing out now as worrisome.<br>
-      To get to this point the agent processed 300,000 frames and only had 5000 transitions
+samples: 5281, samps_procd: 337984, ep   55: high-score      349.000, score      306.000, epsilon 0.001
+...</code></pre>
+    <p>So looks about the same. To get to this point the agent processed 300,000 frames and only had 5000 transitions
       collected to work with. That means the agent reused the same data about 30,000 times on average. In normal
       machine learning, 30,000 epochs would make someone slap you and yell "overfitting". But we are ignorant DRL
       programmers so we can get away with it. Part of this has to do with old transitions being
       framed within a new "reward prediction state of mind". Later on in your life you can think back to your childhood
       and learn new things from analysing it. This is because your interpretation is different, and your goals have
       changed. I am unsure as to whether normal machine learning benefits from this to quite the same degree.
-      Generally the classification, or ground truth, of a sample in a
-      regular ML dataset is fixed. A picture of a dog is still 100% dog 1 year later.
-      So reviewing the same data over and over isn't quite so useful. But in DRL the q values might have changed since
-      last
-      exposure to a sample. What was once seen as kind of bad might now be seen as REALLY BAD. Or not as bad.
-      So overfitting in DRL is less of a problem, and more of a feature. Although it can definitely still happen.</p>
-    <p>Anyways, back to the watch-learn-watch-learn idea. Set the agent to learn every 10 steps instead to see what changes.
+      Generally the classification or ground truth of a sample in a
+      regular ML dataset is fixed. So reviewing the same data over and over isn't quite so useful.
+      Anyways, set the agent to learn every 10 steps instead to see what changes.
     </p>
     <pre><code class="language-python">if counter % 10 == 0:    #   BACK TO 10
       agent.learn()
       samples_processed += agent.batch_size   #   NOT NEW ANYMORE</code></pre>
     <p>And results...</p>
-    <pre><code class="language-python">samples: 38808, samps_procd: 248384, ep  570: high-score      508.000, score      508.000, epsilon 0.001
+    <pre><code class="language-python">...
+samples: 38808, samps_procd: 248384, ep  570: high-score      508.000, score      508.000, epsilon 0.001
 samples: 39052, samps_procd: 249984, ep  571: high-score      508.000, score      244.000, epsilon 0.001
 samples: 39396, samps_procd: 252160, ep  572: high-score      508.000, score      344.000, epsilon 0.001
 samples: 39504, samps_procd: 252864, ep  573: high-score      508.000, score      108.000, epsilon 0.001
 samples: 39679, samps_procd: 253952, ep  574: high-score      508.000, score      175.000, epsilon 0.001
 samples: 40009, samps_procd: 256064, ep  575: high-score      508.000, score      330.000, epsilon 0.001
 samples: 40300, samps_procd: 257920, ep  576: high-score      508.000, score      291.000, epsilon 0.001
-samples: 40561, samps_procd: 259648, ep  577: high-score      508.000, score      261.000, epsilon 0.001</code></pre>
+samples: 40561, samps_procd: 259648, ep  577: high-score      508.000, score      261.000, epsilon 0.001
+...</code></pre>
     <p>The agent jumped from getting 200 scores to 500 scores right away. I ran it a few times and the result is
       like this each time. Even though <code>learn()</code> ran only once every ten steps, it didnt take 10 times
-      as many episodes, or samples. <strong>It required a similar number of samples-processed to gain the same
-        performance.</strong>
+      as many episodes, or samples. It required a similar number of samples-processed to gain the same performance.
       Interestingly the scores are slightly higher and the number of processed samples is slightly lower.
       We could attribute this to the "turn-taking" learning strategy that worked for Chef Man, but there is
       an uncontrolled variable here. Specifically, the number of repeated sample exposures is much less if you
@@ -402,64 +389,52 @@ samples: 55410, samps_procd: 346176, ep 5113: high-score      214.000, score    
 samples: 55535, samps_procd: 354176, ep 5114: high-score      214.000, score      125.000, epsilon 0.001
 samples: 55678, samps_procd: 363328, ep 5115: high-score      214.000, score      143.000, epsilon 0.001
 samples: 55905, samps_procd: 377856, ep 5116: high-score      227.000, score      227.000, epsilon 0.001</code></pre>
-    <p>This is about 80 episodes after it started running <code>learn()</code>. Again, you can see its a similar number of
+    <p>This is about 80 episodes after it started running <code>learn()</code>. You can see its a similar number of
       samples processed necessary to get to this performance. Interestingly, there were a bunch of episodes were it
-      seemed almost no performance was gained from <code>learn()</code>. Those big stretches of episodes where 
-      scores don't really change could be due to the periodic 
-      learning just added. The memory will be full of
-      rather simplistic transitions (cartpole falling in the center of the play area) before the agent really begins 
-      to learn. Those transitions are not representative of the new circumstances the more trained agent finds  
-      itself in (cartpole falling near the edges of the play area). It takes time for those more relevant
+      seemed
+      almost no performance was gained from <code>learn()</code>. Presumably, this is because the memory was full of
+      rather
+      simplistic transitions (cartpole falling in the center of the play area) that were not representative of the new
+      circumstances the partially trained agent was finding
+      itself in (cartpole falling near the edges of the play area). So it would take some time for those more relevant
       samples to become less minority in the replay buffer
-      before they can be chosen for the learn batch. That's good evidence that setting the "minimum sample's
-      collected" requirement too high could actually make learning much slower if paired with a giant replay buffer 
-      that takes forever to be "cleansed", or become "relevant". 
+      before they could be chosen for the learn batch. Actually thats good evidence that setting the "minimum sample's
+      collected" requirement
+      too high could actually make learning pretty bad with a giant replay buffer that takes forever to be "cleansed".
     </p>
-    <p>On a side note, due to the learning rate being adjusted within <code>learn()</code>, luckily this experiment 
-      has kept that as a dependant variable.</p>
+    <p>On a side note, due to the learning rate being adjusted within <code>learn()</code>, that variable mostly
+      remained
+      unchanged for this experiment.</p>
     <p>Alright. Now back to <code>if counter % 10 == 0:</code></p>
     <pre><code class="language-python">samples: 93908, samps_procd: 280960, ep 5736: high-score      420.000, score      140.000, epsilon 0.001
 samples: 94122, samps_procd: 282368, ep 5737: high-score      420.000, score      214.000, epsilon 0.001
 samples: 94363, samps_procd: 283904, ep 5738: high-score      420.000, score      241.000, epsilon 0.001
 samples: 94625, samps_procd: 285568, ep 5739: high-score      420.000, score      262.000, epsilon 0.001
                                                             # 420 haha</code></pre>
-    <p>I hope by now you can see the pattern. If you have enough data, and fresh data to work with,
-      <strong>performance in DRL largely depends on the number of samples processed</strong>. The performance gained 
-      per sample processed is called the <strong>sample efficiency</strong> of an agent. This is generally dependant 
-      upon the network architecture, the addons, and the loss function.
-      Wheras learning stability depends more on the policy not changing too much or too frequently, and the samples being consistently
-      relevant to the agent's current circumstance. Too much instability can lower the sample-efficiency 
-      of the agent, so they aren't exactly entirely seperate aspects of learning, but it can help to look 
-      independantly for sources of either.</p> 
-      <h5>Underwhelming</h5>
-      <p>
-      Let's consider sample "relevancy" in the context of our watch-learn-watch change. 
-      Obviously, to learn something you want to study things relevant to your current understanding, and part of that 
-      means adapting what you are studying to the moving horizon of your ignorance. In school, when you get better at 
-      multiplication, you have to move on to harder multiplication problems, or different problems, or you won't get any better. 
-      One of the results of running <code>learn()</code>
-      only periodically is that the practice material isn't pushed forward as often. The "flash cards" are much less diverse, 
-      which was intended, but this slows down the agent "moving on" to the next concept. Every time the policy changed,
-      the agent has to wait for the memory to be filled with more current samples. And with a bigger memory it 
-      takes longer for that to happen. We made the flashcards less hard, but the flashcards also stay old longer.
-      The end result isn't fantastic. Their are a few one off higher scores that show up earlier, 
-      but the average scores are similar per sample-processed.
+    <p>After running it a few times, this is pretty conclusive. If you have enough data, and fresh data to work with,
+      performance mostly depends on the number of samples processed. Wheras stability depends on the policy not
+      changing too much, and the samples being consistently
+      relevant to the agent's current circumstance. (Obviously you want to study things relevant to your
+      current understanding.) Actually one of the primary flaws of running <code>learn()</code>
+      only periodically was that the "next circumstance" isn't pushed forward as often. The memory is much less
+      stale, but this really slows progress down timewise. Every time the policy changed,
+      the agent has to wait for the memory to be filled with more current samples. And the It took longer for that to
+      get bootstrapped,
+      due to the larger memory. But, once it did the results are pretty good. Those higher scores showed up earlier with
+      similar numbers of samples-processed.
     </p>
   </div>
   <div class="grid-container full u-align-left">
     <h4 class="u-align-center">Almost Double Q Learning</h4>
-    <p>Collecting a bunch of samples before letting the agent learn is a reasonable way to prevent early overfitting, 
-      but periodic learning isn't as reasonable. If the environment is really dynamic it could make sense, 
-      but generally it's not a technique I often see used. That's usually because the environment is expensive to run. 
-      As you can imagine, if you are trying to make the agent learn things in the real world you cant 
-      run the environment at 1000 times speed. This downside is just too big.
-      Besides, who likes having to wait 10 times as long to get improved performance,
-      if the performance is only a tiny bit better? I would rather save that tool for a case where the instability
-      prevents learning entirely. What if there was a way to ensure the environment
-      has time to collect fresh data before running <code>learn()</code>, still push its next lesson forward, and 
-      not waste all that time just spinning on the environment?
+    <p>Delaying learning is often reasonable to prevent early overfitting. But periodic learning isn't reasonable
+      if your environment is expensive to run. I don't like have to wait 10 times as long to get the same performance,
+      even if the performance is a tiny bit better. I would rather save that tool for a case where the instability
+      lowers
+      the performance cap, or prevents learning entirely. What if there was a way to ensure the environment
+      has time to collect fresh data before running <code>learn()</code>,
+      but not waste all that time just spinning on the environment?
     </p>
-    <p>Luckily for you there is a way. Actually, there are an infinite number of ways. This is one of them.<br>
+    <p>Luckily for you there is a way. Actually, there is an infinite number of ways. This is one of them.<br>
       What if instead of only learning every ten steps, we add another neural network and train it in the "off time",
       then swap it in after 10 steps. This could be the best of both worlds.</p>
     <p>First, add another network, and a step counter and update interval.</p>
@@ -505,9 +480,9 @@ samples: 94625, samps_procd: 285568, ep 5739: high-score      420.000, score    
     loss.backward()
     self.future_net.optimizer.step()
 ...</code></pre>
-    <p>Really you just swap out net for future_net every time it shows up in learn(). 
-      I kind of hope you knew that already. :^) Make sure to get all of
-      them. Also go remove that minimum sample collection stuff in the main loop for now.<br>
+    <p>Really you just swap out net for future_net. I kind of hope you knew that already. :^) Make sure to get all of
+      them
+      in the learn function. Also go remove that minimum sample collection stuff for now.<br>
       Time to test it out.
     </p>
     <pre><code class="language-python">#  run 1
@@ -541,14 +516,15 @@ samples: 3405, samps_procd: 217920, ep   54: high-score      207.000, score     
 samples: 3586, samps_procd: 229504, ep   55: high-score      207.000, score      181.000, epsilon 0.001
 samples: 3789, samps_procd: 242496, ep   56: high-score      207.000, score      203.000, epsilon 0.001
 </code></pre>
-    <p>This looks pretty good. On average its an obviously better sample efficiency, and you don't have to waste
+    <p>This looks pretty good. On average its a mildly better sample efficiency, and you don't have to waste
       time letting the environment spin. The only thing really changed here is how often the policy changes.
-      There are downsides, though. For a more complicated environment that requires frequent policy changes, it will take
+      The downside is for a more complicated environment that requires frequent policy changes, it will take
       a lot more tries to push the policy into the right place. The advantage here is the path to the current
       policy should be refined more easily. That is, it won't be interrupted by so many irrelevant decision changes
       along the way. It's like making sure to use the same brand of tortilla for a
-      while to get a good feel of how to cook with it. As opposed to buying a new brand of tortilla every time you make
-      a single taco.
+      while to get a good feel of how to cook with it. As opposed to buying a new brand of tortillas every time you make
+      a
+      single taco.
     </p>
     <h5>Realish Double Deep Q Learning</h5>
     <p>There's a bit of a problem with the td function like this though. In the td function, the present q values and
@@ -558,8 +534,7 @@ samples: 3789, samps_procd: 242496, ep   56: high-score      207.000, score     
       by the future_network. That doesn't really make sense. In fact, it's only correct to do this 1/10th of the time.
       That would be right after the parameters copy. The
       future actions should be chosen by the old network too. The future_net is now responsible for
-      the value of the future. Not for the current policy. Our original intention was to delay policy changes anyways. 
-      Let's try fixing this by making the old net pick the actions.
+      the value of the future. Not for the current policy. That was our intention anyways. Let's try it.
     </p>
     <pre><code class="language-python">def learn(self):
 ...
@@ -657,39 +632,30 @@ samples: 1105, samps_procd: 70720, ep   24: high-score      313.000, score      
 samples: 1346, samps_procd: 86144, ep   25: high-score      313.000, score      241.000, epsilon 0.036
 samples: 1585, samps_procd: 101440, ep   26: high-score      313.000, score      239.000, epsilon 0.024</code></pre>
     <p>The sample efficiency has improved substantially. I ran it lots of times and its usually gets to these
-      score levels around 100-150k samples. Sometimes before 100k even. So this is a success. 
-      The agent learns and responds to changes in the short term, doesn't spin the environment, 
-      and freezes its values of the future to interrupt the feedback loop. Though, it does not have 
-      as much as freezing as we originally thought might be helpful.
-      What you have now is the Double Deep Q Learning Algorthm.
+      score levels around 100-150k samples. Sometimes before 100k even.
     </p>
     <h4 class="u-align-center">A Different Motivation</h4>
-    <p>The <strong>Double-DQN</strong> algorithm was not invented to delay policy updates. Even though it
+    <p>The Double Deep Q Learning algorithm was originally not invented to delay policy updates. Even though it
       has the effect of delaying the futue evaluation updates, the <a href="https://arxiv.org/abs/1509.06461">paper</a>
       claims the intention was to squash q values. To thoroughly investigate this claim would require a special
       environment
       designed to explicitly demonstrate the unnecessarily high q values. However,
       I think the original <a href="https://papers.nips.cc/paper/3964-double-q-learning">paper</a> and the more recent
-      paper above did pretty good jobs of this, and there is a whole world of more powerful, and more 
-      interesting addons ahead that probably demand your time more. It would be a good idea to give the papers a skim
+      paper above for deep q learning did pretty good jobs of this. It would be a good idea to give the papers a skim
       atleast and go look
       at the graphs of q values to see what they were talking about. Even if you don't understand most of the math, you
       can get the general idea. It is mostly just modifications to the bellman equation and temporal difference
-      function. Both of which you've probably already spent a bit of time looking at by now. You can get an intuitive understanding
+      function you've probably already spent a bit of time looking at by now. You can get an intuitive understanding
       from thinking about the vanilla version of the td function, though. The present q values are pushed to meet the
-      future q values from the subtraction. </p>
-      <pre><code class="language-python">q_target = rewards + self.gamma * action_qs_
-td = q_target - q_values</code></pre>
-      <p>More specifically, the difference between the future q values and now q values is minimized.
-      The reason q values normally go sky high (or ocean floor low) is hidden in this equation. 
-      When the present qvalues moves
-      towards the future qvalues, the future qvalues also immediatly move. Thats because, in normal dql, both predictions
+      future q values from the subtraction. More specifically, the difference between them is minimized.
+      The reason the q values go sky high (or ocean floor low) is the fact that when the present prediction moves
+      towards the future prediction, the future prediction also immediatly moves. Thats because both predictions
       are done by the same network. Its like chasing your own shadow. Every step you take towards it, it moves forward
       too.
       Not only does this destabilize the q values by making them self exaggerating, but it it makes them exponentially
       larger
       than they otherwise have to be. By freezing the future q value predictions for 10 steps we freeze the shadow.
-      That way you can step on your shadow (creepy), before it moves ahead a little bit. Double DQLearning provides a freeze in the feedback loop that we hadn't even intended.
+      That way you can step on your shadow (creepy), before it moves ahead a little bit.
     </p>
     <h5>Downsides</h5>
     <p>There are two downsides to this. Firstly, we have to deal with this extra network. That means both storing
@@ -697,22 +663,19 @@ td = q_target - q_values</code></pre>
       to pass states and states_ through 1 network. Now we have to do states once, and then states_ twice, once through
       each network. So this first cost is primarily a time cost, a compute cost. It takes a bit longer to run.
       It should be about 30% longer for the forward pass... Which may not be a big deal now but once the network
-      has convolutional layers on the front that 30% will be pretty big.
+      has convolutional layers on the front thats pretty big.
     </p>
     <p>Secondly, the future q values really are on a delay. Almost assuredly there will be environments where
-      a new circumstances occurs, and then immediatly again the next frame. The agent could respond to
+      a new circumstances occurs, and then immediatly again the next frame. At the moment the agent could respond to
       this with its action selection, but wouln't adequately
       value it for 10 frames. That's not to say it can't learn from circumstances like that.
-      It would. It is more that the first time it sees a circumstance that ends up being a frequent one, 
-      the future value will be wrong.
+      It would. It is more that the first time it sees a frequent circumstance, the future value will be wrong.
       In an environment where that sort of thing happens all the time, I suspect double dqn will exhibit some
       behavioural artifact of this. I'm not sure what that environment would be. But surely it exists.
       You might not think this is a big downside, but I would be much happier to know the algorithms flaws
-      than not know them. At the moment I don't know if we know the specific nature of its flaws. That scares me. 
-      Im afraid of things I don't understand. Like snakes. How do they walk without legs. How does their stomach 
-      not wear down. Anyways a few people I've discussed double dqn with have anecdotally noted that it gets lower
-      top scores in cartpole. The paper is more conclusive on the atari environments, and studies after the original 
-      paper have pretty unanimously been positive about its prospects.
+      than not know them. At the moment I don't know if we know its flaws. That scares me. 
+      A few people I've discussed this with have anecdotally noted that Double DQN gets lower 
+      top scores in cartpole. The paper is more conclusive on the atari environments.
     </p>
     <div class="grid-container full u-align-left">
       <h4 class="u-align-center">Full Code</h4>
@@ -894,10 +857,9 @@ if __name__ == '__main__':
       <h4 class="u-align-center">In Conclusion</h4>
       <p>This algo is pretty common. And though you took the scenic route, it was only about 7 or so lines of code
         different from vanilla dqn. Thats pretty nice considering the scores. Good job.
-        Now go check out <a href="/index.html">Dueling Deep Q Learning</a>. It's just a little bit harder
+        Now go check out <a href="/index.html">Dueling Deep Q Learning</a>. It's just a little bit harder 
         than this addon. And a bit more interesting. :^)
       </p>
-      <a class="u-align-center" href="/index.html">Tutorial Index</a>
       <p></p>
       <p></p>
     </div>
