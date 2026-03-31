@@ -19,16 +19,16 @@
 
   <!-- CSS
 –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-  <link rel="stylesheet" href="/css/normalize.css" />
-  <link rel="stylesheet" href="/css/barebones.css" />
+  <link rel="stylesheet" href="/learn-drl/css/normalize.css" />
+  <link rel="stylesheet" href="/learn-drl/css/barebones.css" />
 
   <!-- Favicon
 –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <link rel="icon" type="image/png" href="images/favicon-16.png" />
   <!-- Code Highlighting
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-  <link rel="stylesheet" href="/highlightjs/styles/atom-one-dark-reasonable.css" />
-  <script src="/highlightjs/highlight.pack.js"></script>
+  <link rel="stylesheet" href="/learn-drl/highlightjs/styles/atom-one-dark-reasonable.css" />
+  <script src="/learn-drl/highlightjs/highlight.pack.js"></script>
   <script>
     hljs.initHighlightingOnLoad();
   </script>
@@ -36,13 +36,13 @@
 
 <body>
   <div class="grid-container full">
-    <!-- payme section --><a id="payme" href="https://www.paypal.com/donate?business=H8XHGESR5K6MY&item_name=Wegfawefgawefg%27s+Tutorials&currency_code=USD"><img src="/images/payme.gif" width="25%"></a>
+    <!-- payme section --><a id="payme" href="https://www.paypal.com/donate?business=H8XHGESR5K6MY&item_name=Wegfawefgawefg%27s+Tutorials&currency_code=USD"><img src="/learn-drl/images/payme.gif" width="25%"></a>
         <h1>Weg's Tutorials</h1>
     <h2>Prioritized Experience Replay</h2>
     <h3>Algorithmic PTSD</h3>
     <h4>Prerequisites</h4>
-    <p class="u-align-left">The <a href="/index.html#upgrades">"Upgrades"</a> tutorials
-      assume you've completed the <a href="/index.html#foundations">"Foundations"</a> tutorials.
+    <p class="u-align-left">The <a href="/learn-drl/index.html#upgrades">"Upgrades"</a> tutorials
+      assume you've completed the <a href="/learn-drl/index.html#foundations">"Foundations"</a> tutorials.
       If you are comfortable enough with rl to smash cartpole by episode 75, but struggling with target
       networks, td clamping, prioritized experience replay or continous action spaces,
       get ready to <strong>Upgrade</strong> your agents. This is the place you should be.
@@ -172,8 +172,8 @@
     <p>In the very beginning of the very first level of mario there are three pipes.
       Each pipe is taller than the previous.</p>
     <div class="grid-container halves u-align-left">
-      <img src="/tutorials/rl/prioritizedexperiencereplay/pipes.jpg" width=100%>
-      <img src="/tutorials/rl/prioritizedexperiencereplay/pipes2.jpg" width=100%>
+      <img src="/learn-drl/tutorials/rl/prioritizedexperiencereplay/pipes.jpg" width=100%>
+      <img src="/learn-drl/tutorials/rl/prioritizedexperiencereplay/pipes2.jpg" width=100%>
     </div>
     <p>The third pipe is quite tall, and the agent gets stuck there running and bouncing into the pipe until the time
       runs out and it dies. The agent will do this 3 times, and get a gameover. I ran the agent with many different
@@ -355,7 +355,7 @@
 
     return states, actions, rewards, nextStates, dones, batchIndices # returning the indices is NEW</code></pre>
     <p>Which transitions are selected is no longer flat random. Now it's biased random. 
-      You've seen categorical distributions before in the beginning of the <a href="/tutorials/rl/actorcritic/actorcritic.html">actor-critic tutorial</a>.
+      You've seen categorical distributions before in the beginning of the <a href="/learn-drl/tutorials/rl/actorcritic/actorcritic.html">actor-critic tutorial</a>.
     But, basically we put colored marbles into a bag. The number of marbles each transition gets is its priority. 
     Ex: If a transition has a priority of 100 it means it gets 100 marbles of its index in the bag. 
     Then you draw marble until you have enough to fill your batch. There can be repeats. It's totally fine. 
@@ -420,7 +420,7 @@ self.memory.td[memIndices] = td.detach().abs() #   update priorities</code></pre
       Ill graph 10 runs from each, where each run goes until it gets 50 episodes in a row that last for 200 
       steps without dropping the pole.
     </p>
-    <img src="/tutorials/rl/prioritizedexperiencereplay/noexponent.jpg" width=100%>
+    <img src="/learn-drl/tutorials/rl/prioritizedexperiencereplay/noexponent.jpg" width=100%>
     <p>The image is very compressed for phone users, but you can see that the blue agent got higher scores earlier 
       than the orange agent. Wow, that's great. Except theres just one problem. Blue is the agent without prioritized 
       experience replay. Orange is the new code.<br><br>
@@ -491,7 +491,7 @@ the agent is.</p>
 <p>0.5 is just a middle number, but its possible the ideal value is 0.645345 or something.<br>
   Anyways, lets test it.
 </p>
-<img src="/tutorials/rl/prioritizedexperiencereplay/noexponent.jpg" width=100%>
+<img src="/learn-drl/tutorials/rl/prioritizedexperiencereplay/noexponent.jpg" width=100%>
 
       <p>I hope you can see how this solution addresses the problems with the messy solution proposed before.
         Using this continous spectrum of priority is like having an infinite number of tiers in a tiered FIRE-DRILL
@@ -668,8 +668,8 @@ if __name__ == '__main__':
       the agent to try different actions. Regular exploration ensures enough data is collected
       to get the neural network to learn the environments reward function. Mainly, it pushes
       the agent into circumstances it wouldnt find itself in otherwise. Exploration is covered more deeply in the
-      <a href="/tutorials/rl/deepqlearning/deepqlearning.html">DQLearning Tutorial</a> and the
-      <a href="/tutorials/rl/actorcritic/actorcritic.html">Actor Critic Tutorial</a>.
+      <a href="/learn-drl/tutorials/rl/deepqlearning/deepqlearning.html">DQLearning Tutorial</a> and the
+      <a href="/learn-drl/tutorials/rl/actorcritic/actorcritic.html">Actor Critic Tutorial</a>.
       The primary issue with the code as is, is the exploration rate. It doesn't change.
       As the qvalues become more refined, the greedy action is often a better choice for the agent.
       If the exploration rate remains high, then the agent might not get to refine it's strategy.
@@ -1034,7 +1034,7 @@ loss = self.network.loss(td, qValue)
     <p>It's a little more compact, but more importantly other people who look
       at your code will recognize the idioms.<br>
       Also, you may have noticed <strong>gamma</strong> is back, which you might remember from the
-      <a href="/tutorials/rl/actorcritic/actorcritic.html#improving-our-choices-in-life">actor-critic tutorial</a>.
+      <a href="/learn-drl/tutorials/rl/actorcritic/actorcritic.html#improving-our-choices-in-life">actor-critic tutorial</a>.
       I didn't explain it too much then, but basically its a bias towards the present.
       Without it you might get circumstances where the agent could wait indefinitely for some anticipated reward.
       Realistically, that's never going to happen, but hey now you have another hyperparamater to worry about.
@@ -1258,7 +1258,7 @@ if __name__ == '__main__':
       It's time to move on to the dumptruck of upgrades awaiting your agent.<br>
       Good luck.
     </p>
-    <a href="/index.html">Tutorial Index</a>
+    <a href="/learn-drl/index.html">Tutorial Index</a>
     <p></p>
     <p></p>
   </div>

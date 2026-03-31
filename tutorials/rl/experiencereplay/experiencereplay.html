@@ -19,16 +19,16 @@
 
   <!-- CSS
 –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-  <link rel="stylesheet" href="/css/normalize.css" />
-  <link rel="stylesheet" href="/css/barebones.css" />
+  <link rel="stylesheet" href="/learn-drl/css/normalize.css" />
+  <link rel="stylesheet" href="/learn-drl/css/barebones.css" />
 
   <!-- Favicon
 –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <link rel="icon" type="image/png" href="images/favicon-16.png" />
   <!-- Code Highlighting
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-  <link rel="stylesheet" href="/highlightjs/styles/atom-one-dark-reasonable.css" />
-  <script src="/highlightjs/highlight.pack.js"></script>
+  <link rel="stylesheet" href="/learn-drl/highlightjs/styles/atom-one-dark-reasonable.css" />
+  <script src="/learn-drl/highlightjs/highlight.pack.js"></script>
   <script>
     hljs.initHighlightingOnLoad();
   </script>
@@ -36,7 +36,7 @@
 
 <body>
   <div class="grid-container full">
-    <!-- payme section --><a id="payme" href="https://www.paypal.com/donate?business=H8XHGESR5K6MY&item_name=Wegfawefgawefg%27s+Tutorials&currency_code=USD"><img src="/images/payme.gif" width="25%"></a>
+    <!-- payme section --><a id="payme" href="https://www.paypal.com/donate?business=H8XHGESR5K6MY&item_name=Wegfawefgawefg%27s+Tutorials&currency_code=USD"><img src="/learn-drl/images/payme.gif" width="25%"></a>
         <h1>Weg's Tutorials</h1>
     <h2>Experience Replay Tutorial</h2>
     <h3>Your First Add-On</h3>
@@ -57,7 +57,7 @@
     </p>
     <h4>Prerequisites</h4>
     <p class="u-align-left">This tutorial builds onto the naive Deep Q Learning agent from the
-      <a href="/tutorials/rl/deepqlearning/deepqlearning.html">DQN Tutorial</a>. It would be very helpful for
+      <a href="/learn-drl/tutorials/rl/deepqlearning/deepqlearning.html">DQN Tutorial</a>. It would be very helpful for
       understanding
       this one if you read that one. You wont need any additional tools or software that you did not need in
       <strong>that</strong> tutorial.
@@ -173,7 +173,7 @@ ep 20377: high-score     2762.000, score      213.000, last-episode-time  214   
       networks right now.
     </p>
     <div class="grid-container halves u-align-left">
-      <img src="/tutorials/rl/experiencereplay/2.jpg" width=80%>
+      <img src="/learn-drl/tutorials/rl/experiencereplay/2.jpg" width=80%>
       <div class="right">
         <p>In reinforcement learning it works exactly the same way.
           Early layers detect simple patterns. And later layers detect combinations of simpler patterns,
@@ -250,12 +250,12 @@ state = [0.0, 0.0, 0.0, 10000.0] # helicopter</code></pre>
     </p>
     <ul>
       <li>This early layer neuron detects paddles. That's kind of it.
-        <img src="/tutorials/rl/experiencereplay/1paddleDetectingNeuron.jpg" width=100%>
+        <img src="/learn-drl/tutorials/rl/experiencereplay/1paddleDetectingNeuron.jpg" width=100%>
       </li>
       <hr>
       <li>
         This early layer neuron detects the ball.
-        <img src="/tutorials/rl/experiencereplay/2balldetector.jpg" width=100%>
+        <img src="/learn-drl/tutorials/rl/experiencereplay/2balldetector.jpg" width=100%>
         <p></p>
       </li>
       <hr>
@@ -263,12 +263,12 @@ state = [0.0, 0.0, 0.0, 10000.0] # helicopter</code></pre>
         This neuron combines the paddle detecting neuron and the ball detecting one to detect "enemy will hit the
         ball".
 
-        <img src="/tutorials/rl/experiencereplay/3enemywillhitball.jpg" width=100%>
+        <img src="/learn-drl/tutorials/rl/experiencereplay/3enemywillhitball.jpg" width=100%>
       </li>
       <hr>
       <li>
         This neuron seems to be detecting the ball coming at the agent's paddle down and to the right.
-        <img src="/tutorials/rl/experiencereplay/4ballComingAtPaddleDownToRight.jpg" width=100%>
+        <img src="/learn-drl/tutorials/rl/experiencereplay/4ballComingAtPaddleDownToRight.jpg" width=100%>
       </li>
       <hr>
       <li>
@@ -277,30 +277,30 @@ state = [0.0, 0.0, 0.0, 10000.0] # helicopter</code></pre>
         this.
 
 
-        <img src="/tutorials/rl/experiencereplay/5somethingRelatedToenemeyPaddleAndBall.jpg" width=100%>
+        <img src="/learn-drl/tutorials/rl/experiencereplay/5somethingRelatedToenemeyPaddleAndBall.jpg" width=100%>
       </li>
       <hr>
       <li>
         Your guess is as good as mine. Maybe its an apprehensive "Could Miss" neuron.
-        <img src="/tutorials/rl/experiencereplay/6ballGoingToBounceOffWallFromThisAngleQuestionMark.jpg" width=100%>
+        <img src="/learn-drl/tutorials/rl/experiencereplay/6ballGoingToBounceOffWallFromThisAngleQuestionMark.jpg" width=100%>
         <p></p>
       </li>
       <hr>
       <li>
         "Aww yeah I bounced the ball" neuron
-        <img src="/tutorials/rl/experiencereplay/7ibouncedTheBall.jpg" width=100%>
+        <img src="/learn-drl/tutorials/rl/experiencereplay/7ibouncedTheBall.jpg" width=100%>
         <p></p>
       </li>
       <hr>
       <li>
         "Fuck I Missed" neuron. I bet this one is heavily weighted to the q values this state. :^)
-        <img src="/tutorials/rl/experiencereplay/8fuckIMissed.jpg" width=100%>
+        <img src="/learn-drl/tutorials/rl/experiencereplay/8fuckIMissed.jpg" width=100%>
         <p></p>
       </li>
       <hr>
       <li>
         Epic wall bounce detecting neuron? :()
-        <img src="/tutorials/rl/experiencereplay/9epicWallBounce.jpg" width=100%>
+        <img src="/learn-drl/tutorials/rl/experiencereplay/9epicWallBounce.jpg" width=100%>
         <p></p>
       </li>
     </ul>
@@ -1326,7 +1326,7 @@ total samples: 50092, ep 239: high-score     1063.000, score      195.000</code>
       </li>
     </ul>
     <p>If you can answer these questions, there's a good chance that you just might know how to read english.</p>
-    <a class="u-align-center" href="/index.html">Tutorial Hub</a>
+    <a class="u-align-center" href="/learn-drl/index.html">Tutorial Hub</a>
     <p></p>
     <p></p>
   </div>
